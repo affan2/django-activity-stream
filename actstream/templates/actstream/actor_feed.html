@@ -1,0 +1,13 @@
+
+{% load activity_tags i18n %}
+{% block extra_head %}
+{#% if action_list %#}
+<ul>
+{% for action in action_list %}
+    <li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex %}</li>
+{% empty %}
+{% trans "No actions yet" %}
+{% endfor %}
+</ul>
+{#% endif %#}
+{% endblock %}

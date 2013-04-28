@@ -1,8 +1,315 @@
-{% load i18n %}{% if action.actor.get_absolute_url %}<a href="{{ action.actor.get_absolute_url }}">{{ action.actor }}</a>
-{% else %}<a href="{{ action.actor_url }}">{{ action.actor }}</a>{% endif %}
-{{ action.verb }}
-{% if action.target %}
-    {% if action.target.get_absolute_url %}<a href="{{ action.target.get_absolute_url }}">{{ action.target }}</a>
-    {% else %}<a href="{{ action.target_url }}">{{ action.target }}</a>{% endif %}
+{% load i18n %}
+{% load voting_tags %}
+{% load thumbnail %}
+
+{% if action.actor.get_absolute_url %}
+{% block extra_head %}
+<style type="text/css">
+  #action{
+    border:1px solid #1769ff;
+    padding:3px 16px 0 16px;
+    text-overflow:ellipsis;
+    font-size:13px;
+    line-height:1.4;
+    font:normal 13px arial,sans-serif;
+    margin:10px;
+    width:600px;
+  }
+  #timestamp{
+    color: #999;
+    font-family:'lucida grande',tahoma,verdana,arial,sans-serif;
+    direction:ltr;
+    line-height:1.28;
+    text-align: right;
+  }
+
+</style>
+<script type="text/javascript">
+       $(function() {
+            $.ajaxSetup({
+                 beforeSend: function(xhr, settings) {
+                     function getCookie(name) {
+                         var cookieValue = null;
+                         if (document.cookie && document.cookie != '') {
+                             var cookies = document.cookie.split(';');
+                             for (var i = 0; i < cookies.length; i++) {
+                                 var cookie = jQuery.trim(cookies[i]);
+                                 // Does this cookie string begin with the name we want?
+                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
+                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                                 break;
+                             }
+                         }
+                     }
+                     return cookieValue;
+                     }
+                     if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
+                         // Only send the token to relative URLs i.e. locally.
+                         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
+                     }
+                 }
+            });
+    });
+$(document).ready(function(){
+          $('#vendorAlbum{{random}}').click(function() {
+            var add_link = $(this);
+            $('#vendorAlbum{{random}}').html("");
+            var link = add_link.attr('href');
+            $.get(link, {}, function(data) {
+                
+                $('#vendorAlbum{{random}}').html(data);
+            });
+            return false;
+        });
+
+
+    var upCommentsSelector = $('#up{{random}}');  
+    var downCommentsSelector =  $('#down{{ random }}');
+    var clearCommentsSelector = $('#clear{{ random }}');
+    var handler = function() {
+        var add_link = $(this);
+    $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
+           function(data) {
+               if (data.success == true) {
+                   $('#pScore'+'{{random}}').text(data.score.num_up_votes);
+                   $('#nScore'+'{{random}}').text((data.score.num_down_votes));
+               } else {
+                   alert('ERROR: ' + data.error_message);
+               }
+           }, 'json');
+    return false;    
+    }
+    upCommentsSelector.click(handler); 
+    downCommentsSelector.click(handler);
+    clearCommentsSelector.click(handler);
+}); 
+    
+</script>
+{% endblock %}
+
+<a href="{{ action.actor.get_absolute_url }}">
+{% if action.actor.get_profile.profile_photo %}
+<img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}">
+{% elif action.actor.get_profile.image_url %}
+<img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}"> 
 {% endif %}
-{{ action.timestamp|timesince }} {% trans "ago" %}
+
+</a>
+{% else %}
+<a href="{{ action.actor_url }}">
+{% if action.actor.get_profile.profile_photo %}
+<img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}">
+{% elif action.actor.get_profile.image_url %}
+<img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}"> 
+{% endif %}
+</a>
+{% endif %}
+<div id="action">
+  <a href="{{ action.actor.get_absolute_url }}">
+    {{ action.actor }}
+  </a>
+{{ action.verb }}
+{{ action.content }}
+
+
+{% if action.target %}
+    {% if action.target.get_absolute_url %}
+    <a href="{{ action.target.get_absolute_url }}">
+    {% if action.target.get_profile.profile_photo %}
+  <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
+  {% elif action.target.get_profile.image_url %}
+  <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
+  {% endif %}
+    {{ action.target }}
+
+    </a>
+    {% else %}
+    <a href="{{ action.target_url }}">
+    {% if action.target.get_profile.profile_photo %}
+  <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
+  {% elif action.target.get_profile.image_url %}
+  <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
+  {% endif %}    
+      {{ action.target }}
+    </a>
+    {% endif %}
+{% endif %}
+
+
+{% if action.verb == "liked the album" or action.verb == "disliked the album" or  action.verb == "added new album" %}
+            <div class='album'>
+                <div class='album-head'>
+                    <a id="vendorAlbum{{random}}" href="{{ action.target.get_absolute_url }}">
+                    {% if action.target.get_head %}
+                        <p>{% thumbnail action.target.get_head.image "150x150" crop='center' as album_head %}
+                        <img class="preview" {% if action.target.name %} alt="{{ action.target.name }}" {% endif %} src="{{ album_head.url }}">
+                        {% endthumbnail %}</p>
+                        {% score_for_object  action.target as score %}
+                        <a id="up{{random}}" href="/albums/{{ action.target.id }}/up/vote/">
+                            <img src="{{ STATIC_URL }}img/like.png">
+                        </a>
+                        <span id="pScore{{random}}">{{score.num_up_votes}}</span>
+                        <a id="down{{random}}" href="/albums/{{ action.target.id }}/down/vote/">
+                            <img src="{{ STATIC_URL }}img/dislike.png">
+                        </a>
+                        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
+                        <a id="clear{{random}}" href="/albums/{{ action.target.id }}/clear/vote/">Clear</a>
+                        <script type="text/javascript">
+                         /* var getScores = function(){
+                            var url = "/albums/{{ action.target.id }}/up/vote/";
+                            $.get(url,{HTTP_X_REQUESTED:'XMLHttpRequest'},
+                                   function(data) {
+                                       if (data.success == true) {
+                                           $('#pScore'+'albums{{action.target.id}}').text(data.score.num_up_votes);
+                                           $('#nScore'+'albums{{action.target.id}}').text((data.score.num_down_votes)*(-1));
+                                       } else {
+                                           alert('ERROR: ' + data.error_message);
+                                       }
+                                   }, 'json');
+                            }
+                            getScores();
+                                var upAlbumsSelector = $('#'+'up'+'albums{{ action.target.id }}');  
+                                var downAlbumsSelector =  $('#'+'down'+'albums{{ action.target.id }}');
+                                var clearAlbumsSelector = $('#'+'clear'+'albums{{ action.target.id }}');
+                                var handler = function() {
+                                    var add_link = $(this);
+                                $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
+                                       function(data) {
+                                           if (data.success == true) {
+                                               $('#pScore'+'albums{{action.target.id}}').text(data.score.num_up_votes);
+                                               $('#nScore'+'albums{{action.target.id}}').text((data.score.num_down_votes)*(-1));
+                                           } else {
+                                               alert('ERROR: ' + data.error_message);
+                                           }
+                                       }, 'json');
+                                return false;    
+                                }
+                                upAlbumsSelector.click(handler); 
+                                downAlbumsSelector.click(handler);
+                                clearAlbumsSelector.click(handler);*/ 
+                        </script>
+
+                    {% endif %}
+                    </a>
+                </div>
+            </div>
+{% endif %}
+
+{% if action.verb == "liked the photo" or action.verb == "disliked the photo" %}
+<div>
+            
+            {% thumbnail action.target.image "150x150" crop="center" as img %}
+                <a class="thumb{{random}}" rel='gallery-image[ilist]' href="{{ action.target.image.url }}">
+                        <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
+                        {% score_for_object  action.target as score %}
+                        <a id="up{{random}}" href="/images/{{ action.target.id }}/up/vote/">
+                            <img src="{{ STATIC_URL }}img/like.png">
+                        </a>
+                        <span id="pScore{{random}}">{{score.num_up_votes}}</span>
+                        <a id="down{{random}}" href="/images/{{ action.target.id }}/down/vote/">
+                            <img src="{{ STATIC_URL }}img/dislike.png">
+                        </a>
+                        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
+                        <a id="clear{{random}}" href="/images/{{ action.target.id }}/clear/vote/">Clear</a>
+                        {% if action.target.title %}
+                            <br><span class='image-title'>{{ action.target.title }}</span>
+                        {% endif %}   
+                </a>
+                <script type="text/javascript">
+                            $('a.thumb{{random}}').lightBox();
+                </script>            
+            {% endthumbnail %}
+                          <script type="text/javascript">
+                          /*var getScores = function(){
+                            var url = "/images/{{ action.target.id }}/up/vote/";
+                            $.get(url,{HTTP_X_REQUESTED:'XMLHttpRequest'},
+                                   function(data) {
+                                       if (data.success == true) {
+                                           $('#pImageScore'+'{{action.target.id}}').text(data.score.num_up_votes);
+                                           $('#nImageScore'+'{{action.target.id}}').text((data.score.num_down_votes)*(-1));
+                                       } else {
+                                           alert('ERROR: ' + data.error_message);
+                                       }
+                                   }, 'json');
+                            }
+                            getScores();
+                                var upImagesSelector = $('#'+'upImage'+'{{ action.target.id }}');  
+                                var downImagesSelector =  $('#'+'downImage'+'{{ action.target.id }}');
+                                var clearImagesSelector = $('#'+'clearImage'+'{{ action.target.id }}');
+                                var handler = function() {
+                                    var add_link = $(this);
+                                $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
+                                       function(data) {
+                                           if (data.success == true) {
+                                               $('#pImageScore'+'{{action.target.id}}').text(data.score.num_up_votes);
+                                               $('#nImageScore'+'{{action.target.id}}').text((data.score.num_down_votes)*(-1));
+                                           } else {
+                                               alert('ERROR: ' + data.error_message);
+                                           }
+                                       }, 'json');
+                                return false;    
+                                }
+                                upImagesSelector.click(handler); 
+                                downImagesSelector.click(handler);
+                                clearImagesSelector.click(handler); */
+                            </script>            
+            </div>
+{% endif %}
+
+{% if action.action_object %}
+{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" %}
+<p> {{  action.action_object.comment  }} </p>
+{% else %}
+<p>{{ action.action_object }}</p>
+{% endif %}
+{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" %}
+<a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/>
+</br>
+        <a id="up{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
+        <img src="{{ STATIC_URL }}img/like.png">
+        </a>
+        {% score_for_object  action.action_object as score %}
+        <span id="pScore{{random}}">{{score.num_up_votes}}</span>
+        <a id="down{{random}}" href="/comments/{{ action.action_object.id }}/down/vote/"><img src="{{ STATIC_URL }}img/dislike.png"></a>
+        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
+        <a id="clear{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>
+                          <script type="text/javascript">
+                          /*var getScores = function(){
+                            var url = "/comments/{{ action.action_object.id }}/up/vote/";
+                            $.get(url,{HTTP_X_REQUESTED:'XMLHttpRequest'},
+                                   function(data) {
+                                       if (data.success == true) {
+                                           $('#pScore'+'comments{{action.action_object.id}}').text(data.score.num_up_votes);
+                                           $('#nScore'+'comments{{action.action_object.id}}').text((data.score.num_down_votes)*(-1));
+                                       } else {
+                                           alert('ERROR: ' + data.error_message);
+                                       }
+                                   }, 'json');
+                            }
+                            getScores();
+                                var upCommentsSelector = $('#'+'up'+'comments{{ action.action_object.id }}');  
+                                var downCommentsSelector =  $('#'+'down'+'comments{{ action.action_object.id }}');
+                                var clearCommentsSelector = $('#'+'clear'+'comments{{ action.action_object.id }}');
+                                var handler = function() {
+                                    var add_link = $(this);
+                                $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
+                                       function(data) {
+                                           if (data.success == true) {
+                                               $('#pScore'+'comments{{action.action_object.id}}').text(data.score.num_up_votes);
+                                               $('#nScore'+'comments{{action.action_object.id}}').text((data.score.num_down_votes)*(-1));
+                                           } else {
+                                               alert('ERROR: ' + data.error_message);
+                                           }
+                                       }, 'json');
+                                return false;    
+                                }
+                                upCommentsSelector.click(handler); 
+                                downCommentsSelector.click(handler);
+                                clearCommentsSelector.click(handler); */
+                        </script>
+{% endif %}
+{% endif %}
+<div id="timestamp">
+ {{ action.timestamp|timesince }} {% trans "ago" %}
+</div>
+ </div>

@@ -8,7 +8,9 @@ from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
 
 from actstream import actions, models
-
+from actstream.models import Follow
+from django.core.cache import cache
+from django.utils import simplejson
 
 def respond(request, code):
     """
@@ -91,6 +93,103 @@ def detail(request, action_id):
     }, context_instance=RequestContext(request))
 
 
+def actstream_following(request, content_type_id, object_id):
+    from itertools import chain
+    import operator
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+    activity = models.actor_stream(actor)
+    for followedActor in Follow.objects.following(user=actor):
+       stream = models.actor_stream(followedActor) 
+       activity = list(chain(activity, stream))
+
+    activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
+
+    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+       'action_list': activity, 'actor': actor,
+       'ctype': ctype, 'sIndex':0
+    }, context_instance=RequestContext(request))
+
+
+def actstream_following_subset(request, content_type_id, object_id, sIndex, lIndex):
+
+    from itertools import chain
+    import operator
+    
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+
+    activity = cache.get(actor.username)
+    if activity is None: 
+        activity = models.actor_stream(actor)
+
+        for followedActor in Follow.objects.following(user=actor):
+           stream = models.actor_stream(followedActor) 
+           activity = list(chain(activity, stream))
+        activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)   
+        cache.set(actor.username, activity)
+
+    #else:
+    #    return HttpResponse(simplejson.dumps(dict(success=False,
+    #                                          error_message="heyyy")))
+    #activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
+
+    s = (int)(""+sIndex)
+    l = (int)(""+lIndex)
+    activity = activity[s:l]
+    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+       'action_list': activity, 'actor': actor,
+       'ctype': ctype, 'sIndex':s
+    }, context_instance=RequestContext(request))
+
+def actstream_rebuild_cache(request, content_type_id, object_id):
+    from itertools import chain
+    import operator    
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+    activity = models.actor_stream(actor)
+
+    for followedActor in Follow.objects.following(user=actor):
+        stream = models.actor_stream(followedActor) 
+        activity = list(chain(activity, stream))
+
+    activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
+    cache.set(actor.username, activity)
+    return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
+
+def actstream_actor_rebuild_cache(request, content_type_id, object_id):
+    from itertools import chain
+    import operator    
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+    activity = models.actor_stream(actor)
+    activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
+    cache.set(actor.username+"perso", activity)
+    return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
+
+
+def actstream_update_activity(request, content_type_id, object_id):
+    from itertools import chain
+    import operator    
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+    activity = models.actor_stream(actor)
+
+    for followedActor in Follow.objects.following(user=actor):
+        stream = models.actor_stream(followedActor) 
+        activity = list(chain(activity, stream))
+
+    activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
+    lastActivity = cache.get(actor.username)
+    oldIndex = len(activity) - len(lastActivity)
+    cache.set(actor.username, activity)
+  
+    activity = activity[0:oldIndex]
+    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+       'action_list': activity, 'actor': actor,
+       'ctype': ctype, 'sIndex':len(lastActivity) + 1
+    }, context_instance=RequestContext(request))
+
 def actor(request, content_type_id, object_id):
     """
     ``Actor`` focused activity stream for actor defined by ``content_type_id``,
@@ -101,6 +200,37 @@ def actor(request, content_type_id, object_id):
     return render_to_response(('actstream/actor.html', 'activity/actor.html'), {
         'action_list': models.actor_stream(actor), 'actor': actor,
         'ctype': ctype
+    }, context_instance=RequestContext(request))
+
+def json_error_response(error_message):
+    return HttpResponse(simplejson.dumps(dict(success=False,
+                                              error_message=error_message)))
+
+def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
+    """
+    ``Actor`` focused activity stream for actor defined by ``content_type_id``,
+    ``object_id``.
+    """
+    import operator
+
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+
+    activitylist = cache.get(actor.username+"perso")
+
+    if activitylist is None: 
+        activity = models.actor_stream(actor)
+        activitylist = list(activity)
+        activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)   
+        cache.set(actor.username+"perso", activity)
+        #return json_error_response("hellooo")
+    s = (int)(""+sIndex)
+    l = (int)(""+lIndex)
+    activitylist = activitylist[s:l]
+
+    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+       'action_list': activitylist, 'actor': actor,
+       'ctype': ctype, 'sIndex':s
     }, context_instance=RequestContext(request))
 
 
