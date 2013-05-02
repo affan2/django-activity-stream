@@ -145,6 +145,7 @@ $(document).ready(function(){
                         <img class="preview" {% if action.target.name %} alt="{{ action.target.name }}" {% endif %} src="{{ album_head.url }}">
                         {% endthumbnail %}</p>
                         {% score_for_object  action.target as score %}
+                        {% voters_for_object action.target as voters %}
                         <a id="up{{random}}" href="/albums/{{ action.target.id }}/up/vote/">
                             <img src="{{ STATIC_URL }}img/like.png">
                         </a>
@@ -154,6 +155,13 @@ $(document).ready(function(){
                         </a>
                         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
                         <a id="clear{{random}}" href="/albums/{{ action.target.id }}/clear/vote/">Clear</a>
+                        <span id="voterList{{random}}">
+                                {% for voter in voters.voters %}
+                                <a href="{{ voter.get_absolute_url }}">
+                                    {{ voter.username }}
+                                </a>
+                                {% endfor %}
+                        </span>
                         <script type="text/javascript">
                          /* var getScores = function(){
                             var url = "/albums/{{ action.target.id }}/up/vote/";
@@ -202,6 +210,7 @@ $(document).ready(function(){
                 <a class="thumb{{random}}" rel='gallery-image[ilist]' href="{{ action.target.image.url }}">
                         <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
                         {% score_for_object  action.target as score %}
+                        {% voters_for_object action.target as voters %}
                         <a id="up{{random}}" href="/images/{{ action.target.id }}/up/vote/">
                             <img src="{{ STATIC_URL }}img/like.png">
                         </a>
@@ -211,6 +220,15 @@ $(document).ready(function(){
                         </a>
                         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
                         <a id="clear{{random}}" href="/images/{{ action.target.id }}/clear/vote/">Clear</a>
+
+                        <span id="voterList{{random}}">
+                                {% for voter in voters.voters %}
+                                <a href="{{ voter.get_absolute_url }}">
+                                    {{ voter.username }}
+                                </a>
+                                {% endfor %}
+                        </span>
+
                         {% if action.target.title %}
                             <br><span class='image-title'>{{ action.target.title }}</span>
                         {% endif %}   
@@ -269,10 +287,18 @@ $(document).ready(function(){
         <img src="{{ STATIC_URL }}img/like.png">
         </a>
         {% score_for_object  action.action_object as score %}
+        {% voters_for_object action.action_object as voters %}
         <span id="pScore{{random}}">{{score.num_up_votes}}</span>
         <a id="down{{random}}" href="/comments/{{ action.action_object.id }}/down/vote/"><img src="{{ STATIC_URL }}img/dislike.png"></a>
         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
         <a id="clear{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>
+        <span id="voterList{{random}}">
+            {% for voter in voters.voters %}
+            <a href="{{ voter.get_absolute_url }}">
+                 {{ voter.username }}
+            </a>
+            {% endfor %}
+        </span>
                           <script type="text/javascript">
                           /*var getScores = function(){
                             var url = "/comments/{{ action.action_object.id }}/up/vote/";
