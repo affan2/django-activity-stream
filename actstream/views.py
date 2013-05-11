@@ -10,7 +10,8 @@ from django.views.decorators.csrf import csrf_exempt
 from actstream import actions, models
 from actstream.models import Follow
 from django.core.cache import cache
-from django.utils import simplejson
+from actstream import action
+from django.utils.translation import ugettext_lazy as _
 
 def respond(request, code):
     """
@@ -245,3 +246,14 @@ def model(request, content_type_id):
         'action_list': models.model_stream(actor), 'ctype': ctype,
         'actor': ctype
     }, context_instance=RequestContext(request))
+
+def shareAction(request, action_id):
+
+    actionObject = get_object_or_404(models.Action, pk=action_id)
+    action.send(request.user, verb=_('shared'), target=actionObject)
+    if request.is_ajax():
+        return HttpResponse('ok') 
+    else:
+        return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
+                'action': actionObject
+                }, context_instance=RequestContext(request))    

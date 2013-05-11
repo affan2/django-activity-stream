@@ -1,6 +1,7 @@
 {% load i18n %}
 {% load voting_tags %}
 {% load thumbnail %}
+{% load activity_tags %}
 
 {% if action.actor.get_absolute_url %}
 {% block extra_head %}
@@ -51,6 +52,7 @@
             });
     });
 $(document).ready(function(){
+
           $('#vendorAlbum{{random}}').click(function() {
             var add_link = $(this);
             $('#vendorAlbum{{random}}').html("");
@@ -111,6 +113,10 @@ $(document).ready(function(){
 {{ action.verb }}
 {{ action.content }}
 
+{% if action.verb == "shared" %}
+<p>
+{% render_action action.target %}
+{% else %}
 
 {% if action.target %}
     {% if action.target.get_absolute_url %}
@@ -133,6 +139,7 @@ $(document).ready(function(){
       {{ action.target }}
     </a>
     {% endif %}
+{% endif %}
 {% endif %}
 
 
@@ -339,3 +346,12 @@ $(document).ready(function(){
  {{ action.timestamp|timesince }} {% trans "ago" %}
 </div>
  </div>
+ <a id="shareAction" href="{% share_action_url action %}" onclick="
+            var add_link = $(this);
+            var link = add_link.attr('href');
+            $.get(link, {}, function(data) {
+                if(data == 'ok')
+                  alert('shared');
+            });
+            return false;
+">share</a>

@@ -108,6 +108,21 @@ class DisplayAction(AsNode):
         return render_to_string(templates, {'action': action_instance},
             context)
 
+class RenderAction(Node):
+    def __init__(self, action):
+        self.action = Variable(action)
+
+    def render(self, context):
+        action_instance = self.action.resolve(context)
+        templates = [
+            'actstream/%s/action.html' % action_instance.verb.replace(' ', '_'),
+            'actstream/action.html',
+            'activity/%s/action.html' % action_instance.verb.replace(' ', '_'),
+            'activity/action.html',
+        ]
+        return render_to_string(templates, {'action': action_instance},
+            context)
+
 class DisplayFollowerActivitySubsetUrl(AsNode):
 
     def render_result(self, context):
@@ -118,6 +133,15 @@ class DisplayFollowerActivitySubsetUrl(AsNode):
         
         return reverse('actstream_following_subset', kwargs={
             'content_type_id': content_type, 'object_id': actor_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
+
+class ShareActivityUrl(Node):
+    def __init__(self, action):
+        self.action = Variable(action)
+
+    def render(self, context):
+        action_instance = self.action.resolve(context)
+        return reverse('shareAction', kwargs={
+            'action_id':action_instance.pk})
 
 class DisplayActivitySubsetActorUrl(AsNode):
     def render_result(self, context):
@@ -166,6 +190,10 @@ def display_action(parser, token):
         {% display_action action %}
     """
     return DisplayAction.handle_token(parser, token)
+
+def render_action(parser, token):
+    bits = token.split_contents()
+    return RenderAction(bits[1])
 
 
 def is_following(user, actor):
@@ -274,6 +302,10 @@ def following_feedsubset_url(parser, token):
     else:
         return DisplayFollowerActivitySubsetUrl.handle_token(parser, token)
 
+def share_action_url(parser, token):
+    bits = token.split_contents()
+    return ShareActivityUrl(*bits[1:])
+
 def actor_url_subset(parser, token):
     """
     Renders the URL for a particular actor instance
@@ -328,6 +360,7 @@ def activity_dynamic_update(parser, token):
 
 register.filter(is_following)
 register.tag(display_action)
+register.tag(render_action)
 register.tag(follow_url)
 register.tag(follow_all_url)
 register.tag(actor_url)
@@ -337,6 +370,7 @@ register.tag(following_feedsubset_url)
 register.tag(activity_refresh_cache)
 register.tag(activity_actor_refresh_cache)
 register.tag(activity_dynamic_update)
+register.tag(share_action_url)
 
 @register.filter
 def backwards_compatibility_check(template_name):
