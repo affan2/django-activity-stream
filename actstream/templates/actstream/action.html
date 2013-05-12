@@ -52,7 +52,7 @@
             });
     });
 $(document).ready(function(){
-
+          $('#verb{{random}}').linkify();
           $('#vendorAlbum{{random}}').click(function() {
             var add_link = $(this);
             $('#vendorAlbum{{random}}').html("");
@@ -110,7 +110,11 @@ $(document).ready(function(){
   <a href="{{ action.actor.get_absolute_url }}">
     {{ action.actor }}
   </a>
+
+<span id="verb{{random}}">
 {{ action.verb }}
+</span>
+
 {{ action.content }}
 
 {% if action.verb == "shared" %}
@@ -346,6 +350,7 @@ $(document).ready(function(){
  {{ action.timestamp|timesince }} {% trans "ago" %}
 </div>
  </div>
+ {% if action.verb != "shared" and action.actor != request.user %}
  <a id="shareAction" href="{% share_action_url action %}" onclick="
             var add_link = $(this);
             var link = add_link.attr('href');
@@ -355,3 +360,4 @@ $(document).ready(function(){
             });
             return false;
 ">share</a>
+{% endif %}
