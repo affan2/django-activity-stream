@@ -63,7 +63,15 @@ $(document).ready(function(){
             });
             return false;
         });
-
+          $('#deleteAction{{random}}').click(function() {
+            var add_link = $(this);
+            var link = add_link.attr('href');
+            $.get(link, {}, function(data) {
+                if(data == 'ok')
+                  $('#action{{random}}').html("");
+            });
+            return false;
+        });
 
     var upCommentsSelector = $('#up{{random}}');  
     var downCommentsSelector =  $('#down{{ random }}');
@@ -100,6 +108,7 @@ $(document).ready(function(){
 </script>
 {% endblock %}
 
+<div id="action{{random}}">
 <a href="{{ action.actor.get_absolute_url }}">
 {% if action.actor.get_profile.profile_photo %}
 <img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}">
@@ -130,7 +139,9 @@ $(document).ready(function(){
 
 {% if action.verb == "shared" %}
 <p>
-{% render_action action.target %}
+  {% if action.target %}
+      {% render_action action.target %}
+  {% endif %}
 {% else %}
 
 {% if action.target %}
@@ -354,3 +365,7 @@ $(document).ready(function(){
             return false;
 ">share</a>
 {% endif %}
+{% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
+<a id="deleteAction{{random}}" href="{% delete_action_url action %}" style="color:black">x</a>
+{% endif %}
+</div>

@@ -143,6 +143,15 @@ class ShareActivityUrl(Node):
         return reverse('shareAction', kwargs={
             'action_id':action_instance.pk})
 
+class DeleteActivityUrl(Node):
+    def __init__(self, action):
+        self.action = Variable(action)
+
+    def render(self, context):
+        action_instance = self.action.resolve(context)
+        return reverse('deleteAction', kwargs={
+            'action_id':action_instance.pk})
+
 class DisplayActivitySubsetActorUrl(AsNode):
     def render_result(self, context):
         actor_instance = self.args[0].resolve(context)
@@ -306,6 +315,10 @@ def share_action_url(parser, token):
     bits = token.split_contents()
     return ShareActivityUrl(*bits[1:])
 
+def delete_action_url(parser, token):
+    bits = token.split_contents()
+    return DeleteActivityUrl(*bits[1:])
+
 def actor_url_subset(parser, token):
     """
     Renders the URL for a particular actor instance
@@ -358,7 +371,12 @@ def activity_dynamic_update(parser, token):
     else:
         return FollowerActivityDynamicUpdate(*bits[1:])
 
+def get_class_name(obj):
+    return obj.__class__.__name__
+
+
 register.filter(is_following)
+register.filter(get_class_name)
 register.tag(display_action)
 register.tag(render_action)
 register.tag(follow_url)
@@ -371,6 +389,9 @@ register.tag(activity_refresh_cache)
 register.tag(activity_actor_refresh_cache)
 register.tag(activity_dynamic_update)
 register.tag(share_action_url)
+register.tag(delete_action_url)
+
+
 
 @register.filter
 def backwards_compatibility_check(template_name):

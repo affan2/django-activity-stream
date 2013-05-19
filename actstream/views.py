@@ -258,3 +258,26 @@ def shareAction(request, action_id):
         return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
                 'action': actionObject
                 }, context_instance=RequestContext(request))    
+
+
+def deleteAction(request, action_id):
+    if not request.is_ajax():
+        return json_error_response('only supported with AJAX')
+    
+    actionObject = get_object_or_404(models.Action, pk=action_id)
+    """
+        Action can be subaction of shared actions.
+        Find'em and kill.
+    """
+    pActionObect = models.Action.objects.all().filter(target_object_id=actionObject.pk)
+    if pActionObect is not None:
+        for aObject in pActionObect:
+            if aObject.verb == _('shared'):
+                aObject.delete()
+    """
+    now delete the action
+    """
+    actionObject.delete()
+
+    return HttpResponse('ok')
+
