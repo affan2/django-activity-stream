@@ -84,6 +84,17 @@ $(document).ready(function(){
     upCommentsSelector.click(handler); 
     downCommentsSelector.click(handler);
     clearCommentsSelector.click(handler);
+    $('#pScore{{ random }}').click(function() {
+        var w = 700;
+        var h = 500;
+        var left = 100;
+        var top = 100;
+        var name="Friends";
+        var settings = 'height=' + h + ',width=' + w + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=yes,directories=no,status=yes';
+        var url = $(this).attr("href");
+        window.open(url, name, settings);
+        return false;
+    });
 }); 
     
 </script>
@@ -160,19 +171,13 @@ $(document).ready(function(){
                         <a id="up{{random}}" href="/albums/{{ action.target.id }}/up/vote/">
                             <img src="{{ STATIC_URL }}img/like.png">
                         </a>
-                        <span id="pScore{{random}}">{{score.num_up_votes}}</span>
+                        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
                         <a id="down{{random}}" href="/albums/{{ action.target.id }}/down/vote/">
                             <img src="{{ STATIC_URL }}img/dislike.png">
                         </a>
                         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
                         <a id="clear{{random}}" href="/albums/{{ action.target.id }}/clear/vote/">Clear</a>
-                        <span id="voterList{{random}}">
-                                {% for voter in voters.voters %}
-                                <a href="{{ voter.get_absolute_url }}">
-                                    {{ voter.username }}
-                                </a>
-                                {% endfor %}
-                        </span>
+
                         <script type="text/javascript">
                          /* var getScores = function(){
                             var url = "/albums/{{ action.target.id }}/up/vote/";
@@ -225,20 +230,14 @@ $(document).ready(function(){
                         <a id="up{{random}}" href="/images/{{ action.target.id }}/up/vote/">
                             <img src="{{ STATIC_URL }}img/like.png">
                         </a>
-                        <span id="pScore{{random}}">{{score.num_up_votes}}</span>
+                        <span>
+                          <a id="pScore{{random}}"  href="{{ voters }}">{{score.num_up_votes}}</a>
+                        </span>
                         <a id="down{{random}}" href="/images/{{ action.target.id }}/down/vote/">
                             <img src="{{ STATIC_URL }}img/dislike.png">
                         </a>
                         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
                         <a id="clear{{random}}" href="/images/{{ action.target.id }}/clear/vote/">Clear</a>
-
-                        <span id="voterList{{random}}">
-                                {% for voter in voters.voters %}
-                                <a href="{{ voter.get_absolute_url }}">
-                                    {{ voter.username }}
-                                </a>
-                                {% endfor %}
-                        </span>
 
                         {% if action.target.title %}
                             <br><span class='image-title'>{{ action.target.title }}</span>
@@ -299,17 +298,11 @@ $(document).ready(function(){
         </a>
         {% score_for_object  action.action_object as score %}
         {% voters_for_object action.action_object as voters %}
-        <span id="pScore{{random}}">{{score.num_up_votes}}</span>
+        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
         <a id="down{{random}}" href="/comments/{{ action.action_object.id }}/down/vote/"><img src="{{ STATIC_URL }}img/dislike.png"></a>
         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
         <a id="clear{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>
-        <span id="voterList{{random}}">
-            {% for voter in voters.voters %}
-            <a href="{{ voter.get_absolute_url }}">
-                 {{ voter.username }}
-            </a>
-            {% endfor %}
-        </span>
+
                           <script type="text/javascript">
                           /*var getScores = function(){
                             var url = "/comments/{{ action.action_object.id }}/up/vote/";
