@@ -13,6 +13,7 @@ from actstream.models import Follow
 from django.core.cache import cache
 from actstream import action
 from django.utils.translation import ugettext_lazy as _
+from mezzanine.blog.models import BlogPost
 
 def respond(request, code):
     """
@@ -263,21 +264,32 @@ def shareAction(request, action_id):
 def deleteAction(request, action_id):
     if not request.is_ajax():
         return json_error_response('only supported with AJAX')
-    
-    actionObject = get_object_or_404(models.Action, pk=action_id)
-    """
-        Action can be subaction of shared actions.
-        Find'em and kill.
-    """
-    pActionObect = models.Action.objects.all().filter(target_object_id=actionObject.pk)
-    if pActionObect is not None:
-        for aObject in pActionObect:
-            if aObject.verb == _('shared'):
-                aObject.delete()
-    """
-    now delete the action
-    """
-    actionObject.delete()
 
-    return HttpResponse('ok')
+    actionObject = get_object_or_404(models.Action, pk=action_id)
+    blog_posts = BlogPost.objects.published(
+                                     for_user=request.user).select_related()
+    """
+        For now considering blog_posts as a list.
+        Going forward we will restrict the #blogposts to be one per user therefore fetching the first element only is sufficient.
+        Remove this loop then.
+    """
+    blog_post = blog_posts[:1].get()    
+    if (actionObject.actor.__class__.__name__ == "User" and actionObject.actor == request.user) or (actionObject.actor.__class__.__name__ == "BlogPost" and actionObject.actor == blog_post):
+        """
+            Action can be subaction of shared actions.
+            Find'em and kill.
+        """
+        pActionObect = models.Action.objects.all().filter(target_object_id=actionObject.pk)
+        if pActionObect is not None:
+            for aObject in pActionObect:
+                if aObject.verb == _('shared'):
+                    aObject.delete()
+        """
+        now delete the action
+        """
+        actionObject.delete()
+
+        return HttpResponse('ok')
+    else:
+        return json_error_response('Unauthorized operation!! request cannot be completed')
 
