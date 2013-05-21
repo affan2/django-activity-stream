@@ -110,10 +110,16 @@ $(document).ready(function(){
 
 <div id="action{{random}}">
 <a href="{{ action.actor.get_absolute_url }}">
-{% if action.actor.get_profile.profile_photo %}
-<img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}">
-{% elif action.actor.get_profile.image_url %}
-<img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}"> 
+{% if action.actor|get_class_name == "User" %}
+  {% if action.actor.get_profile.profile_photo %}
+  <img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}">
+  {% elif action.actor.get_profile.image_url %}
+  <img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}"> 
+  {% endif %}
+{% elif action.actor|get_class_name == "BlogPost" %}
+  {% thumbnail action.actor.featured_image "90x90" as img %} 
+    <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+  {% endthumbnail %}
 {% endif %}
 
 </a>
