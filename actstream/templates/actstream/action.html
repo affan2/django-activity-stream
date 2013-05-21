@@ -302,12 +302,12 @@ $(document).ready(function(){
 {% endif %}
 
 {% if action.action_object %}
-{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" %}
+{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" %}
 <p> {{  action.action_object.comment  }} </p>
 {% else %}
 <p>{{ action.action_object }}</p>
 {% endif %}
-{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" %}
+{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" %}
 <a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/>
 </br>
         <a id="up{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
