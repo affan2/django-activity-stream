@@ -267,14 +267,15 @@ def deleteAction(request, action_id):
 
     actionObject = get_object_or_404(models.Action, pk=action_id)
     blog_posts = BlogPost.objects.published(
-                                     for_user=request.user).select_related()
+                                     for_user=request.user).select_related().filter(user=request.user)
     """
         For now considering blog_posts as a list.
         Going forward we will restrict the #blogposts to be one per user therefore fetching the first element only is sufficient.
         Remove this loop then.
     """
-    blog_post = blog_posts[:1].get()    
-    if (actionObject.actor.__class__.__name__ == "User" and actionObject.actor == request.user) or (actionObject.actor.__class__.__name__ == "BlogPost" and actionObject.actor == blog_post):
+    if blog_posts:
+        blog_post = blog_posts[0]   
+    if (actionObject.actor.__class__.__name__ == "User" and actionObject.actor == request.user) or (actionObject.actor.__class__.__name__ == "BlogPost" and blog_post and actionObject.actor == blog_post):
         """
             Action can be subaction of shared actions.
             Find'em and kill.
