@@ -303,12 +303,29 @@ $(document).ready(function(){
 
 {% if action.action_object %}
 {% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" %}
-<p> {{  action.action_object.comment  }} </p>
+<p>
+  <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
+{%  if action.action_object.comment != action.action_object.intro %}
+  <span id="expComment{{ random }}" style="display:none;">{{ action.action_object.comment }}</span>
+            <a href="javascript:void(0);" id="moreComment{{ random }}" onClick="
+
+                $('#truncComment{{ random }}').toggle();
+                $('#expComment{{ random }}').toggle();
+
+                if($(this).html() == 'More...')
+                  $(this).html('Less...');
+                else
+                  $(this).html('More...');
+                return false;"
+            >More...</a>
+{% endif %}
+</p>
 {% else %}
 <p>{{ action.action_object }}</p>
 {% endif %}
+
 {% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" %}
-<a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/>
+<!--a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/-->
 </br>
         <a id="up{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
         <img src="{{ STATIC_URL }}img/like.png">
