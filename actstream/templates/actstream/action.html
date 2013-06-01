@@ -2,7 +2,7 @@
 {% load voting_tags %}
 {% load thumbnail %}
 {% load activity_tags %}
-
+{% load comment_tags  %}
 {% if action.actor.get_absolute_url %}
 {% block extra_head %}
 <style type="text/css">
@@ -148,28 +148,33 @@ $(document).ready(function(){
   {% if action.target %}
       {% render_action action.target %}
   {% endif %}
+{% elif action.target and action.verb == "has commented on review" and action.target|get_class_name == "ThreadedComment" %}
+    {% render_comment action.target %}
+{% elif action.target and action.verb == "liked the comment on" and action.target|get_class_name == "ThreadedComment" %}
+    {% render_comment action.target %}
+{% elif action.target and action.verb == "disliked the comment on" and action.target|get_class_name == "ThreadedComment" %}
+    {% render_comment action.target %}
 {% else %}
 
 {% if action.target %}
     {% if action.target.get_absolute_url %}
-    <a href="{{ action.target.get_absolute_url }}">
-    {% if action.target.get_profile.profile_photo %}
-  <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
-  {% elif action.target.get_profile.image_url %}
-  <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
-  {% endif %}
-    {{ action.target }}
-
-    </a>
+        <a href="{{ action.target.get_absolute_url }}">
+          {% if action.target.get_profile.profile_photo %}
+              <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
+          {% elif action.target.get_profile.image_url %}
+             <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
+          {% endif %}
+          {{ action.target }}
+        </a>
     {% else %}
-    <a href="{{ action.target_url }}">
-    {% if action.target.get_profile.profile_photo %}
-  <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
-  {% elif action.target.get_profile.image_url %}
-  <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
-  {% endif %}    
-      {{ action.target }}
-    </a>
+      <a href="{{ action.target_url }}">
+        {% if action.target.get_profile.profile_photo %}
+            <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
+        {% elif action.target.get_profile.image_url %}
+            <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
+        {% endif %}    
+        {{ action.target }}
+      </a>
     {% endif %}
 {% endif %}
 {% endif %}
@@ -302,31 +307,31 @@ $(document).ready(function(){
 {% endif %}
 
 {% if action.action_object %}
-{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" %}
-<p>
-  <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
-{%  if action.action_object.comment != action.action_object.intro %}
-  <span id="expComment{{ random }}" style="display:none;">{{ action.action_object.comment }}</span>
-            <a href="javascript:void(0);" id="moreComment{{ random }}" onClick="
+    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
+      <p>
+        <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
+        {%  if action.action_object.comment != action.action_object.intro %}
+              <span id="expComment{{ random }}" style="display:none;">{{ action.action_object.comment }}</span>
+              <a href="javascript:void(0);" id="moreComment{{ random }}" onClick="
 
-                $('#truncComment{{ random }}').toggle();
-                $('#expComment{{ random }}').toggle();
+                  $('#truncComment{{ random }}').toggle();
+                  $('#expComment{{ random }}').toggle();
 
-                if($(this).html() == 'More...')
-                  $(this).html('Less...');
-                else
-                  $(this).html('More...');
-                return false;"
-            >More...</a>
-{% endif %}
-</p>
-{% else %}
-<p>{{ action.action_object }}</p>
-{% endif %}
+                  if($(this).html() == 'More...')
+                    $(this).html('Less...');
+                  else
+                    $(this).html('More...');
+                  return false;"
+              >More...</a>
+        {% endif %}
+      </p>
+    {% else %}
+      <p>{{ action.action_object }}</p>
+    {% endif %}
 
-{% if action.verb == "has commented on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" %}
-<!--a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/-->
-</br>
+    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on" or action.verb == "disliked the comment on" or "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
+      <!--a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/-->
+    </br>
         <a id="up{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
         <img src="{{ STATIC_URL }}img/like.png">
         </a>
@@ -371,7 +376,29 @@ $(document).ready(function(){
                                 downCommentsSelector.click(handler);
                                 clearCommentsSelector.click(handler); */
                         </script>
-{% endif %}
+      {% endif %}
+
+    {% if action.verb == "liked the comment on" or action.verb == "disliked the comment on" or action.verb == "has commented on review" %}
+        <a href="{% comments_for_obj_url action.target %}" OnClick="
+                var add_link = $(this);
+                $.get(add_link.attr('href'), {}, function(data) {
+                    $('#subcomments{{random}}').html(data);
+                });
+                return false;">get comments</a>
+        <div id="subcomments{{random}}"></div>
+        {% comments_for_review action.target %}
+    {% endif %}
+    {% if action.verb == "has posted a review on" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
+        <a href="{% comments_for_obj_url action.action_object %}" OnClick="
+                var add_link = $(this);
+                $.get(add_link.attr('href'), {}, function(data) {
+                    $('#subcomments{{random}}').html(data);
+                });
+                return false;">get comments</a>
+        <div id="subcomments{{random}}"></div>
+        {% comments_for_review action.action_object %}
+    {% endif %}
+
 {% endif %}
 <div id="timestamp">
  {{ action.timestamp|timesince }} {% trans "ago" %}
