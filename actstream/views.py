@@ -14,6 +14,7 @@ from django.core.cache import cache
 from actstream import action
 from django.utils.translation import ugettext_lazy as _
 from mezzanine.blog.models import BlogPost
+from actstream.models import Action
 
 def respond(request, code):
     """
@@ -103,8 +104,11 @@ def actstream_following(request, content_type_id, object_id):
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
     activity = models.actor_stream(actor)
     for followedActor in Follow.objects.following(user=actor):
-       stream = models.actor_stream(followedActor) 
-       activity = list(chain(activity, stream))
+        target_content_type = ContentType.objects.get_for_model(followedActor)
+        followAction = Action.objects.get(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk )
+        stream = models.actor_stream(followedActor)
+        modStream = [action for action in stream if action.timestamp > followAction.timestamp]
+        activity = list(chain(activity, modStream))
 
     activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
 
@@ -127,8 +131,12 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
         activity = models.actor_stream(actor)
 
         for followedActor in Follow.objects.following(user=actor):
-           stream = models.actor_stream(followedActor) 
-           activity = list(chain(activity, stream))
+            target_content_type = ContentType.objects.get_for_model(followedActor)
+            followAction = Action.objects.get(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk )
+            stream = models.actor_stream(followedActor) 
+            modStream = [action for action in stream if action.timestamp > followAction.timestamp]
+            activity = list(chain(activity, modStream))
+
         activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)   
         cache.set(actor.username, activity)
 
@@ -153,8 +161,11 @@ def actstream_rebuild_cache(request, content_type_id, object_id):
     activity = models.actor_stream(actor)
 
     for followedActor in Follow.objects.following(user=actor):
-        stream = models.actor_stream(followedActor) 
-        activity = list(chain(activity, stream))
+        target_content_type = ContentType.objects.get_for_model(followedActor)
+        followAction = Action.objects.get(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk )
+        stream = models.actor_stream(followedActor)
+        modStream = [action for action in stream if action.timestamp > followAction.timestamp]
+        activity = list(chain(activity, modStream)) 
 
     activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
     cache.set(actor.username, activity)
@@ -179,8 +190,11 @@ def actstream_update_activity(request, content_type_id, object_id):
     activity = models.actor_stream(actor)
 
     for followedActor in Follow.objects.following(user=actor):
-        stream = models.actor_stream(followedActor) 
-        activity = list(chain(activity, stream))
+        target_content_type = ContentType.objects.get_for_model(followedActor)
+        followAction = Action.objects.get(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk )
+        stream = models.actor_stream(followedActor)
+        modStream = [action for action in stream if action.timestamp > followAction.timestamp]
+        activity = list(chain(activity, modStream))
 
     activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
     lastActivity = cache.get(actor.username)
