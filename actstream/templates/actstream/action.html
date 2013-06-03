@@ -52,7 +52,7 @@
             });
     });
 $(document).ready(function(){
-          $('#verb{{random}}').linkify();
+          $('#broadcast{{random}}').linkify();
           $('#vendorAlbum{{random}}').click(function() {
             var add_link = $(this);
             $('#vendorAlbum{{random}}').html("");
@@ -307,7 +307,7 @@ $(document).ready(function(){
 {% endif %}
 
 {% if action.action_object %}
-    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
+    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
       <p>
         <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
         {%  if action.action_object.comment != action.action_object.intro %}
@@ -325,11 +325,22 @@ $(document).ready(function(){
               >More...</a>
         {% endif %}
       </p>
+    {% elif action.verb == "said:" or action.verb == "liked the post" or action.verb == "disliked the post" %}
+      <p><span id="broadcast{{random}}"> {{ action.action_object }}</span></p>
+        <a id="up{{random}}" href="/broadcast/{{ action.action_object.id }}/up/vote/">
+        <img src="{{ STATIC_URL }}img/like.png">
+        </a>
+        {% score_for_object  action.action_object as score %}
+        {% voters_for_object action.action_object as voters %}
+        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
+        <a id="down{{random}}" href="/broadcast/{{ action.action_object.id }}/down/vote/"><img src="{{ STATIC_URL }}img/dislike.png"></a>
+        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
+        <a id="clear{{random}}" href="/broadcast/{{ action.action_object.id }}/clear/vote/">Clear</a>
     {% else %}
       <p>{{ action.action_object }}</p>
     {% endif %}
 
-    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
+    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
       <!--a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/-->
     </br>
         <a id="up{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
