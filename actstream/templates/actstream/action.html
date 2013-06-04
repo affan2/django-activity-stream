@@ -76,6 +76,9 @@ $(document).ready(function(){
     var upCommentsSelector = $('#up{{random}}');  
     var downCommentsSelector =  $('#down{{ random }}');
     var clearCommentsSelector = $('#clear{{ random }}');
+    var upCommentsAlbumSelector = $('#upCommentAlbum{{random}}');  
+    var downCommentsAlbumSelector =  $('#downCommentAlbum{{ random }}');
+    var clearCommentsAlbumSelector = $('#clearCommentAlbum{{ random }}');
     var handler = function() {
         var add_link = $(this);
     $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
@@ -89,10 +92,26 @@ $(document).ready(function(){
            }, 'json');
     return false;    
     }
+    var commentAlbumhandler = function() {
+        var add_link = $(this);
+    $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
+           function(data) {
+               if (data.success == true) {
+                   $('#pScoreCommentAlbum'+'{{random}}').text(data.score.num_up_votes);
+                   $('#nScoreCommentAlbum'+'{{random}}').text((data.score.num_down_votes));
+               } else {
+                   alert('ERROR: ' + data.error_message);
+               }
+           }, 'json');
+    return false;    
+    }
     upCommentsSelector.click(handler); 
     downCommentsSelector.click(handler);
     clearCommentsSelector.click(handler);
-    $('#pScore{{ random }}').click(function() {
+    upCommentsAlbumSelector.click(commentAlbumhandler); 
+    downCommentsAlbumSelector.click(commentAlbumhandler);
+    clearCommentsAlbumSelector.click(commentAlbumhandler);
+    $('#pScore{{ random }}').add($('#pScoreCommentAlbum{{ random }}')).click(function() {
         var w = 700;
         var h = 500;
         var left = 100;
@@ -180,7 +199,7 @@ $(document).ready(function(){
 {% endif %}
 
 
-{% if action.verb == "liked the album" or action.verb == "disliked the album" or  action.verb == "added new album" %}
+{% if action.verb == "liked the album" or action.verb == "disliked the album" or  action.verb == "added new album" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" %}
             <div class='album'>
                 <div class='album-head'>
                     <a id="vendorAlbum{{random}}" href="{{ action.target.get_absolute_url }}">
@@ -387,9 +406,23 @@ $(document).ready(function(){
                                 downCommentsSelector.click(handler);
                                 clearCommentsSelector.click(handler); */
                         </script>
-      {% endif %}
-
-    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has commented on review" %}
+    {% endif %}
+    {% if action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" %}
+                        {% score_for_object  action.action_object as score %}
+                        {% voters_for_object action.action_object as voters %}
+                        <a id="upCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
+                            <img src="{{ STATIC_URL }}img/like.png">
+                        </a>
+                        <span>
+                          <a id="pScoreCommentAlbum{{random}}"  href="{{ voters }}">{{score.num_up_votes}}</a>
+                        </span>
+                        <a id="downCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/down/vote/">
+                            <img src="{{ STATIC_URL }}img/dislike.png">
+                        </a>
+                        <span id="nScoreCommentAlbum{{random}}">{{score.num_down_votes}}</span>
+                        <a id="clearCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>    
+    {% endif %}
+    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has commented on review" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" %}
         <a href="{% comments_for_obj_url action.target %}" OnClick="
                 var add_link = $(this);
                 $.get(add_link.attr('href'), {}, function(data) {
