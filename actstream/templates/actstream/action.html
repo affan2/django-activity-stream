@@ -260,7 +260,7 @@ $(document).ready(function(){
             </div>
 {% endif %}
 
-{% if action.verb == "liked the photo" or action.verb == "disliked the photo" %}
+{% if action.verb == "liked the photo" or action.verb == "disliked the photo" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" %}
 <div>
             
             {% thumbnail action.target.image "150x150" crop="center" as img %}
@@ -326,7 +326,7 @@ $(document).ready(function(){
 {% endif %}
 
 {% if action.action_object %}
-    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the album" %}
+    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" %}
       <p>
         <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
         {%  if action.action_object.comment != action.action_object.intro %}
@@ -407,7 +407,7 @@ $(document).ready(function(){
                                 clearCommentsSelector.click(handler); */
                         </script>
     {% endif %}
-    {% if action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" %}
+    {% if action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" %}
                         {% score_for_object  action.action_object as score %}
                         {% voters_for_object action.action_object as voters %}
                         <a id="upCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
@@ -422,7 +422,7 @@ $(document).ready(function(){
                         <span id="nScoreCommentAlbum{{random}}">{{score.num_down_votes}}</span>
                         <a id="clearCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>    
     {% endif %}
-    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has commented on review" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" %}
+    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has commented on review" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image"%}
         <a href="{% comments_for_obj_url action.target %}" OnClick="
                 var add_link = $(this);
                 $.get(add_link.attr('href'), {}, function(data) {
