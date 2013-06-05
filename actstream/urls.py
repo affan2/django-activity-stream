@@ -52,4 +52,5 @@ urlpatterns = patterns('actstream.views',
     url(r'^shareAction/(?P<action_id>\d+)/$', 'shareAction', name='shareAction'),
     url(r'^deleteAction/(?P<action_id>\d+)/$', 'deleteAction', name='deleteAction'),  
     url(r'^$', 'stream', name='actstream'),
+    url(r'^broadcasters/(?P<content_type_id>\d+)/(?P<object_id>\d+)/$', 'get_broadcasters_info', name='get_broadcasters_info'),
 )

@@ -308,3 +308,11 @@ def deleteAction(request, action_id):
     else:
         return json_error_response('Unauthorized operation!! request cannot be completed')
 
+def get_broadcasters_info(request, content_type_id, object_id):
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    object = get_object_or_404(ctype.model_class(), pk=object_id)
+
+    return render_to_response("actstream/broadcasters.html", {
+        "broadcasters": Action.objects.get_broadcasters(object),
+    }, context_instance=RequestContext(request))
+

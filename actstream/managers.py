@@ -96,6 +96,18 @@ class ActionManager(GFKManager):
         qs = qs.filter(q, **kwargs)
         return qs
 
+    def get_broadcasters(self, object):
+        ctype = ContentType.objects.get_for_model(object)
+        result = self.filter(verb='shared', target_content_type=ctype, target_object_id = object._get_pk_val())
+
+        broadcasters =[] 
+        for actionObject in result:
+           broadcasters.append(actionObject.actor)
+
+        return {
+            'users':broadcasters,
+        }
+
 
 class FollowManager(GFKManager):
     """

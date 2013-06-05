@@ -1,0 +1,25 @@
+{#% extends "base.html" %#}
+{% load i18n %}
+{#% block title %}{% trans "Find Friends" %}{% endblock %#}
+
+{% block content %}
+
+<ul>
+                {% for user in broadcasters.users %}
+                    <li style='list-style-type:None;display: inline;float:left;border-width:2px;border-style:inset;padding:4px;margin:4px;'>
+                        <a href='{{user.get_absolute_url}}'>
+                            {{ user }}
+                        </a>
+                        {% if user.get_profile.profile_photo%}
+                            <img src='{{ user.get_profile.profile_photo.url }}'>
+                        {% elif user.get_profile.image_url %}
+                            <img src='{{ user.get_profile.image_url }}'>
+                        {% else %}
+                            <img src='{{ STATIC_URL }}img/defaultProfilePic.gif'>
+                        {% endif %}
+                    </li>
+                {% endfor %}
+
+</ul>
+
+{% endblock %}

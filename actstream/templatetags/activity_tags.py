@@ -1,7 +1,7 @@
-from actstream.models import Follow
+from actstream.models import Follow, Action
 from django.contrib.contenttypes.models import ContentType
 from django.core.urlresolvers import reverse
-from django.template import Variable, Library, Node, TemplateSyntaxError
+from django.template import Variable, Library, Node, TemplateSyntaxError, resolve_variable, VariableDoesNotExist
 from django.template.base import TemplateDoesNotExist
 from django.template.loader import render_to_string, find_template
 
@@ -143,6 +143,38 @@ class ShareActivityUrl(Node):
         return reverse('shareAction', kwargs={
             'action_id':action_instance.pk})
 
+class ShareActivityCount(Node):
+    def __init__(self, action, context_var):
+        self.action = Variable(action)
+        self.context_var = context_var
+
+    def render(self, context):
+        action_instance = self.action.resolve(context)
+        target_content_type = ContentType.objects.get_for_model(action_instance)
+        context[self.context_var] = Action.objects.filter(verb='shared', target_content_type=target_content_type, target_object_id = action_instance.pk).count()
+        return  ''
+
+class CanShareActivity(Node):
+    def __init__(self, action, context_var):
+        self.action = Variable(action)
+        self.context_var = context_var
+
+    def render(self, context):
+        user = context['request'].user
+        action_instance = self.action.resolve(context)
+        actor_content_type = ContentType.objects.get_for_model(user)
+        target_content_type = ContentType.objects.get_for_model(action_instance)
+        alreadyShared = Action.objects.filter(actor_content_type=actor_content_type,actor_object_id=user._get_pk_val(), verb='shared', target_content_type=target_content_type, target_object_id = action_instance.pk).count()
+        if alreadyShared == 0:
+            if action_instance.verb != "shared" and action_instance.actor != user:
+                context[self.context_var] = 1  
+            else:
+                context[self.context_var] = 0
+        else:
+            context[self.context_var] = 0
+        return ''
+
+
 class DeleteActivityUrl(Node):
     def __init__(self, action):
         self.action = Variable(action)
@@ -189,6 +221,20 @@ class FollowerActivityDynamicUpdate(Node):
         actor_instance = self.actor.resolve(context)
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_update_activity', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
+
+class BroadcastersForObjectNode(Node):
+    def __init__(self, object, context_var):
+        self.object = object
+        self.context_var = context_var
+
+    def render(self, context):
+        try:
+            object = resolve_variable(self.object, context)
+            content_type = ContentType.objects.get_for_model(object).pk
+        except VariableDoesNotExist:
+            return ''
+        context[self.context_var] = reverse('get_broadcasters_info', kwargs={'content_type_id': content_type, 'object_id': object.pk })
+        return ''
 
 def display_action(parser, token):
     """
@@ -315,6 +361,22 @@ def share_action_url(parser, token):
     bits = token.split_contents()
     return ShareActivityUrl(*bits[1:])
 
+def get_share_count(parser, token):
+    bits = token.contents.split()
+    if len(bits) != 4:
+        raise TemplateSyntaxError("'%s' tag takes exactly three arguments" % bits[0])
+    if bits[2] != 'as':
+        raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return ShareActivityCount(bits[1], bits[3])
+
+def can_share_action(parser, token):
+    bits = token.contents.split()
+    if len(bits) != 4:
+        raise TemplateSyntaxError("'%s' tag takes exactly three arguments" % bits[0])
+    if bits[2] != 'as':
+        raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return CanShareActivity(bits[1], bits[3])
+
 def delete_action_url(parser, token):
     bits = token.split_contents()
     return DeleteActivityUrl(*bits[1:])
@@ -371,6 +433,22 @@ def activity_dynamic_update(parser, token):
     else:
         return FollowerActivityDynamicUpdate(*bits[1:])
 
+def do_broadcasters_for_action(parser, token):
+    """
+    Retrieves the list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% broadcasters_for_action widget as voters %}
+    """
+    bits = token.contents.split()
+    if len(bits) != 4:
+        raise template.TemplateSyntaxError("'%s' tag takes exactly three arguments" % bits[0])
+    if bits[2] != 'as':
+        raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return BroadcastersForObjectNode(bits[1], bits[3])
+
 def get_class_name(obj):
     return obj.__class__.__name__
 
@@ -388,9 +466,11 @@ register.tag(following_feedsubset_url)
 register.tag(activity_refresh_cache)
 register.tag(activity_actor_refresh_cache)
 register.tag(activity_dynamic_update)
+register.tag(get_share_count)
 register.tag(share_action_url)
 register.tag(delete_action_url)
-
+register.tag(can_share_action)
+register.tag('broadcasters_for_action', do_broadcasters_for_action)
 
 
 @register.filter

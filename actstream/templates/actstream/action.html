@@ -111,7 +111,7 @@ $(document).ready(function(){
     upCommentsAlbumSelector.click(commentAlbumhandler); 
     downCommentsAlbumSelector.click(commentAlbumhandler);
     clearCommentsAlbumSelector.click(commentAlbumhandler);
-    $('#pScore{{ random }}').add($('#pScoreCommentAlbum{{ random }}')).click(function() {
+    $('#pScore{{ random }}').add($('#pScoreCommentAlbum{{ random }}')).add($('#broadcasters{{random}}')).click(function() {
         var w = 700;
         var h = 500;
         var left = 100;
@@ -448,7 +448,8 @@ $(document).ready(function(){
  {{ action.timestamp|timesince }} {% trans "ago" %}
 </div>
  </div>
- {% if action.verb != "shared" and action.actor != request.user %}
+ {% can_share_action action as canShare %}
+ {% if canShare != 0 %}
  <a id="shareAction" href="{% share_action_url action %}" onclick="
             var add_link = $(this);
             var link = add_link.attr('href');
@@ -461,5 +462,10 @@ $(document).ready(function(){
 {% endif %}
 {% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
 <a id="deleteAction{{random}}" href="{% delete_action_url action %}" style="color:black">x</a>
+{% endif %}
+{% get_share_count action as shareCount %}
+{% broadcasters_for_action action as broadcasters_url %}
+{% if shareCount != 0 %}
+shares: <a id="broadcasters{{random}}" href="{{broadcasters_url}}">{{ shareCount }}</a>
 {% endif %}
 </div>
