@@ -311,8 +311,10 @@ def deleteAction(request, action_id):
 def get_broadcasters_info(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     object = get_object_or_404(ctype.model_class(), pk=object_id)
+    broadcasters = Action.objects.get_broadcasters(object)
+    unique_broadcasters = list(set(broadcasters['users']))
 
     return render_to_response("actstream/broadcasters.html", {
-        "broadcasters": Action.objects.get_broadcasters(object),
+        "broadcasters": unique_broadcasters,
     }, context_instance=RequestContext(request))
 

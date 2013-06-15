@@ -5,7 +5,7 @@
 {% block content %}
 
 <ul>
-                {% for user in broadcasters.users %}
+                {% for user in broadcasters %}
                     <li style='list-style-type:None;display: inline;float:left;border-width:2px;border-style:inset;padding:4px;margin:4px;'>
                         <a href='{{user.get_absolute_url}}'>
                             {{ user }}
