@@ -174,7 +174,7 @@ $(document).ready(function(){
     {% render_comment action.target %}
 {% elif action.target and action.verb == "liked the comment on the review" and action.target|get_class_name == "Review" %}
     {% render_comment action.target %}
-{% elif action.target and action.verb == "disliked the comment on review" and action.target|get_class_name == "Review" %}
+{% elif action.target  and action.verb == "disliked the comment on the review" and action.target|get_class_name == "Review" %}
     {% render_comment action.target %}
 {% elif action.target and action.verb == "has commented on the wish" and action.target|get_class_name == "UserWishRadio" %}
     {% render_wish action.target %}
