@@ -4,6 +4,7 @@
 {% load activity_tags %}
 {% load comment_tags  %}
 {% load userProfile_tags %}
+{% load inbox %}
 
 {% if action.actor.get_absolute_url %}
 {% block extra_head %}
@@ -491,3 +492,14 @@ $(document).ready(function(){
 shares: <a id="broadcasters{{random}}" href="{{broadcasters_url}}">{{ shareCount }}</a>
 {% endif %}
 </div>
+{% if action.actor != request.user %}
+<div id="reportSpam">
+<a href="{% report_spam_url action %}" onclick="var add_link = $(this);
+            var link = add_link.attr('href');
+            $.get(link, {}, function(data) {
+                if(data == 'ok')
+                  alert('Reported');
+            });
+            return false;"><img title="Flag as spam" src="{{STATIC_URL}}img/flag_blue.ico"></a>
+</div>
+{% endif %}
