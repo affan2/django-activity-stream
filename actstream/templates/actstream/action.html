@@ -357,7 +357,9 @@ $(document).ready(function(){
       <p>
         <span id="broadcast{{random}}"> 
           {{ action.action_object.prefix_message }}
+          {% if  action.action_object.blog_category %}
             <a href="{{action.action_object.blog_category.get_absolute_url}}">{{action.action_object.blog_category}}</a>
+          {% endif %}
             </br>
           {{ action.action_object.message }}
         </br>
