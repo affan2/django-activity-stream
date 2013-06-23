@@ -354,12 +354,25 @@ $(document).ready(function(){
         {% endif %}
       </p>
     {% elif action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" %}
-      <p><span id="broadcast{{random}}"> 
+      <p>
+        <span id="broadcast{{random}}"> 
           {{ action.action_object.prefix_message }}
             <a href="{{action.action_object.blog_category.get_absolute_url}}">{{action.action_object.blog_category}}</a>
             </br>
           {{ action.action_object.message }}
+        </br>
+          {% if  action.action_object.wishimage %}
+            {% thumbnail action.action_object.wishimage "500x400" crop="center" as img %} 
+              <a class="wishimage{{random}}" href="{{  action.action_object.wishimage.url }}">
+                <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+              </a> 
+              <script type="text/javascript">
+                  $('a.wishimage{{random}}').lightBox();
+              </script> 
+            {% endthumbnail %}
+          {% endif %}
         </span>
+
       </p>
         <a id="up{{random}}" href="/broadcast/{{ action.action_object.id }}/up/vote/">
         <img src="{{ STATIC_URL }}img/like.png">
