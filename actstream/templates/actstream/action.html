@@ -75,7 +75,7 @@ $(document).ready(function(){
               $('#followpost{{random}}').show();
               $('#unfollowpost{{random}}').hide();
             {% endif %}
-          {% elif action.verb == "has commented on the wish" or action.verb == "has commented on the deal" %}
+          {% elif action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the wish" or action.verb == "disliked the comment on the deal" %}
             {% if action.target and request.user|is_following_post:action.target %} 
               $('#followpost{{random}}').hide();
               $('#unfollowpost{{random}}').show();
@@ -453,15 +453,6 @@ $(document).ready(function(){
                 return false;">get comments</a>
         <div id="subcomments{{random}}"></div>
         {% comments_for_review action.action_object %}
-        {% if action.action_object %}
-          {% if action.verb == "has commented on the wish" or action.verb == "has commented on the deal" %}
-            <a id="unfollowpost{{random}}" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
-            <a id="followpost{{random}}" href="{% url followWish action.target.pk %}" >follow post</a>
-          {% else %}
-            <a id="unfollowpost{{random}}" href="{% url unfollowWish action.action_object.pk %}" >unfollow post</a>
-            <a id="followpost{{random}}" href="{% url followWish action.action_object.pk %}" >follow post</a>
-          {% endif %}
-        {% endif %}
     {% else %}
       <p>{{ action.action_object }}</p>
   {% endif %}
@@ -570,6 +561,18 @@ $(document).ready(function(){
  {{ action.timestamp|timesince }} {% trans "ago" %}
 </div>
  </div>
+     {% if action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" or action.verb == "liked the deal" or action.verb == "disliked the deal" %}
+      {% if action.action_object %}
+              <a id="unfollowpost{{random}}" href="{% url unfollowWish action.action_object.pk %}" >unfollow post</a>
+              <a id="followpost{{random}}" href="{% url followWish action.action_object.pk %}" >follow post</a>
+      {% endif %}
+    {% elif action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the wish" or action.verb == "disliked the comment on the deal" %}
+      {% if action.target %}
+        <a id="unfollowpost{{random}}" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
+        <a id="followpost{{random}}" href="{% url followWish action.target.pk %}" >follow post</a>
+      {% endif %}
+    {% endif %}
+
  {% can_share_action action as canShare %}
  {% if canShare != 0 %}
  <a id="shareAction" href="{% share_action_url action %}" onclick="
