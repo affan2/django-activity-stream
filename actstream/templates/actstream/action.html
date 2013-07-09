@@ -55,6 +55,63 @@
             });
     });
 $(document).ready(function(){
+            $(".imgIframe").click(function(){
+                var oldId = $(this).attr("id");
+                var currentId = oldId.substring(3);
+                pTP = "pTP"+currentId;
+                pDP = "pDP"+currentId;
+                oldId = "#"+oldId;
+                currentId = "#"+currentId;
+                $(oldId).css({'display': 'none'});
+                $(currentId).css({'display': 'block'});
+                $('#'+pTP).css({'width': '495px'});
+                $('#'+pDP).css({'width': '495px'});
+          });
+          {% if action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" or action.verb == "liked the deal" or action.verb == "disliked the deal" %}
+            {% if action.action_object and request.user|is_following_post:action.action_object %} 
+              $('#followpost{{random}}').hide();
+              $('#unfollowpost{{random}}').show();
+            {% else %}
+              $('#followpost{{random}}').show();
+              $('#unfollowpost{{random}}').hide();
+            {% endif %}
+          {% elif action.verb == "has commented on the wish" or action.verb == "has commented on the deal" %}
+            {% if action.target and request.user|is_following_post:action.target %} 
+              $('#followpost{{random}}').hide();
+              $('#unfollowpost{{random}}').show();
+            {% else %}
+              $('#followpost{{random}}').show();
+              $('#unfollowpost{{random}}').hide();
+            {% endif %}
+          {% else %}
+              $('#followpost{{random}}').hide();
+              $('#unfollowpost{{random}}').hide();              
+          {% endif %}
+
+          $('#followpost{{random}}').click(function() {
+            var add_link = $(this);
+            var link = add_link.attr('href');
+            $.get(link, {}, function(data) {
+                if(data == 'ok')
+                {
+                  $('#followpost{{random}}').hide();
+                  $('#unfollowpost{{random}}').show();
+                }
+            });
+            return false;
+        });
+        $('#unfollowpost{{random}}').click(function() {
+            var add_link = $(this);
+            var link = add_link.attr('href');
+            $.get(link, {}, function(data) {
+                if(data == 'ok')
+                {
+                  $('#followpost{{random}}').show();
+                  $('#unfollowpost{{random}}').hide();
+                }
+            });
+            return false;
+        });
           $('#broadcast{{random}}').linkify();
           $('#vendorAlbum{{random}}').click(function() {
             var add_link = $(this);
@@ -176,11 +233,11 @@ $(document).ready(function(){
     {% render_comment action.target %}
 {% elif action.target  and action.verb == "disliked the comment on the review" and action.target|get_class_name == "Review" %}
     {% render_comment action.target %}
-{% elif action.target and action.verb == "has commented on the wish" and action.target|get_class_name == "UserWishRadio" %}
+{% elif action.target and action.verb == "has commented on the wish" or action.verb == "has commented on the deal" and action.target|get_class_name == "UserWishRadio" %}
     {% render_wish action.target %}
-{% elif action.target and action.verb == "liked the comment on the wish" and action.target|get_class_name == "UserWishRadio" %}
+{% elif action.target and action.verb == "liked the comment on the wish" or action.verb == "liked the comment on the deal" and action.target|get_class_name == "UserWishRadio" %}
     {% render_wish action.target %}
-{% elif action.target and action.verb == "disliked the comment on the wish" and action.target|get_class_name == "UserWishRadio" %}
+{% elif action.target and action.verb == "disliked the comment on the wish" or action.verb == "disliked the comment on the deal" and action.target|get_class_name == "UserWishRadio" %}
     {% render_wish action.target %}
 {% else %}
 
@@ -335,7 +392,7 @@ $(document).ready(function(){
 {% endif %}
 
 {% if action.action_object %}
-    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" %}
+    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the deal" %}
       <p>
         <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
         {%  if action.action_object.comment != action.action_object.intro %}
@@ -353,7 +410,7 @@ $(document).ready(function(){
               >More...</a>
         {% endif %}
       </p>
-    {% elif action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" %}
+    {% elif action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" or action.verb == "liked the deal" or action.verb == "disliked the deal"%}
       <p>
         <span id="broadcast{{random}}"> 
           {{ action.action_object.prefix_message }}
@@ -373,8 +430,11 @@ $(document).ready(function(){
               </script> 
             {% endthumbnail %}
           {% endif %}
+          {% autoescape off %}
+            {{action.action_object.urlPreviewContent}}
+          {% endautoescape %}
         </span>
-
+      </br>
       </p>
         <a id="up{{random}}" href="/broadcast/{{ action.action_object.id }}/up/vote/">
         <img src="{{ STATIC_URL }}img/like.png">
@@ -393,6 +453,15 @@ $(document).ready(function(){
                 return false;">get comments</a>
         <div id="subcomments{{random}}"></div>
         {% comments_for_review action.action_object %}
+        {% if action.action_object %}
+          {% if action.verb == "has commented on the wish" or action.verb == "has commented on the deal" %}
+            <a id="unfollowpost{{random}}" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
+            <a id="followpost{{random}}" href="{% url followWish action.target.pk %}" >follow post</a>
+          {% else %}
+            <a id="unfollowpost{{random}}" href="{% url unfollowWish action.action_object.pk %}" >unfollow post</a>
+            <a id="followpost{{random}}" href="{% url followWish action.action_object.pk %}" >follow post</a>
+          {% endif %}
+        {% endif %}
     {% else %}
       <p>{{ action.action_object }}</p>
   {% endif %}
@@ -460,7 +529,7 @@ $(document).ready(function(){
                                 clearCommentsSelector.click(handler); */
                         </script>
     {% endif %}
-    {% if action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" %}
+    {% if action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the deal" %}
                         {% score_for_object  action.action_object as score %}
                         {% voters_for_object action.action_object as voters %}
                         <a id="upCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
@@ -475,7 +544,7 @@ $(document).ready(function(){
                         <span id="nScoreCommentAlbum{{random}}">{{score.num_down_votes}}</span>
                         <a id="clearCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>    
     {% endif %}
-    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has commented on review" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" %}
+    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has commented on review" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the deal" %}
         <a href="{% comments_for_obj_url action.target %}" OnClick="
                 var add_link = $(this);
                 $.get(add_link.attr('href'), {}, function(data) {
