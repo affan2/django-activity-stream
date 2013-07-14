@@ -453,6 +453,15 @@ def get_class_name(obj):
     return obj.__class__.__name__
 
 
+@register.inclusion_tag("actstream/render_album.html", takes_context=True)
+def render_album(context, album):
+    
+    context.update({
+        "image_list": album.images.all().order_by('-created'),
+    })
+    return context
+
+
 register.filter(is_following)
 register.filter(get_class_name)
 register.tag(display_action)

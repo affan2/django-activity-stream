@@ -265,14 +265,12 @@ $(document).ready(function(){
 {% endif %}
 
 
-{% if action.verb == "liked the album" or action.verb == "disliked the album" or  action.verb == "added new album" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" %}
+{% if action.verb == "liked the album" or action.verb == "disliked the album" or  action.verb == "added new album" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "added new images to the album" %}
             <div class='album'>
                 <div class='album-head'>
-                    <a id="vendorAlbum{{random}}" href="{{ action.target.get_absolute_url }}">
+                    <!--a id="vendorAlbum{{random}}" href="{{ action.target.get_absolute_url }}"-->
                     {% if action.target.get_head %}
-                        <p>{% thumbnail action.target.get_head.image "150x150" crop='center' as album_head %}
-                        <img class="preview" {% if action.target.name %} alt="{{ action.target.name }}" {% endif %} src="{{ album_head.url }}">
-                        {% endthumbnail %}</p>
+                        {% render_album action.target %}
                         {% score_for_object  action.target as score %}
                         {% voters_for_object action.target as voters %}
                         <a id="up{{random}}" href="/albums/{{ action.target.id }}/up/vote/">
@@ -284,44 +282,16 @@ $(document).ready(function(){
                         </a>
                         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
                         <a id="clear{{random}}" href="/albums/{{ action.target.id }}/clear/vote/">Clear</a>
-
-                        <script type="text/javascript">
-                         /* var getScores = function(){
-                            var url = "/albums/{{ action.target.id }}/up/vote/";
-                            $.get(url,{HTTP_X_REQUESTED:'XMLHttpRequest'},
-                                   function(data) {
-                                       if (data.success == true) {
-                                           $('#pScore'+'albums{{action.target.id}}').text(data.score.num_up_votes);
-                                           $('#nScore'+'albums{{action.target.id}}').text((data.score.num_down_votes)*(-1));
-                                       } else {
-                                           alert('ERROR: ' + data.error_message);
-                                       }
-                                   }, 'json');
-                            }
-                            getScores();
-                                var upAlbumsSelector = $('#'+'up'+'albums{{ action.target.id }}');  
-                                var downAlbumsSelector =  $('#'+'down'+'albums{{ action.target.id }}');
-                                var clearAlbumsSelector = $('#'+'clear'+'albums{{ action.target.id }}');
-                                var handler = function() {
-                                    var add_link = $(this);
-                                $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
-                                       function(data) {
-                                           if (data.success == true) {
-                                               $('#pScore'+'albums{{action.target.id}}').text(data.score.num_up_votes);
-                                               $('#nScore'+'albums{{action.target.id}}').text((data.score.num_down_votes)*(-1));
-                                           } else {
-                                               alert('ERROR: ' + data.error_message);
-                                           }
-                                       }, 'json');
-                                return false;    
-                                }
-                                upAlbumsSelector.click(handler); 
-                                downAlbumsSelector.click(handler);
-                                clearAlbumsSelector.click(handler);*/ 
-                        </script>
-
+                        <a href="{% comments_for_obj_url action.target %}" OnClick="
+                                var add_link = $(this);
+                                $.get(add_link.attr('href'), {}, function(data) {
+                                    $('#subcomments{{random}}').html(data);
+                                });
+                                return false;">get comments</a>
+                        <div id="subcomments{{random}}"></div>
+                        {% comments_for_review action.target %}
                     {% endif %}
-                    </a>
+                    <!--/a-->
                 </div>
             </div>
 {% endif %}
@@ -354,40 +324,7 @@ $(document).ready(function(){
                             $('a.thumb{{random}}').lightBox();
                 </script>            
             {% endthumbnail %}
-                          <script type="text/javascript">
-                          /*var getScores = function(){
-                            var url = "/images/{{ action.target.id }}/up/vote/";
-                            $.get(url,{HTTP_X_REQUESTED:'XMLHttpRequest'},
-                                   function(data) {
-                                       if (data.success == true) {
-                                           $('#pImageScore'+'{{action.target.id}}').text(data.score.num_up_votes);
-                                           $('#nImageScore'+'{{action.target.id}}').text((data.score.num_down_votes)*(-1));
-                                       } else {
-                                           alert('ERROR: ' + data.error_message);
-                                       }
-                                   }, 'json');
-                            }
-                            getScores();
-                                var upImagesSelector = $('#'+'upImage'+'{{ action.target.id }}');  
-                                var downImagesSelector =  $('#'+'downImage'+'{{ action.target.id }}');
-                                var clearImagesSelector = $('#'+'clearImage'+'{{ action.target.id }}');
-                                var handler = function() {
-                                    var add_link = $(this);
-                                $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
-                                       function(data) {
-                                           if (data.success == true) {
-                                               $('#pImageScore'+'{{action.target.id}}').text(data.score.num_up_votes);
-                                               $('#nImageScore'+'{{action.target.id}}').text((data.score.num_down_votes)*(-1));
-                                           } else {
-                                               alert('ERROR: ' + data.error_message);
-                                           }
-                                       }, 'json');
-                                return false;    
-                                }
-                                upImagesSelector.click(handler); 
-                                downImagesSelector.click(handler);
-                                clearImagesSelector.click(handler); */
-                            </script>            
+           
             </div>
 {% endif %}
 
@@ -485,40 +422,6 @@ $(document).ready(function(){
         <span id="nScore{{random}}">{{score.num_down_votes}}</span>
         <a id="clear{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>
 
-                          <script type="text/javascript">
-                          /*var getScores = function(){
-                            var url = "/comments/{{ action.action_object.id }}/up/vote/";
-                            $.get(url,{HTTP_X_REQUESTED:'XMLHttpRequest'},
-                                   function(data) {
-                                       if (data.success == true) {
-                                           $('#pScore'+'comments{{action.action_object.id}}').text(data.score.num_up_votes);
-                                           $('#nScore'+'comments{{action.action_object.id}}').text((data.score.num_down_votes)*(-1));
-                                       } else {
-                                           alert('ERROR: ' + data.error_message);
-                                       }
-                                   }, 'json');
-                            }
-                            getScores();
-                                var upCommentsSelector = $('#'+'up'+'comments{{ action.action_object.id }}');  
-                                var downCommentsSelector =  $('#'+'down'+'comments{{ action.action_object.id }}');
-                                var clearCommentsSelector = $('#'+'clear'+'comments{{ action.action_object.id }}');
-                                var handler = function() {
-                                    var add_link = $(this);
-                                $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
-                                       function(data) {
-                                           if (data.success == true) {
-                                               $('#pScore'+'comments{{action.action_object.id}}').text(data.score.num_up_votes);
-                                               $('#nScore'+'comments{{action.action_object.id}}').text((data.score.num_down_votes)*(-1));
-                                           } else {
-                                               alert('ERROR: ' + data.error_message);
-                                           }
-                                       }, 'json');
-                                return false;    
-                                }
-                                upCommentsSelector.click(handler); 
-                                downCommentsSelector.click(handler);
-                                clearCommentsSelector.click(handler); */
-                        </script>
     {% endif %}
     {% if action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the deal" %}
                         {% score_for_object  action.action_object as score %}

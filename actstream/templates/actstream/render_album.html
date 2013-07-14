@@ -1,0 +1,124 @@
+{% extends "imagestore/base.html" %}
+{% load i18n %}
+{% load thumbnail %}
+{% load voting_tags %}
+{% load comment_tags %}
+{% load url from future %}
+{% load inbox %}
+
+{% block jqueryImage %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $('a.image_in_feed').lightBox();
+});
+</script>
+{% endblock %}
+
+{% block content %}
+		{% if image_list.count == 1 %}
+        {% with image_list|first as image %}
+            {% thumbnail image.image "500x400" crop="center" as im %}
+                <a class="image_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}">
+                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+				</a>
+                <a href="{% include "imagestore/image-href.html" %}">
+                    {% if image.title %}
+                        <br><span class='image-title'>{{ image.title }}</span>
+                    {% else %}
+                        {% trans 'Info' %}
+                    {% endif %}
+                </a>
+            {% endthumbnail %}	
+        {% endwith %}	
+		{% elif image_list.count == 2 %}
+        <div style="width:500px;height:250px;">
+            {% for image in image_list %}
+                <div style="float:left;">
+                    {% thumbnail image.image "250x200" crop="center" as im %}
+                        <a class="image_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}">
+                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+                        </a>
+                        <a href="{% include "imagestore/image-href.html" %}">
+                            {% if image.title %}
+                                <br><span class='image-title'>{{ image.title }}</span>
+                            {% else %}
+                                {% trans 'Info' %}
+                            {% endif %}
+                        </a>
+                    {% endthumbnail %}
+                </div>
+            {% endfor %}         
+        </div>
+        {% elif image_list.count == 3 %}
+                {% with image_list|first as image%}
+                    {% thumbnail image.image "500x400" crop="center" as im %}
+                        <a class="image_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}">
+                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+                        </a>
+                        <a href="{% include "imagestore/image-href.html" %}">
+                            {% if image.title %}
+                                <br><span class='image-title'>{{ image.title }}</span>
+                            {% else %}
+                                {% trans 'Info' %}
+                            {% endif %}
+                        </a>
+                    {% endthumbnail %}  
+                {% endwith %}
+                <div style="width:500px;height:250px;">
+                    {% for image in image_list %}
+                        {% if forloop.counter > 1 %}
+                            <div style="float:left;">
+                                {% thumbnail image.image "250x200" crop="center" as im %}
+                                    <a class="image_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}">
+                                        <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+                                    </a>
+                                    <a href="{% include "imagestore/image-href.html" %}">
+                                        {% if image.title %}
+                                            <br><span class='image-title'>{{ image.title }}</span>
+                                        {% else %}
+                                            {% trans 'Info' %}
+                                        {% endif %}
+                                    </a>
+                                {% endthumbnail %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}         
+                </div>
+        {% elif image_list.count >= 4 %}
+                {% with image_list|first as image%}
+                    {% thumbnail image.image "500x400" crop="center" as im %}
+                        <a class="image_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}">
+                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+                        </a>
+                        <a href="{% include "imagestore/image-href.html" %}">
+                            {% if image.title %}
+                                <br><span class='image-title'>{{ image.title }}</span>
+                            {% else %}
+                                {% trans 'Info' %}
+                            {% endif %}
+                        </a>
+                    {% endthumbnail %}  
+                {% endwith %}
+                <div style="width:500px;height:150px;">
+                    {% for image in image_list %}
+                        {% if forloop.counter > 1 and forloop.counter < 5 %}
+                            <div style="float:left;">
+                                {% thumbnail image.image "160x150" crop="center" as im %}
+                                    <a class="image_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}">
+                                        <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+                                    </a>
+                                    <a href="{% include "imagestore/image-href.html" %}">
+                                        {% if image.title %}
+                                            <br><span class='image-title'>{{ image.title }}</span>
+                                        {% else %}
+                                            {% trans 'Info' %}
+                                        {% endif %}
+                                    </a>
+                                {% endthumbnail %}
+                            </div>
+                        {% endif %}
+                    {% endfor %}         
+                </div>
+        {% endif %}
+    </div>
+ {% endblock %}
