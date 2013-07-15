@@ -221,24 +221,26 @@ def actstream_update_activity(request, content_type_id, object_id):
     activity = actor.actor_actions.public()
 
     for followedActor in Follow.objects.following(user=actor):
-        target_content_type = ContentType.objects.get_for_model(followedActor)
-        prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
-        followAction = None
-        if prevFollowActions:
-            followAction =  prevFollowActions[0]
-        if followAction:
-            stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
-            activity = activity | stream
-        
-        if not isinstance(followedActor, User):
-            _follow = _Follow.objects.get_follows(followedActor)
-            if _follow:     
-                follow = _follow.get(user=actor)
-                if follow:        
-                    stream = models.action_object_stream(followedActor, timestamp__gte = follow.datetime )
-                    activity = activity | stream 
-                    stream = models.target_stream(followedActor, timestamp__gte = follow.datetime )
-                    activity = activity | stream
+    	if followedActor:
+	        target_content_type = ContentType.objects.get_for_model(followedActor)
+	        prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
+	        followAction = None
+	        if prevFollowActions:
+	            followAction =  prevFollowActions[0]
+	        if followAction:
+	            stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
+	            activity = activity | stream
+	        
+	        if not isinstance(followedActor, User):
+	            _follow = _Follow.objects.get_follows(followedActor)
+	            if _follow:     
+	                follow = _follow.get(user=actor)
+	                if follow:        
+	                    stream = models.action_object_stream(followedActor, timestamp__gte = follow.datetime )
+	                    activity = activity | stream 
+	                    stream = models.target_stream(followedActor, timestamp__gte = follow.datetime )
+	                    activity = activity | stream
+
     activity =  activity.order_by('-timestamp')
 
     lastActivity = cache.get(actor.username)
