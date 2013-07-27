@@ -491,7 +491,9 @@ class GetListOfBatchedActionIDs(Node):
         try:
             user = context['request'].user
             action_id_maps = cache.get(user.username+"batched_actions")
-            action_id_list = action_id_maps.values()
+            action_id_list = []
+            if action_id_maps:
+                action_id_list = action_id_maps.values()
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = list(itertools.chain(*action_id_list))
