@@ -3,10 +3,26 @@
 {% block extra_head %}
 {#% if action_list %#}
 <ul>
+
+{% get_list_of_batched_action_ids as batched_ids %}
+
 {% for action in action_list %}
-    <li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex %}</li>
-{% empty %}
-{% trans "No actions yet" %}
+	{% if action.id  not in batched_ids %}
+		{% with action.id as action_id %}
+				{% if batched_actions %}
+					{% with batched_actions|get_value_from_dict:action_id as batched_action_ids_list %}
+						{#{action_id}}:{{batched_action_ids_list}#}
+	    				<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex batched_actions=batched_action_ids_list %}</li>
+	    			{% endwith %}
+	    		{% else %}
+	    				<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex  %}</li>
+	    		{% endif %}
+
+    	{% endwith %}
+	{% endif %}
+	{% empty %}
+		{% trans "No actions yet" %}
+
 {% endfor %}
 </ul>
 {#% endif %#}

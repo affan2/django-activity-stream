@@ -40,7 +40,7 @@ def follow(user, obj, send_action=True, actor_only=True):
         content_type=ContentType.objects.get_for_model(obj),
         actor_only=actor_only)
     if send_action and created:
-        action.send(user, verb=_('started following'), target=obj)
+        action.send(user, verb=_('started following'), target=obj, batch_time_minutes=30, is_batchable=True)
     return follow
 
 
@@ -96,7 +96,9 @@ def action_handler(verb, **kwargs):
         verb=unicode(verb),
         public=bool(kwargs.pop('public', True)),
         description=kwargs.pop('description', None),
-        timestamp=kwargs.pop('timestamp', now())
+        timestamp=kwargs.pop('timestamp', now()),
+        batch_time_minutes=kwargs.pop('timestamp', 30),
+        is_batchable=kwargs.pop('is_batchable', False)
     )
 
     for opt in ('target', 'action_object'):

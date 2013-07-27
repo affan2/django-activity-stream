@@ -4,6 +4,8 @@ from django.core.urlresolvers import reverse
 from django.template import Variable, Library, Node, TemplateSyntaxError, resolve_variable, VariableDoesNotExist
 from django.template.base import TemplateDoesNotExist
 from django.template.loader import render_to_string, find_template
+from django.core.cache import cache
+import itertools
 
 
 register = Library()
@@ -461,6 +463,100 @@ def render_album(context, album):
     })
     return context
 
+@register.filter
+def get_value_from_dict(dictionary, key):
+    return dictionary.get(key)
+
+def do_get_list_of_batched_action_ids(parser, token):
+    """
+    Retrieves the list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% do_get_list_of_batched_action_ids as voters %}
+    """
+    bits = token.contents.split()
+    if len(bits) != 3:
+        raise template.TemplateSyntaxError("'%s' tag takes exactly two arguments" % bits[0])
+    if bits[1] != 'as':
+        raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return GetListOfBatchedActionIDs(bits[2])
+
+class GetListOfBatchedActionIDs(Node):
+    def __init__(self, context_var):
+        self.context_var = context_var
+
+    def render(self, context):
+        try:
+            user = context['request'].user
+            action_id_maps = cache.get(user.username+"batched_actions")
+            action_id_list = action_id_maps.values()
+        except VariableDoesNotExist:
+            return ''
+        context[self.context_var] = list(itertools.chain(*action_id_list))
+        return ''
+
+def do_get_action_target(parser, token):
+    """
+    Retrieves the list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% do_get_list_of_batched_action_ids as voters %}
+    """
+    bits = token.contents.split()
+    if len(bits) != 4:
+        raise TemplateSyntaxError("'%s' tag takes exactly two arguments" % bits[0])
+    if bits[2] != 'as':
+        raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return GetActionTarget(bits[1],bits[3])
+
+class GetActionTarget(Node):
+    def __init__(self, action_id, context_var):
+        self.action_id = action_id
+        self.context_var = context_var
+
+    def render(self, context):
+        try:
+            action_id = resolve_variable(self.action_id, context)
+            action_object = Action.objects.get(id=action_id)
+        except VariableDoesNotExist:
+            return ''
+        context[self.context_var] = action_object.target
+        return ''
+
+def do_get_action_actor(parser, token):
+    """
+    Retrieves the list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% do_get_list_of_batched_action_ids as voters %}
+    """
+    bits = token.contents.split()
+    if len(bits) != 4:
+        raise TemplateSyntaxError("'%s' tag takes exactly two arguments" % bits[0])
+    if bits[2] != 'as':
+        raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return GetActionActor(bits[1],bits[3])
+
+class GetActionActor(Node):
+    def __init__(self, action_id, context_var):
+        self.action_id = action_id
+        self.context_var = context_var
+
+    def render(self, context):
+        try:
+            action_id = resolve_variable(self.action_id, context)
+            action_object = Action.objects.get(id=action_id)
+        except VariableDoesNotExist:
+            return ''
+        context[self.context_var] = action_object.actor
+        return ''
+
 
 register.filter(is_following)
 register.filter(get_class_name)
@@ -480,7 +576,9 @@ register.tag(share_action_url)
 register.tag(delete_action_url)
 register.tag(can_share_action)
 register.tag('broadcasters_for_action', do_broadcasters_for_action)
-
+register.tag('get_list_of_batched_action_ids', do_get_list_of_batched_action_ids)
+register.tag('get_action_target',do_get_action_target)
+register.tag('get_action_actor',do_get_action_actor)
 
 @register.filter
 def backwards_compatibility_check(template_name):

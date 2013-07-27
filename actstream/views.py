@@ -16,6 +16,17 @@ from django.utils.translation import ugettext_lazy as _
 from mezzanine.blog.models import BlogPost
 from actstream.models import Action
 from follow.models import Follow as _Follow
+from datetime import timedelta
+import datetime
+try:
+    from django.utils import timezone
+    now = timezone.now
+except ImportError:
+    from datetime import datetime
+    now = datetime.now
+import itertools
+
+ACTIVITY_DEFAULT_BATCH_TIME = 30
 
 def respond(request, code):
     """
@@ -137,31 +148,31 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
 
-    activity = cache.get(actor.username)
-    if activity is None: 
-        activity = actor.actor_actions.public()
+    activity_queryset = None#cache.get(actor.username)
+    if activity_queryset is None:    	
+        activity_queryset = actor.actor_actions.public()
 
         for followedActor in Follow.objects.following(user=actor):
             target_content_type = ContentType.objects.get_for_model(followedActor)
-            prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
+            prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-timestamp')
             followAction = None
             if prevFollowActions:
                 followAction =  prevFollowActions[0]
             if followAction:
                 stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
-                activity = activity | stream 
+                activity_queryset = activity_queryset | stream 
             if not isinstance(followedActor, User):           
                 _follow = _Follow.objects.get_follows(followedActor)
                 if _follow:     
                     follow = _follow.get(user=actor)
                     if follow:        
                         stream = models.action_object_stream(followedActor, timestamp__gte = follow.datetime )
-                        activity = activity | stream 
+                        activity_queryset = activity_queryset | stream 
                         stream = models.target_stream(followedActor, timestamp__gte = follow.datetime )
-                        activity = activity | stream
+                        activity_queryset = activity_queryset | stream
 
-        activity =  activity.order_by('-timestamp')  
-        cache.set(actor.username, activity)
+        activity_queryset =  activity_queryset.order_by('-timestamp')  
+        #cache.set(actor.username, activity_queryset)
 
     #else:
     #    return HttpResponse(simplejson.dumps(dict(success=False,
@@ -170,15 +181,64 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
 
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
-    activity = activity[s:l]
+    activities = activity_queryset[s:l]
+
+    batched_actions = cache.get(request.user.username+"batched_actions")
+    if not batched_actions:
+        batched_actions = dict()
+
+    #activity_batch_map = dict()
+    
+
+    for activity in activities:
+        if activity.is_batchable:
+            is_batched=False
+            
+            for value in batched_actions.values():
+                if activity.id in value:
+                    is_batched=True
+            if not is_batched:
+                batch_minutes = activity.batch_time_minutes
+                if not batch_minutes:
+                    batch_minutes = ACTIVITY_DEFAULT_BATCH_TIME
+                #cutoff_time = datetime.datetime.now()-timedelta(minutes=batch_minutes)
+                cutoff_time = activity.timestamp+timedelta(minutes=batch_minutes)
+                groupable_activities = None
+
+                if activity.verb == "liked the deal" or activity.verb == "liked the wish":
+                    actor_content_type = ContentType.objects.get_for_model(activity.actor)
+                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time, timestamp__gt=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,action_object_content_type=activity.action_object_content_type, action_object_object_id=activity.action_object.id ).exclude(id=activity.id)
+                
+                elif activity.verb == "started following":
+                    actor_content_type = ContentType.objects.get_for_model(activity.actor)
+                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time,timestamp__gt=activity.timestamp, actor_content_type=actor_content_type, actor_object_id=activity.actor.pk, verb=activity.verb,target_content_type=activity.target_content_type ).exclude(id=activity.id)
+         
+                else: 
+                    actor_content_type = ContentType.objects.get_for_model(activity.actor)
+                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time, timestamp__gt=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,target_content_type=activity.target_content_type, target_object_id=activity.target.id ).exclude(id=activity.id)
+                
+                for gact in groupable_activities:
+                    if activity.id in batched_actions:
+                        if gact.id not in batched_actions[activity.id]:
+                            batched_actions[activity.id].append(gact.id)
+                    else:
+                        batched_actions[activity.id] =  [gact.id]
+
+                                                        
+
+    cache.set(request.user.username+"batched_actions", batched_actions)
+
     return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
-       'action_list': activity, 'actor': actor,
-       'ctype': ctype, 'sIndex':s
+       'action_list': activities, 'actor': actor,
+       'ctype': ctype, 'sIndex':s,
+       'batched_actions':batched_actions,
     }, context_instance=RequestContext(request))
 
 def actstream_rebuild_cache(request, content_type_id, object_id):
     from itertools import chain
-    import operator    
+    import operator 
+
+    cache.delete(request.user.username+"batched_actions")      
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
     activity = actor.actor_actions.public()

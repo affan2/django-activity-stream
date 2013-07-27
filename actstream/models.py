@@ -93,6 +93,12 @@ class Action(models.Model):
 
     public = models.BooleanField(default=True)
 
+    batch_time_minutes = models.IntegerField(_("batch time in minutes"),
+                                             null=True,
+                                             blank=True)
+
+    is_batchable = models.BooleanField(default=False)
+
     objects = actstream_settings.get_action_manager()
 
     class Meta:
