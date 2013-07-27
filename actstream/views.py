@@ -7,6 +7,7 @@ from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import simplejson
+from django.db.models import Q
 
 from actstream import actions, models
 from actstream.models import Follow
@@ -16,6 +17,7 @@ from django.utils.translation import ugettext_lazy as _
 from mezzanine.blog.models import BlogPost
 from actstream.models import Action
 from follow.models import Follow as _Follow
+from follow import utils
 from datetime import timedelta
 import datetime
 try:
@@ -170,8 +172,17 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
                         activity_queryset = activity_queryset | stream 
                         stream = models.target_stream(followedActor, timestamp__gte = follow.datetime )
                         activity_queryset = activity_queryset | stream
+        
+        allowed_verbs_for_user_in_common_feed = [u'said:', u'shared', u'has posted a review on']
+        user_ctype = ContentType.objects.get_for_model(request.user)
+        activity_queryset = activity_queryset.exclude(~Q(verb__in=allowed_verbs_for_user_in_common_feed) & Q(actor_content_type=user_ctype, actor_object_id=request.user.id) )
+        
+        followed_blog_posts = utils.get_following_vendors_for_user(request.user)
+        blogPostContentType = ContentType.objects.get_for_model(BlogPost)
+        if followed_blog_posts:
+            activity_queryset = activity_queryset.exclude(Q(verb='has posted a review on') & Q(target_content_type=blogPostContentType) & Q(target_object_id__in=[blogpost.id for blogpost in followed_blog_posts]))
 
-        activity_queryset =  activity_queryset.order_by('-timestamp')  
+        activity_queryset = activity_queryset.order_by('-timestamp')
         #cache.set(actor.username, activity_queryset)
 
     #else:
