@@ -154,24 +154,23 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     if activity_queryset is None:    	
         activity_queryset = actor.actor_actions.public()
 
-        for followedActor in Follow.objects.following(user=actor):
-            target_content_type = ContentType.objects.get_for_model(followedActor)
-            prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-timestamp')
-            followAction = None
-            if prevFollowActions:
-                followAction =  prevFollowActions[0]
-            if followAction:
-                stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
-                activity_queryset = activity_queryset | stream 
-            if not isinstance(followedActor, User) and not isinstance(followedActor, BlogPost):           
-                _follow = _Follow.objects.get_follows(followedActor)
-                if _follow:     
-                    follow = _follow.get(user=actor)
-                    if follow:        
-                        stream = models.action_object_stream(followedActor, timestamp__gte = follow.datetime )
-                        activity_queryset = activity_queryset | stream 
-                        stream = models.target_stream(followedActor, timestamp__gte = follow.datetime )
-                        activity_queryset = activity_queryset | stream
+        for followedObject in Follow.objects.following(user=actor):
+            if followedObject:
+                obj_content_type = ContentType.objects.get_for_model(followedObject)
+                followObject = Follow.objects.get(user=actor, content_type=obj_content_type, object_id=followedObject.pk )
+                if followObject:
+                    stream = followedObject.actor_actions.public(timestamp__gte=followObject.started)
+                    activity_queryset = activity_queryset | stream
+
+                if not isinstance(followedObject, User) and not isinstance(followedObject, BlogPost):           
+                    _follow = _Follow.objects.get_follows(followedObject)
+                    if _follow:     
+                        follow = _follow.get(user=actor)
+                        if follow:        
+                            stream = models.action_object_stream(followedObject, timestamp__gte = follow.datetime )
+                            activity_queryset = activity_queryset | stream 
+                            stream = models.target_stream(followedObject, timestamp__gte = follow.datetime )
+                            activity_queryset = activity_queryset | stream
         
         allowed_verbs_for_user_in_common_feed = [u'said:', u'shared', u'has posted a review on']
         user_ctype = ContentType.objects.get_for_model(request.user)
