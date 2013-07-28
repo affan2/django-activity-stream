@@ -163,7 +163,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
             if followAction:
                 stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
                 activity_queryset = activity_queryset | stream 
-            if not isinstance(followedActor, User):           
+            if not isinstance(followedActor, User) and not isinstance(followedActor, BlogPost):           
                 _follow = _Follow.objects.get_follows(followedActor)
                 if _follow:     
                     follow = _follow.get(user=actor)
@@ -218,15 +218,15 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
 
                 if activity.verb == "liked the deal" or activity.verb == "liked the wish":
                     actor_content_type = ContentType.objects.get_for_model(activity.actor)
-                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time, timestamp__gt=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,action_object_content_type=activity.action_object_content_type, action_object_object_id=activity.action_object.id ).exclude(id=activity.id)
+                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time, timestamp__gte=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,action_object_content_type=activity.action_object_content_type, action_object_object_id=activity.action_object.id ).exclude(id=activity.id)
                 
                 elif activity.verb == "started following":
                     actor_content_type = ContentType.objects.get_for_model(activity.actor)
-                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time,timestamp__gt=activity.timestamp, actor_content_type=actor_content_type, actor_object_id=activity.actor.pk, verb=activity.verb,target_content_type=activity.target_content_type ).exclude(id=activity.id)
+                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time,timestamp__gte=activity.timestamp, actor_content_type=actor_content_type, actor_object_id=activity.actor.pk, verb=activity.verb,target_content_type=activity.target_content_type ).exclude(id=activity.id)
          
                 else: 
                     actor_content_type = ContentType.objects.get_for_model(activity.actor)
-                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time, timestamp__gt=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,target_content_type=activity.target_content_type, target_object_id=activity.target.id ).exclude(id=activity.id)
+                    groupable_activities = activity_queryset.filter(timestamp__lte=cutoff_time, timestamp__gte=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,target_content_type=activity.target_content_type, target_object_id=activity.target.id ).exclude(id=activity.id)
                 
                 for gact in groupable_activities:
                     if activity.id in batched_actions:
