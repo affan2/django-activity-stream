@@ -206,10 +206,10 @@ $(document).ready(function(){
 {% endif %}
 
 </a>
-{% if batched_actions %}
+{% if batched_actors %}
 {% if action.verb == "liked the album" or action.verb == "has commented on the album" or action.verb == "has commented on the wish"  or action.verb == "has commented on the deal" or action.verb == "has commented on review" or action.verb == "has commented on the image" or action.verb == "liked the review on" or action.verb == "liked the photo" or action.verb == "liked the deal" or action.verb == "liked the wish" or action.verb == "liked the comment on the album" or action.verb == "liked the comment on the image"  or action.verb == "liked the comment on the deal" or action.verb == "liked the comment on the deal" %}
-            {% for batched_action_id in batched_actions %}
-              {% get_action_actor batched_action_id as batched_actor %}
+            {% for batched_actor in batched_actors %}
+              {#% get_action_actor batched_action_id as batched_actor %#}
               <a href="{{ batched_actor.get_absolute_url }}">
                       {% if batched_actor|get_class_name == "User" %}
                         {% if batched_actor.get_profile.profile_photo %}
@@ -287,9 +287,9 @@ $(document).ready(function(){
           {% endif %}
           {{ action.target }}
         </a>
-          {% if action.verb == "started following" %}
-            {% for batched_action_id in batched_actions %}
-              {% get_action_target batched_action_id as batched_target %}
+          {% if action.verb == "started following" and batched_targets %}
+            {% for batched_target in batched_targets %}
+              {#% get_action_target batched_action_id as batched_target %#}
               <a href="{{ batched_target.get_absolute_url }}">
                       {% if batched_target|get_class_name == "User" %}
                         {% if batched_target.get_profile.profile_photo %}

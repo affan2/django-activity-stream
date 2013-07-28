@@ -529,6 +529,48 @@ class GetActionTarget(Node):
         context[self.context_var] = action_object.target
         return ''
 
+def do_get_batched_targets(parser, token):
+    """
+    Retrieves the list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% get_batched_targets action_id_list parent_action_id as batched_targets %}
+    """
+    bits = token.contents.split()
+    if len(bits) != 5:
+        raise TemplateSyntaxError("'%s' tag takes exactly two arguments" % bits[0])
+    if bits[3] != 'as':
+        raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return GetBatchedTargets(bits[1],bits[2],bits[4])
+
+class GetBatchedTargets(Node):
+    def __init__(self, action_ids, parent_action_id, context_var):
+        self.action_ids = action_ids
+        self.context_var = context_var
+        self.parent_action_id = parent_action_id
+
+    def render(self, context):
+        try:
+            action_ids = resolve_variable(self.action_ids, context)
+            parent_action_id = resolve_variable(self.parent_action_id, context)
+            targets = []
+            if action_ids:
+                for action_id in action_ids:
+                    action_object = Action.objects.get(id=action_id)
+                    targets.append(action_object.target)
+
+            unique_targets = list(set(targets))
+            parent_action_object = Action.objects.get(id=parent_action_id)
+            parent_action_target = parent_action_object.target
+            if parent_action_target in unique_targets:
+                unique_targets.remove(parent_action_target)    
+        except VariableDoesNotExist:
+            return ''
+        context[self.context_var] = unique_targets
+        return ''
+
 def do_get_action_actor(parser, token):
     """
     Retrieves the list of broadcasters for an action and stores them in a context variable which has
@@ -559,6 +601,47 @@ class GetActionActor(Node):
         context[self.context_var] = action_object.actor
         return ''
 
+def do_get_batched_actors(parser, token):
+    """
+    Retrieves the list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% get_batched_actors action_id_list parent_action_id as batched_actors %}
+    """
+    bits = token.contents.split()
+    if len(bits) != 5:
+        raise TemplateSyntaxError("'%s' tag takes exactly two arguments" % bits[0])
+    if bits[3] != 'as':
+        raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return GetBatchedActors(bits[1],bits[2],bits[4])
+
+class GetBatchedActors(Node):
+    def __init__(self, action_ids, parent_action_id, context_var):
+        self.action_ids = action_ids
+        self.parent_action_id = parent_action_id
+        self.context_var = context_var
+
+    def render(self, context):
+        try:
+            action_ids = resolve_variable(self.action_ids, context)
+            parent_action_id = resolve_variable(self.parent_action_id, context)
+            actors = []
+            if action_ids:
+                for action_id in action_ids:
+                    action_object = Action.objects.get(id=action_id)
+                    actors.append(action_object.actor)
+
+            unique_actors = list(set(actors))
+            parent_action_object = Action.objects.get(id=parent_action_id)
+            parent_actor = parent_action_object.actor
+            if parent_actor in unique_actors:
+                unique_actors.remove(parent_actor)    
+        except VariableDoesNotExist:
+            return ''
+        context[self.context_var] = unique_actors
+        return ''
 
 register.filter(is_following)
 register.filter(get_class_name)
@@ -581,7 +664,8 @@ register.tag('broadcasters_for_action', do_broadcasters_for_action)
 register.tag('get_list_of_batched_action_ids', do_get_list_of_batched_action_ids)
 register.tag('get_action_target',do_get_action_target)
 register.tag('get_action_actor',do_get_action_actor)
-
+register.tag('get_batched_actors', do_get_batched_actors)
+register.tag('get_batched_targets', do_get_batched_targets)
 @register.filter
 def backwards_compatibility_check(template_name):
     backwards = False

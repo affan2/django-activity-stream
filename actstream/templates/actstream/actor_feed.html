@@ -12,7 +12,13 @@
 				{% if batched_actions %}
 					{% with batched_actions|get_value_from_dict:action_id as batched_action_ids_list %}
 						{#{action_id}}:{{batched_action_ids_list}#}
-	    				<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex batched_actions=batched_action_ids_list %}</li>
+						{% if action.verb == "started following" %}
+							{% get_batched_targets batched_action_ids_list action.id as batched_targets %}
+	    						<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex batched_targets=batched_targets %}</li>
+	    				{% else %}
+							{% get_batched_actors batched_action_ids_list action.id as batched_actors %}
+	    						<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex batched_actors=batched_actors %}</li>	    					
+	    				{% endif %}
 	    			{% endwith %}
 	    		{% else %}
 	    				<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex  %}</li>
