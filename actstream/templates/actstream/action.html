@@ -193,11 +193,14 @@ $(document).ready(function(){
 <a href="{{ action.actor.get_absolute_url }}">
 {% if action.actor|get_class_name == "User" %}
   {% if action.actor.get_profile.profile_photo %}
-  <img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}">
+    {% thumbnail action.actor.get_profile.profile_photo "90x90" as img %} 
+      <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+    {% endthumbnail %}
+  <!--img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}"-->
   {% elif action.actor.get_profile.image_url %}
-  <img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}">
+    <img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}">
   {% else %}
-  <img style="margin-right:20px;height=80px;width:80px;" src="{{ STATIC_URL }}img/defaultProfilePic.gif"> 
+    <img style="margin-right:20px;height=80px;width:80px;" src="{{ STATIC_URL }}img/defaultProfilePic.gif"> 
   {% endif %}
 {% elif action.actor|get_class_name == "BlogPost" %}
   {% thumbnail action.actor.featured_image "90x90" as img %} 
@@ -213,7 +216,10 @@ $(document).ready(function(){
               <a href="{{ batched_actor.get_absolute_url }}">
                       {% if batched_actor|get_class_name == "User" %}
                         {% if batched_actor.get_profile.profile_photo %}
-                          <img style="margin-right:20px;" src="{{ batched_actor.get_profile.profile_photo.url }}">
+                            {% thumbnail batched_actor.get_profile.profile_photo "90x90" as img %} 
+                                <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+                            {% endthumbnail %}
+                          <!--img style="margin-right:20px;" src="{{ batched_actor.get_profile.profile_photo.url }}"-->
                         {% elif batched_actor.get_profile.image_url %}
                           <img style="margin-right:20px;" src="{{ batched_actor.get_profile.image_url }}"> 
                         {% else %}
@@ -233,7 +239,9 @@ $(document).ready(function(){
 {% else %}
 <a href="{{ action.actor_url }}">
 {% if action.actor.get_profile.profile_photo %}
-<img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}">
+  {% thumbnail action.actor.get_profile.profile_photo "90x90" as img %} 
+    <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+  {% endthumbnail %}
 {% elif action.actor.get_profile.image_url %}
 <img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}"> 
 {% endif %}
@@ -276,7 +284,10 @@ $(document).ready(function(){
         <a href="{{ action.target.get_absolute_url }}">
           {%  if action.target|get_class_name == "User" %}
               {% if action.target.get_profile.profile_photo %}
-                  <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
+                    {% thumbnail action.target.get_profile.profile_photo "60x60" as img %} 
+                                <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+                    {% endthumbnail %}
+                  <!--img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}"-->
               {% elif action.target.get_profile.image_url %}
                  <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
               {% endif %} 
