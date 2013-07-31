@@ -13,6 +13,28 @@
     {% elif action.target|get_class_name == "UserWishRadio" %}
             {% render_wish action.target %}
 
+    {% elif action.target|get_class_name == "Album" %}
+              <div class='album'>
+                  <div class='album-head'>
+                      {% if action.target.get_head %}
+                          {% render_album action.target %}
+                      {% endif %}
+                  </div>
+              </div>
+
+    {% elif action.target|get_class_name == "Image" %}
+        <div>  
+              {% thumbnail action.target.image "150x150" crop="center" as img %}
+                      <a class="thumb" rel='gallery-image[ilist]' href="{{ action.target.image.url }}">
+                              <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
+
+                              {% if action.target.title %}
+                                  <br><span class='image-title'>{{ action.target.title }}</span>
+                              {% endif %}   
+                      </a>
+              {% endthumbnail %}           
+        </div>
+
     {% else %}
           <a href="{{ action.target.get_absolute_url }}">{{action.target}}</a>
           {% if batched_targets %}

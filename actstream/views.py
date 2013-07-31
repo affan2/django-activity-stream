@@ -215,11 +215,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
                 cutoff_time = activity.timestamp-timedelta(minutes=batch_minutes)
                 groupable_activities = None
 
-                if activity.verb == "liked the deal" or activity.verb == "liked the wish":
-                    actor_content_type = ContentType.objects.get_for_model(activity.actor)
-                    groupable_activities = activity_queryset.filter(timestamp__gte=cutoff_time, timestamp__lte=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,action_object_content_type=activity.action_object_content_type, action_object_object_id=activity.action_object.id ).exclude(id=activity.id).order_by('-timestamp')
-                
-                elif activity.verb == "started following":
+                if activity.verb == "started following":
                     actor_content_type = ContentType.objects.get_for_model(activity.actor)
                     groupable_activities = activity_queryset.filter(timestamp__gte=cutoff_time,timestamp__lte=activity.timestamp, actor_content_type=actor_content_type, actor_object_id=activity.actor.pk, verb=activity.verb,target_content_type=activity.target_content_type ).exclude(id=activity.id).order_by('-timestamp')
          

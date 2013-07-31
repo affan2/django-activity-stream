@@ -47,66 +47,8 @@ $(document).ready(function(){
                 $('#'+pDP).css({'width': '495px'});
           	});
 
-          	{% if action.action_object and  action.action_object|get_class_name == "UserWishRadio" %}
-	            {% if request.user|is_following_post:action.action_object %} 
-		              $('#followpost{{random}}').hide();
-		              $('#unfollowpost{{random}}').show();
-	            {% else %}
-		              $('#followpost{{random}}').show();
-		              $('#unfollowpost{{random}}').hide();
-	            {% endif %}
-
-          	{% elif action.target and  action.target|get_class_name == "UserWishRadio" %}
-	            {% if request.user|is_following_post:action.target %} 
-		              $('#followpost{{random}}').hide();
-		              $('#unfollowpost{{random}}').show();
-	            {% else %}
-		              $('#followpost{{random}}').show();
-		              $('#unfollowpost{{random}}').hide();
-	            {% endif %}
-          	{% else %}
-              	$('#followpost{{random}}').hide();
-              	$('#unfollowpost{{random}}').hide();              
-          	{% endif %}
-
-            $('#followpost{{random}}').click(function() {
-	            var add_link = $(this);
-	            var link = add_link.attr('href');
-	            $.get(link, {}, function(data) {
-	                if(data == 'ok')
-	                {
-	                  $('#followpost{{random}}').hide();
-	                  $('#unfollowpost{{random}}').show();
-	                }
-	            });
-	            return false;
-        	});
-
-	        $('#unfollowpost{{random}}').click(function() {
-	            var add_link = $(this);
-	            var link = add_link.attr('href');
-	            $.get(link, {}, function(data) {
-	                if(data == 'ok')
-	                {
-	                  $('#followpost{{random}}').show();
-	                  $('#unfollowpost{{random}}').hide();
-	                }
-	            });
-	            return false;
-	        });
-
-          	$('#broadcast{{random}}').find('.message').linkify();
+          	//$('.broadcast').find('.message').linkify();
 	          
-	        $('#vendorAlbum{{random}}').click(function() {
-	            var add_link = $(this);
-	            $('#vendorAlbum{{random}}').html("");
-	            var link = add_link.attr('href');
-	            $.get(link, {}, function(data) {
-	                
-	                $('#vendorAlbum{{random}}').html(data);
-	            });
-	            return false;
-	        });
 }); 
 </script>
 {% endblock %}
@@ -124,87 +66,12 @@ $(document).ready(function(){
 			{% include 'actstream/render_targets.html' with action=action batched_targets=batched_targets %}
 
 
-			{% if action.target|get_class_name == "Album" %}
-	            <div class='album'>
-	                <div class='album-head'>
-	                    {% if action.target.get_head %}
-	                        {% render_album action.target %}
-							{% include 'actstream/render_voting.html' with object=action.target %}
-	                    {% endif %}
-	                </div>
-	            </div>
-			{% endif %}
-
-			{% if action.target|get_class_name == "Image" %}
-				<div>  
-			        {% thumbnail action.target.image "150x150" crop="center" as img %}
-			                <a class="thumb{{random}}" rel='gallery-image[ilist]' href="{{ action.target.image.url }}">
-			                        <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
-									{% include 'actstream/render_voting.html' with object=action.target %}
-
-			                        {% if action.target.title %}
-			                            <br><span class='image-title'>{{ action.target.title }}</span>
-			                        {% endif %}   
-			                </a>
-			                <script type="text/javascript">
-			                            $('a.thumb{{random}}').lightBox();
-			                </script>            
-			        {% endthumbnail %}           
-			    </div>
-			{% endif %}
-
 			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "UserWishRadio" %}
-
+				{% include 'actstream/render_voting.html' with object=action.target %}
 				{% include 'actstream/render_subcomments.html' with object=action.target random=random %}
 
 			{% endif %}
 
-			{% if action.action_object %}
-			    {% if action.action_object|get_class_name == "Review" or action.action_object|get_class_name == "ThreadedComment" %}
-			      	<p>
-				        <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
-				        
-				        {%  if action.action_object.comment != action.action_object.intro %}
-				              <span id="expComment{{ random }}" style="display:none;">{{ action.action_object.comment }}</span>
-				              
-				              <a href="javascript:void(0);" id="moreComment{{ random }}" onClick="
-
-				                  $('#truncComment{{ random }}').toggle();
-				                  $('#expComment{{ random }}').toggle();
-
-				                  if($(this).html() == 'More...')
-				                    $(this).html('Less...');
-				                  else
-				                    $(this).html('More...');
-				                  return false;">More...</a>
-
-				        {% endif %}
-
-						{% include 'actstream/render_voting.html' with object=action.action_object %}
-
-			      	</p>
-			    {% elif action.action_object|get_class_name == "UserWishRadio" %}
-			      <p>
-			        <span id="broadcast{{random}}" > 
-			        	{% render_wish action.action_object %}
-			        </span>
-			      </br>
-			      </p>
-
-				  {% include 'actstream/render_voting.html' with object=action.action_object %}
-				  {% include 'actstream/render_subcomments.html' with object=action.action_object random=random %}
-
-			    {% else %}
-			      <p>{{ action.action_object }}</p>
-			  {% endif %}
-
-
-			    {% if action.action_object|get_class_name == "Review" %}
-					{% include 'actstream/render_subcomments.html' with object=action.action_object random=random %}
-			    {% endif %}
-
-
-			{% endif %}
 
 			<div id="timestamp">
 			 	{{ action.timestamp|timesince }} {% trans "ago" %}
@@ -212,18 +79,7 @@ $(document).ready(function(){
 
 	 </div>
 
-
-
-
-	{% if action.action_object and action.action_object|get_class_name == "UserWishRadio"  %}
-	        <a id="unfollowpost{{random}}" href="{% url unfollowWish action.action_object.pk %}" >unfollow post</a>
-	        <a id="followpost{{random}}" href="{% url followWish action.action_object.pk %}" >follow post</a>
-	{% elif action.target and action.target|get_class_name == "UserWishRadio" %}
-	        <a id="unfollowpost{{random}}" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
-	        <a id="followpost{{random}}" href="{% url followWish action.target.pk %}" >follow post</a>
-	{% endif %}
-
-
+	{% include 'actstream/render_follow_post.html' with action=action random=random %}
 
 	{% include 'actstream/render_share_action.html' with action=action random=random %}
 

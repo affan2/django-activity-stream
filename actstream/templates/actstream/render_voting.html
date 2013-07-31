@@ -33,7 +33,7 @@
         </span>
 	{% elif object|get_class_name == "Image" %}
         <span>
-            <a class="upvote" ref="{% url 'vote_on_images' object.id 'up' %}">
+            <a class="upvote" href="{% url 'vote_on_images' object.id 'up' %}">
             <img src="{{ STATIC_URL }}img/like.png">
             </a>
             <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
