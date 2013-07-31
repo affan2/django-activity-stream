@@ -1,0 +1,33 @@
+{% load activity_tags i18n %}
+{% load comment_tags  %}
+{% load thumbnail %}
+{% load userProfile_tags %}
+  
+{% if action.target %}
+    {% if action.target|get_class_name == "Action" %}
+          <p>{% render_action action.target %}
+
+    {% elif action.target|get_class_name == "Review" %}
+            {% render_comment action.target %}
+
+    {% elif action.target|get_class_name == "UserWishRadio" %}
+            {% render_wish action.target %}
+
+    {% else %}
+          <a href="{{ action.target.get_absolute_url }}">{{action.target}}</a>
+          {% if batched_targets %}
+
+              {% for batched_target in batched_targets %}
+                    {% if forloop.counter == batched_targets|length %}
+                        {% trans "and" %}
+                    {% endif %}
+
+                    <a href="{{ batched_target.get_absolute_url }}">{{batched_target}}</a>
+
+              {% endfor %}
+              
+          {% endif %}
+
+    {% endif %}
+
+{% endif %}

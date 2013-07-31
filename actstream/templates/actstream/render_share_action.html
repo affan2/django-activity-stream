@@ -1,0 +1,25 @@
+{% load activity_tags %}
+
+{% if action %}
+
+ {% can_share_action action as canShare %}
+
+ {% if canShare != 0 %}
+	 <a id="shareAction" href="{% share_action_url action %}" onclick="
+	            var add_link = $(this);
+	            var link = add_link.attr('href');
+	            $.get(link, {}, function(data) {
+	                if(data == 'ok')
+	                  alert('shared');
+	            });
+	            return false;
+	">share</a>
+{% endif %}
+	{% get_share_count action as shareCount %}
+
+	{% broadcasters_for_action action as broadcasters_url %}
+
+	{% if shareCount != 0 %}
+		#<a id="broadcasters{{random}}" href="{{broadcasters_url}}">{{ shareCount }}</a>
+	{% endif %}
+{% endif %}

@@ -1,0 +1,35 @@
+{% load activity_tags i18n %}
+{% load thumbnail %}
+
+{% if actor %}
+	{% if actor.get_absolute_url %}
+		<a href="{{ action.actor.get_absolute_url }}">
+			{% if actor|get_class_name == "User" %}
+			  	{% if actor.get_profile.profile_photo %}
+
+				    {% thumbnail actor.get_profile.profile_photo "90x90" as img %} 
+				      <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+				    {% endthumbnail %}
+
+			  	{% elif actor.get_profile.image_url %}
+			    	<img style="margin-right:20px;" src="{{ actor.get_profile.image_url }}">
+
+			  	{% else %}
+			    	<img style="margin-right:20px;height=80px;width:80px;" src="{{ STATIC_URL }}img/defaultProfilePic.gif"> 
+
+			  	{% endif %}
+
+			{% elif actor|get_class_name == "BlogPost" %}
+
+			  {% thumbnail actor.featured_image "90x90" as img %} 
+			    	<img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+			  {% endthumbnail %}
+
+			{% else %}
+				{{actor}}
+			{% endif %}
+		</a>
+	{% else %}
+		{{actor}}
+	{% endif %}
+{% endif %}

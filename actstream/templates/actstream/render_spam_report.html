@@ -1,0 +1,14 @@
+{% load i18n %}
+{% load inbox %}
+
+{% if action and action.actor != request.user%}
+<div id="reportSpam">
+<a href="{% report_spam_url action %}" onclick="var add_link = $(this);
+            var link = add_link.attr('href');
+            $.get(link, {}, function(data) {
+                if(data == 'ok')
+                  alert('Reported');
+            });
+            return false;"><img title="Flag as spam" src="{{STATIC_URL}}img/flag_blue.ico"></a>
+</div>
+{% endif %}

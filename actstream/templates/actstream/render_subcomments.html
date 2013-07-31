@@ -1,0 +1,16 @@
+{% load i18n %}
+{% load comment_tags  %}
+      
+{% if object %}
+
+	<a href="{% comments_for_obj_url object %}" OnClick="
+	        var add_link = $(this);
+	        $.get(add_link.attr('href'), {}, function(data) {
+	            $('#subcomments{{random}}').html(data);
+	        });
+	        return false;">get comments</a>
+
+	<div id="subcomments{{random}}"></div>
+
+	{% comments_for_review object %}
+{% endif %}

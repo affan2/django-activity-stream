@@ -4,9 +4,8 @@
 {% load activity_tags %}
 {% load comment_tags  %}
 {% load userProfile_tags %}
-{% load inbox %}
+{% load static %}
 
-{% if action.actor.get_absolute_url %}
 {% block extra_head %}
 <style type="text/css">
   #action{
@@ -28,33 +27,13 @@
   }
 
 </style>
+<script src="{% static "js/ajax.csrf.js" %}"></script>
+
 <script type="text/javascript">
-       $(function() {
-            $.ajaxSetup({
-                 beforeSend: function(xhr, settings) {
-                     function getCookie(name) {
-                         var cookieValue = null;
-                         if (document.cookie && document.cookie != '') {
-                             var cookies = document.cookie.split(';');
-                             for (var i = 0; i < cookies.length; i++) {
-                                 var cookie = jQuery.trim(cookies[i]);
-                                 // Does this cookie string begin with the name we want?
-                             if (cookie.substring(0, name.length + 1) == (name + '=')) {
-                                 cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                                 break;
-                             }
-                         }
-                     }
-                     return cookieValue;
-                     }
-                     if (!(/^http:.*/.test(settings.url) || /^https:.*/.test(settings.url))) {
-                         // Only send the token to relative URLs i.e. locally.
-                         xhr.setRequestHeader("X-CSRFToken", getCookie('csrftoken'));
-                     }
-                 }
-            });
-    });
+
 $(document).ready(function(){
+			$('.previewPosted').width('100%');
+
             $(".imgIframe").click(function(){
                 var oldId = $(this).attr("id");
                 var currentId = oldId.substring(3);
@@ -66,512 +45,240 @@ $(document).ready(function(){
                 $(currentId).css({'display': 'block'});
                 $('#'+pTP).css({'width': '495px'});
                 $('#'+pDP).css({'width': '495px'});
-          });
-          {% if action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" or action.verb == "liked the deal" or action.verb == "disliked the deal" %}
-            {% if action.action_object and request.user|is_following_post:action.action_object %} 
-              $('#followpost{{random}}').hide();
-              $('#unfollowpost{{random}}').show();
-            {% else %}
-              $('#followpost{{random}}').show();
-              $('#unfollowpost{{random}}').hide();
-            {% endif %}
-          {% elif action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the wish" or action.verb == "disliked the comment on the deal" %}
-            {% if action.target and request.user|is_following_post:action.target %} 
-              $('#followpost{{random}}').hide();
-              $('#unfollowpost{{random}}').show();
-            {% else %}
-              $('#followpost{{random}}').show();
-              $('#unfollowpost{{random}}').hide();
-            {% endif %}
-          {% else %}
-              $('#followpost{{random}}').hide();
-              $('#unfollowpost{{random}}').hide();              
-          {% endif %}
+          	});
 
-          $('#followpost{{random}}').click(function() {
-            var add_link = $(this);
-            var link = add_link.attr('href');
-            $.get(link, {}, function(data) {
-                if(data == 'ok')
-                {
-                  $('#followpost{{random}}').hide();
-                  $('#unfollowpost{{random}}').show();
-                }
-            });
-            return false;
-        });
-        $('#unfollowpost{{random}}').click(function() {
-            var add_link = $(this);
-            var link = add_link.attr('href');
-            $.get(link, {}, function(data) {
-                if(data == 'ok')
-                {
-                  $('#followpost{{random}}').show();
-                  $('#unfollowpost{{random}}').hide();
-                }
-            });
-            return false;
-        });
-          $('#broadcast{{random}}').linkify();
-          $('#vendorAlbum{{random}}').click(function() {
-            var add_link = $(this);
-            $('#vendorAlbum{{random}}').html("");
-            var link = add_link.attr('href');
-            $.get(link, {}, function(data) {
-                
-                $('#vendorAlbum{{random}}').html(data);
-            });
-            return false;
-        });
-          $('#deleteAction{{random}}').click(function() {
-            var add_link = $(this);
-            var link = add_link.attr('href');
-            $.get(link, {}, function(data) {
-                if(data == 'ok')
-                  $('#action{{random}}').html("");
-            });
-            return false;
-        });
+          	{% if action.action_object and  action.action_object|get_class_name == "UserWishRadio" %}
+	            {% if request.user|is_following_post:action.action_object %} 
+		              $('#followpost{{random}}').hide();
+		              $('#unfollowpost{{random}}').show();
+	            {% else %}
+		              $('#followpost{{random}}').show();
+		              $('#unfollowpost{{random}}').hide();
+	            {% endif %}
 
-    var upCommentsSelector = $('#up{{random}}');  
-    var downCommentsSelector =  $('#down{{ random }}');
-    var clearCommentsSelector = $('#clear{{ random }}');
-    var upCommentsAlbumSelector = $('#upCommentAlbum{{random}}');  
-    var downCommentsAlbumSelector =  $('#downCommentAlbum{{ random }}');
-    var clearCommentsAlbumSelector = $('#clearCommentAlbum{{ random }}');
-    var handler = function() {
-        var add_link = $(this);
-    $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
-           function(data) {
-               if (data.success == true) {
-                   $('#pScore'+'{{random}}').text(data.score.num_up_votes);
-                   $('#nScore'+'{{random}}').text((data.score.num_down_votes));
-               } else {
-                   alert('ERROR: ' + data.error_message);
-               }
-           }, 'json');
-    return false;    
-    }
-    var commentAlbumhandler = function() {
-        var add_link = $(this);
-    $.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
-           function(data) {
-               if (data.success == true) {
-                   $('#pScoreCommentAlbum'+'{{random}}').text(data.score.num_up_votes);
-                   $('#nScoreCommentAlbum'+'{{random}}').text((data.score.num_down_votes));
-               } else {
-                   alert('ERROR: ' + data.error_message);
-               }
-           }, 'json');
-    return false;    
-    }
-    upCommentsSelector.click(handler); 
-    downCommentsSelector.click(handler);
-    clearCommentsSelector.click(handler);
-    upCommentsAlbumSelector.click(commentAlbumhandler); 
-    downCommentsAlbumSelector.click(commentAlbumhandler);
-    clearCommentsAlbumSelector.click(commentAlbumhandler);
-    $('#pScore{{ random }}').add($('#pScoreCommentAlbum{{ random }}')).add($('#broadcasters{{random}}')).click(function() {
-        var w = 700;
-        var h = 500;
-        var left = 100;
-        var top = 100;
-        var name="Friends";
-        var settings = 'height=' + h + ',width=' + w + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=yes,directories=no,status=yes';
-        var url = $(this).attr("href");
-        window.open(url, name, settings);
-        return false;
-    });
+          	{% elif action.target and  action.target|get_class_name == "UserWishRadio" %}
+	            {% if request.user|is_following_post:action.target %} 
+		              $('#followpost{{random}}').hide();
+		              $('#unfollowpost{{random}}').show();
+	            {% else %}
+		              $('#followpost{{random}}').show();
+		              $('#unfollowpost{{random}}').hide();
+	            {% endif %}
+          	{% else %}
+              	$('#followpost{{random}}').hide();
+              	$('#unfollowpost{{random}}').hide();              
+          	{% endif %}
+
+            $('#followpost{{random}}').click(function() {
+	            var add_link = $(this);
+	            var link = add_link.attr('href');
+	            $.get(link, {}, function(data) {
+	                if(data == 'ok')
+	                {
+	                  $('#followpost{{random}}').hide();
+	                  $('#unfollowpost{{random}}').show();
+	                }
+	            });
+	            return false;
+        	});
+
+	        $('#unfollowpost{{random}}').click(function() {
+	            var add_link = $(this);
+	            var link = add_link.attr('href');
+	            $.get(link, {}, function(data) {
+	                if(data == 'ok')
+	                {
+	                  $('#followpost{{random}}').show();
+	                  $('#unfollowpost{{random}}').hide();
+	                }
+	            });
+	            return false;
+	        });
+
+          	$('#broadcast{{random}}').find('.message').linkify();
+	          
+	        $('#vendorAlbum{{random}}').click(function() {
+	            var add_link = $(this);
+	            $('#vendorAlbum{{random}}').html("");
+	            var link = add_link.attr('href');
+	            $.get(link, {}, function(data) {
+	                
+	                $('#vendorAlbum{{random}}').html(data);
+	            });
+	            return false;
+	        });
+
+	        $('#deleteAction{{random}}').click(function() {
+	            var add_link = $(this);
+	            var link = add_link.attr('href');
+	            $.get(link, {}, function(data) {
+	                if(data == 'ok')
+	                  $('#action{{random}}').html("");
+	            });
+	            return false;
+	        });
+
+		    var upCommentsSelector = $('#up{{random}}');  
+		    var downCommentsSelector =  $('#down{{ random }}');
+		    var clearCommentsSelector = $('#clear{{ random }}');
+
+		    var handler = function() {
+		        var add_link = $(this);
+		    	$.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
+		           function(data) {
+		               if (data.success == true) {
+		                   $('#pScore'+'{{random}}').text(data.score.num_up_votes);
+		                   $('#nScore'+'{{random}}').text((data.score.num_down_votes));
+		               } else {
+		                   alert('ERROR: ' + data.error_message);
+		               }
+		            }, 'json');
+		    		return false;    
+		   		}
+
+		    upCommentsSelector.click(handler); 
+		    downCommentsSelector.click(handler);
+		    clearCommentsSelector.click(handler);
+
+		    $('#pScore{{ random }}').add($('#broadcasters{{random}}')).click(function() {
+		        var w = 700;
+		        var h = 500;
+		        var left = 100;
+		        var top = 100;
+		        var name="Friends";
+		        var settings = 'height=' + h + ',width=' + w + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=yes,directories=no,status=yes';
+		        var url = $(this).attr("href");
+		        window.open(url, name, settings);
+		        return false;
+		    });
+
 }); 
-    
 </script>
 {% endblock %}
 
 <div id="action{{random}}">
 
-
-<a href="{{ action.actor.get_absolute_url }}">
-{% if action.actor|get_class_name == "User" %}
-  {% if action.actor.get_profile.profile_photo %}
-    {% thumbnail action.actor.get_profile.profile_photo "90x90" as img %} 
-      <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-    {% endthumbnail %}
-  <!--img style="margin-right:20px;" src="{{ action.actor.get_profile.profile_photo.url }}"-->
-  {% elif action.actor.get_profile.image_url %}
-    <img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}">
-  {% else %}
-    <img style="margin-right:20px;height=80px;width:80px;" src="{{ STATIC_URL }}img/defaultProfilePic.gif"> 
-  {% endif %}
-{% elif action.actor|get_class_name == "BlogPost" %}
-  {% thumbnail action.actor.featured_image "90x90" as img %} 
-    <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-  {% endthumbnail %}
-{% endif %}
-
-</a>
-{% if batched_actors %}
-{% if action.verb == "liked the album" or action.verb == "has commented on the album" or action.verb == "has commented on the wish"  or action.verb == "has commented on the deal" or action.verb == "has commented on review" or action.verb == "has commented on the image" or action.verb == "liked the review on" or action.verb == "liked the photo" or action.verb == "liked the deal" or action.verb == "liked the wish" or action.verb == "liked the comment on the album" or action.verb == "liked the comment on the image"  or action.verb == "liked the comment on the deal" or action.verb == "liked the comment on the deal" %}
-            {% for batched_actor in batched_actors %}
-              {#% get_action_actor batched_action_id as batched_actor %#}
-              <a href="{{ batched_actor.get_absolute_url }}">
-                      {% if batched_actor|get_class_name == "User" %}
-                        {% if batched_actor.get_profile.profile_photo %}
-                            {% thumbnail batched_actor.get_profile.profile_photo "90x90" as img %} 
-                                <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-                            {% endthumbnail %}
-                          <!--img style="margin-right:20px;" src="{{ batched_actor.get_profile.profile_photo.url }}"-->
-                        {% elif batched_actor.get_profile.image_url %}
-                          <img style="margin-right:20px;" src="{{ batched_actor.get_profile.image_url }}"> 
-                        {% else %}
-                          <img style="margin-right:20px;height=80px;width:80px;" src="{{ STATIC_URL }}img/defaultProfilePic.gif">
-                        {% endif %}
-                      {% elif batched_actor|get_class_name == "BlogPost" %}
-                        {% thumbnail batched_actor.featured_image "90x90" as img %} 
-                          <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-                        {% endthumbnail %}
-                      {% else %}
-                        {{batched_actor}}
-                      {% endif %}
-              </a>
-            {% endfor %}
-{% endif %}
-{% endif %}
-{% else %}
-<a href="{{ action.actor_url }}">
-{% if action.actor.get_profile.profile_photo %}
-  {% thumbnail action.actor.get_profile.profile_photo "90x90" as img %} 
-    <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-  {% endthumbnail %}
-{% elif action.actor.get_profile.image_url %}
-<img style="margin-right:20px;" src="{{ action.actor.get_profile.image_url }}"> 
-{% endif %}
-</a>
-{% endif %}
-
-<div id="action">
-  <!--a href="{{ action.actor.get_absolute_url }}">
-    {{ action.actor }}
-  </a-->
+	{% include 'actstream/render_actors.html' with action=action batched_actors=batched_actors %}
 
 
-<span id="verb{{random}}">
-{{ action.verb }}
-</span>
+	<div id="action">
+			<span id="verb{{random}}">
+				{{ action.verb }}
+			</span>
 
-{{ action.content }}
-
-{% if action.verb == "shared" %}
-<p>
-  {% if action.target %}
-      {% render_action action.target %}
-  {% endif %}
-{% elif action.target and action.verb == "has commented on review" and action.target|get_class_name == "Review" %}
-    {% render_comment action.target %}
-{% elif action.target and action.verb == "liked the comment on the review" and action.target|get_class_name == "Review" %}
-    {% render_comment action.target %}
-{% elif action.target  and action.verb == "disliked the comment on the review" and action.target|get_class_name == "Review" %}
-    {% render_comment action.target %}
-{% elif action.target and action.verb == "has commented on the wish" or action.verb == "has commented on the deal" and action.target|get_class_name == "UserWishRadio" %}
-    {% render_wish action.target %}
-{% elif action.target and action.verb == "liked the comment on the wish" or action.verb == "liked the comment on the deal" and action.target|get_class_name == "UserWishRadio" %}
-    {% render_wish action.target %}
-{% elif action.target and action.verb == "disliked the comment on the wish" or action.verb == "disliked the comment on the deal" and action.target|get_class_name == "UserWishRadio" %}
-    {% render_wish action.target %}
-{% else %}
-
-{% if action.target %}
-    {% if action.target.get_absolute_url %}
-        <a href="{{ action.target.get_absolute_url }}">
-          {%  if action.target|get_class_name == "User" %}
-              {% if action.target.get_profile.profile_photo %}
-                    {% thumbnail action.target.get_profile.profile_photo "60x60" as img %} 
-                                <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-                    {% endthumbnail %}
-                  <!--img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}"-->
-              {% elif action.target.get_profile.image_url %}
-                 <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
-              {% endif %} 
-          {% elif action.target|get_class_name == "BlogPost" %}
-                {% thumbnail action.target.featured_image "90x90" as img %} 
-                  <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-                {% endthumbnail %}          
-          {% endif %}
-          {{ action.target }}
-        </a>
-          {% if action.verb == "started following" and batched_targets %}
-            {% for batched_target in batched_targets %}
-              {#% get_action_target batched_action_id as batched_target %#}
-              <a href="{{ batched_target.get_absolute_url }}">
-                      {% if batched_target|get_class_name == "User" %}
-                        {% if batched_target.get_profile.profile_photo %}
-                        <img style="margin-right:20px;" src="{{ batched_target.get_profile.profile_photo.url }}">
-                        {% elif batched_target.get_profile.image_url %}
-                        <img style="margin-right:20px;" src="{{ batched_target.get_profile.image_url }}"> 
-                        {% endif %}
-                      {% elif batched_target|get_class_name == "BlogPost" %}
-                        {% thumbnail batched_target.featured_image "90x90" as img %} 
-                          <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-                        {% endthumbnail %}
-                      {% endif %}
-                        {{batched_target}}
-                      
-              </a>
-            {% endfor %}
-          {% endif %}
-    {% else %}
-      <a href="{{ action.target_url }}">
-        {% if action.target.get_profile.profile_photo %}
-            <img style="margin-right:20px;" src="{{ action.target.get_profile.profile_photo.url }}">
-        {% elif action.target.get_profile.image_url %}
-            <img style="margin-right:20px;" src="{{ action.target.get_profile.image_url }}">  
-        {% endif %}    
-        {{ action.target }}
-      </a>
-    {% endif %}
-{% endif %}
-{% endif %}
+			{% include 'actstream/render_targets.html' with action=action batched_targets=batched_targets %}
 
 
-{% if action.verb == "liked the album" or action.verb == "disliked the album" or  action.verb == "added new album" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "added new images to the album" %}
-            <div class='album'>
-                <div class='album-head'>
-                    <!--a id="vendorAlbum{{random}}" href="{{ action.target.get_absolute_url }}"-->
-                    {% if action.target.get_head %}
-                        {% render_album action.target %}
-                        {% score_for_object  action.target as score %}
-                        {% voters_for_object action.target as voters %}
-                        <a id="up{{random}}" href="/albums/{{ action.target.id }}/up/vote/">
-                            <img src="{{ STATIC_URL }}img/like.png">
-                        </a>
-                        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-                        <a id="down{{random}}" href="/albums/{{ action.target.id }}/down/vote/">
-                            <img src="{{ STATIC_URL }}img/dislike.png">
-                        </a>
-                        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-                        <a id="clear{{random}}" href="/albums/{{ action.target.id }}/clear/vote/">Clear</a>
-                        <a href="{% comments_for_obj_url action.target %}" OnClick="
-                                var add_link = $(this);
-                                $.get(add_link.attr('href'), {}, function(data) {
-                                    $('#subcomments{{random}}').html(data);
-                                });
-                                return false;">get comments</a>
-                        <div id="subcomments{{random}}"></div>
-                        {% comments_for_review action.target %}
-                    {% endif %}
-                    <!--/a-->
-                </div>
-            </div>
-{% endif %}
+			{% if action.target|get_class_name == "Album" %}
+	            <div class='album'>
+	                <div class='album-head'>
+	                    {% if action.target.get_head %}
+	                        {% render_album action.target %}
+							{% include 'actstream/render_voting.html' with random=random object=action.target %}
+	                    {% endif %}
+	                </div>
+	            </div>
+			{% endif %}
 
-{% if action.verb == "liked the photo" or action.verb == "disliked the photo" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" %}
-<div>
-            
-            {% thumbnail action.target.image "150x150" crop="center" as img %}
-                <a class="thumb{{random}}" rel='gallery-image[ilist]' href="{{ action.target.image.url }}">
-                        <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
-                        {% score_for_object  action.target as score %}
-                        {% voters_for_object action.target as voters %}
-                        <a id="up{{random}}" href="/images/{{ action.target.id }}/up/vote/">
-                            <img src="{{ STATIC_URL }}img/like.png">
-                        </a>
-                        <span>
-                          <a id="pScore{{random}}"  href="{{ voters }}">{{score.num_up_votes}}</a>
-                        </span>
-                        <a id="down{{random}}" href="/images/{{ action.target.id }}/down/vote/">
-                            <img src="{{ STATIC_URL }}img/dislike.png">
-                        </a>
-                        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-                        <a id="clear{{random}}" href="/images/{{ action.target.id }}/clear/vote/">Clear</a>
+			{% if action.target|get_class_name == "Image" %}
+				<div>  
+			        {% thumbnail action.target.image "150x150" crop="center" as img %}
+			                <a class="thumb{{random}}" rel='gallery-image[ilist]' href="{{ action.target.image.url }}">
+			                        <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
+									{% include 'actstream/render_voting.html' with random=random object=action.target %}
 
-                        {% if action.target.title %}
-                            <br><span class='image-title'>{{ action.target.title }}</span>
-                        {% endif %}   
-                </a>
-                <script type="text/javascript">
-                            $('a.thumb{{random}}').lightBox();
-                </script>            
-            {% endthumbnail %}
-           
-            </div>
-{% endif %}
+			                        {% if action.target.title %}
+			                            <br><span class='image-title'>{{ action.target.title }}</span>
+			                        {% endif %}   
+			                </a>
+			                <script type="text/javascript">
+			                            $('a.thumb{{random}}').lightBox();
+			                </script>            
+			        {% endthumbnail %}           
+			    </div>
+			{% endif %}
 
-{% if action.action_object %}
-    {% if action.verb == "has posted a review on" or action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the deal" %}
-      <p>
-        <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
-        {%  if action.action_object.comment != action.action_object.intro %}
-              <span id="expComment{{ random }}" style="display:none;">{{ action.action_object.comment }}</span>
-              <a href="javascript:void(0);" id="moreComment{{ random }}" onClick="
+			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "UserWishRadio" %}
 
-                  $('#truncComment{{ random }}').toggle();
-                  $('#expComment{{ random }}').toggle();
+				{% include 'actstream/render_subcomments.html' with object=action.target random=random %}
 
-                  if($(this).html() == 'More...')
-                    $(this).html('Less...');
-                  else
-                    $(this).html('More...');
-                  return false;"
-              >More...</a>
-        {% endif %}
-      </p>
-    {% elif action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" or action.verb == "liked the deal" or action.verb == "disliked the deal"%}
-      <p>
-        <span id="broadcast{{random}}"> 
-          {{ action.action_object.prefix_message }}
-          {% if  action.action_object.blog_category %}
-            <a href="{{action.action_object.blog_category.get_absolute_url}}">{{action.action_object.blog_category}}</a>
-          {% endif %}
-            </br>
-          {{ action.action_object.message }}
-        </br>
-          {% if  action.action_object.wishimage %}
-            {% thumbnail action.action_object.wishimage "500x400" crop="center" as img %} 
-              <a class="wishimage{{random}}" href="{{  action.action_object.wishimage.url }}">
-                <img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
-              </a> 
-              <script type="text/javascript">
-                  $('a.wishimage{{random}}').lightBox();
-              </script> 
-            {% endthumbnail %}
-          {% endif %}
-          {% autoescape off %}
-            {{action.action_object.urlPreviewContent}}
-          {% endautoescape %}
-        </span>
-      </br>
-      </p>
-        <a id="up{{random}}" href="/broadcast/{{ action.action_object.id }}/up/vote/">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        {% score_for_object  action.action_object as score %}
-        {% voters_for_object action.action_object as voters %}
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="/broadcast/{{ action.action_object.id }}/down/vote/"><img src="{{ STATIC_URL }}img/dislike.png"></a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="/broadcast/{{ action.action_object.id }}/clear/vote/">Clear</a>
-        <a href="{% comments_for_obj_url action.action_object %}" OnClick="
-                var add_link = $(this);
-                $.get(add_link.attr('href'), {}, function(data) {
-                    $('#subcomments{{random}}').html(data);
-                });
-                return false;">get comments</a>
-        <div id="subcomments{{random}}"></div>
-        {% comments_for_review action.action_object %}
-    {% else %}
-      <p>{{ action.action_object }}</p>
-  {% endif %}
+			{% endif %}
 
-   {% if action.verb == "has posted a review on"  or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
-      <!--a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/-->
-    </br>
-        <a id="up{{random}}" href="/review/{{ action.action_object.id }}/up/vote/">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        {% score_for_object  action.action_object as score %}
-        {% voters_for_object action.action_object as voters %}
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="/review/{{ action.action_object.id }}/down/vote/"><img src="{{ STATIC_URL }}img/dislike.png"></a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="/review/{{ action.action_object.id }}/clear/vote/">Clear</a>
+			{% if action.action_object %}
+			    {% if action.action_object|get_class_name == "Review" or action.action_object|get_class_name == "ThreadedComment" %}
+			      	<p>
+				        <span id="truncComment{{ random }}">{{ action.action_object.intro }}</span>
+				        
+				        {%  if action.action_object.comment != action.action_object.intro %}
+				              <span id="expComment{{ random }}" style="display:none;">{{ action.action_object.comment }}</span>
+				              
+				              <a href="javascript:void(0);" id="moreComment{{ random }}" onClick="
 
-    {% endif %}
+				                  $('#truncComment{{ random }}').toggle();
+				                  $('#expComment{{ random }}').toggle();
 
-    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" %}
-      <!--a href="{{ action.target.get_absolute_url }}#comment-{{ action.action_object.id }}">More...<a/-->
-    </br>
-        <a id="up{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        {% score_for_object  action.action_object as score %}
-        {% voters_for_object action.action_object as voters %}
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="/comments/{{ action.action_object.id }}/down/vote/"><img src="{{ STATIC_URL }}img/dislike.png"></a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>
+				                  if($(this).html() == 'More...')
+				                    $(this).html('Less...');
+				                  else
+				                    $(this).html('More...');
+				                  return false;">More...</a>
 
-    {% endif %}
-    {% if action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the deal" %}
-                        {% score_for_object  action.action_object as score %}
-                        {% voters_for_object action.action_object as voters %}
-                        <a id="upCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/up/vote/">
-                            <img src="{{ STATIC_URL }}img/like.png">
-                        </a>
-                        <span>
-                          <a id="pScoreCommentAlbum{{random}}"  href="{{ voters }}">{{score.num_up_votes}}</a>
-                        </span>
-                        <a id="downCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/down/vote/">
-                            <img src="{{ STATIC_URL }}img/dislike.png">
-                        </a>
-                        <span id="nScoreCommentAlbum{{random}}">{{score.num_down_votes}}</span>
-                        <a id="clearCommentAlbum{{random}}" href="/comments/{{ action.action_object.id }}/clear/vote/">Clear</a>    
-    {% endif %}
-    {% if action.verb == "liked the comment on the review" or action.verb == "disliked the comment on the review" or action.verb == "has commented on review" or action.verb == "has commented on the album" or action.verb == "liked the comment on the album" or action.verb == "disliked the comment on the album" or action.verb == "has commented on the image" or action.verb == "liked the comment on the image" or action.verb == "disliked the comment on the image" or action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "disliked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the deal" %}
-        <a href="{% comments_for_obj_url action.target %}" OnClick="
-                var add_link = $(this);
-                $.get(add_link.attr('href'), {}, function(data) {
-                    $('#subcomments{{random}}').html(data);
-                });
-                return false;">get comments</a>
-        <div id="subcomments{{random}}"></div>
-        {% comments_for_review action.target %}
-    {% endif %}
-    {% if action.verb == "has posted a review on" or action.verb == "has got a new review from" or action.verb == "liked the review on" or action.verb == "disliked the review on" %}
-        <a href="{% comments_for_obj_url action.action_object %}" OnClick="
-                var add_link = $(this);
-                $.get(add_link.attr('href'), {}, function(data) {
-                    $('#subcomments{{random}}').html(data);
-                });
-                return false;">get comments</a>
-        <div id="subcomments{{random}}"></div>
-        {% comments_for_review action.action_object %}
-    {% endif %}
+				        {% endif %}
 
-{% endif %}
-<div id="timestamp">
- {{ action.timestamp|timesince }} {% trans "ago" %}
+				        {% if action.action_object|get_class_name == "Review" or action.action_object|get_class_name == "ThreadedComment"%}
+								{% include 'actstream/render_voting.html' with random=random object=action.action_object %}
+						{% endif %}
+
+			      	</p>
+			    {% elif action.action_object|get_class_name == "UserWishRadio" %}
+			      <p>
+			        <span id="broadcast{{random}}" > 
+			        	{% render_wish action.action_object %}
+			        </span>
+			      </br>
+			      </p>
+
+				  {% include 'actstream/render_voting.html' with object=action.action_object random=random %}
+				  {% include 'actstream/render_subcomments.html' with object=action.action_object random=random %}
+
+			    {% else %}
+			      <p>{{ action.action_object }}</p>
+			  {% endif %}
+
+
+			    {% if action.action_object|get_class_name == "Review" %}
+					{% include 'actstream/render_subcomments.html' with object=action.action_object random=random %}
+			    {% endif %}
+
+
+			{% endif %}
+
+			<div id="timestamp">
+			 	{{ action.timestamp|timesince }} {% trans "ago" %}
+			</div>
+
+	 </div>
+
+
+
+
+	{% if action.action_object and action.action_object|get_class_name == "UserWishRadio"  %}
+	        <a id="unfollowpost{{random}}" href="{% url unfollowWish action.action_object.pk %}" >unfollow post</a>
+	        <a id="followpost{{random}}" href="{% url followWish action.action_object.pk %}" >follow post</a>
+	{% elif action.target and action.target|get_class_name == "UserWishRadio" %}
+	        <a id="unfollowpost{{random}}" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
+	        <a id="followpost{{random}}" href="{% url followWish action.target.pk %}" >follow post</a>
+	{% endif %}
+
+
+
+	{% include 'actstream/render_share_action.html' with action=action random=random %}
+
+	{% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
+		<a id="deleteAction{{random}}" href="{% delete_action_url action %}" style="color:black">x</a>
+	{% endif %}
+
+	{% include 'actstream/render_spam_report.html' with action=action %}
+
 </div>
- </div>
-     {% if action.verb == "said:" or action.verb == "liked the wish" or action.verb == "disliked the wish" or action.verb == "liked the deal" or action.verb == "disliked the deal" %}
-      {% if action.action_object %}
-              <a id="unfollowpost{{random}}" href="{% url unfollowWish action.action_object.pk %}" >unfollow post</a>
-              <a id="followpost{{random}}" href="{% url followWish action.action_object.pk %}" >follow post</a>
-      {% endif %}
-    {% elif action.verb == "has commented on the wish" or action.verb == "has commented on the deal" or action.verb == "liked the comment on the wish" or action.verb == "liked the comment on the deal" or action.verb == "disliked the comment on the wish" or action.verb == "disliked the comment on the deal" %}
-      {% if action.target %}
-        <a id="unfollowpost{{random}}" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
-        <a id="followpost{{random}}" href="{% url followWish action.target.pk %}" >follow post</a>
-      {% endif %}
-    {% endif %}
-
- {% can_share_action action as canShare %}
- {% if canShare != 0 %}
- <a id="shareAction" href="{% share_action_url action %}" onclick="
-            var add_link = $(this);
-            var link = add_link.attr('href');
-            $.get(link, {}, function(data) {
-                if(data == 'ok')
-                  alert('shared');
-            });
-            return false;
-">share</a>
-{% endif %}
-{% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
-<a id="deleteAction{{random}}" href="{% delete_action_url action %}" style="color:black">x</a>
-{% endif %}
-{% get_share_count action as shareCount %}
-{% broadcasters_for_action action as broadcasters_url %}
-{% if shareCount != 0 %}
-shares: <a id="broadcasters{{random}}" href="{{broadcasters_url}}">{{ shareCount }}</a>
-{% endif %}
-</div>
-{% if action.actor != request.user %}
-<div id="reportSpam">
-<a href="{% report_spam_url action %}" onclick="var add_link = $(this);
-            var link = add_link.attr('href');
-            $.get(link, {}, function(data) {
-                if(data == 'ok')
-                  alert('Reported');
-            });
-            return false;"><img title="Flag as spam" src="{{STATIC_URL}}img/flag_blue.ico"></a>
-</div>
-{% endif %}
+	
