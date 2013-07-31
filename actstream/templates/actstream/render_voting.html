@@ -8,57 +8,64 @@
     {% voters_for_object object as voters %}
 
 	{% if object|get_class_name == "Review" %}
-        <a id="up{{random}}" href="{% url 'vote_on_reviews' object.id 'up' %}">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="{% url 'vote_on_reviews' object.id 'down' %}">
-        	<img src="{{ STATIC_URL }}img/dislike.png">
-        </a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="{% url 'vote_on_reviews' object.id 'clear' %}">Clear</a>
-
+        <span>
+            <a class="upvote" href="{% url 'vote_on_reviews' object.id 'up' %}">
+            <img src="{{ STATIC_URL }}img/like.png">
+            </a>
+            <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
+            <a class="downvote" href="{% url 'vote_on_reviews' object.id 'down' %}">
+            	<img src="{{ STATIC_URL }}img/dislike.png">
+            </a>
+            <span class="nScore">{{score.num_down_votes}}</span>
+            <a class="clearvote" href="{% url 'vote_on_reviews' object.id 'clear' %}">Clear</a>
+        </span>
     {% elif object|get_class_name == "Album" %}
-        <a id="up{{random}}" href="{% url 'vote_on_albums' object.id 'up' %}">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="{% url 'vote_on_albums' object.id 'down' %}">
-        	<img src="{{ STATIC_URL }}img/dislike.png">
-        </a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="{% url 'vote_on_albums' object.id 'clear' %}">Clear</a>
-
+        <span>
+            <a class="upvote" href="{% url 'vote_on_albums' object.id 'up' %}">
+            <img src="{{ STATIC_URL }}img/like.png">
+            </a>
+            <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
+            <a  class="downvote" href="{% url 'vote_on_albums' object.id 'down' %}">
+            	<img src="{{ STATIC_URL }}img/dislike.png">
+            </a>
+            <span class="nScore">{{score.num_down_votes}}</span>
+            <a  class="clearvote" href="{% url 'vote_on_albums' object.id 'clear' %}">Clear</a>
+        </span>
 	{% elif object|get_class_name == "Image" %}
-        <a id="up{{random}}" href="{% url 'vote_on_images' object.id 'up' %}">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="{% url 'vote_on_images' object.id 'down' %}">
-        	<img src="{{ STATIC_URL }}img/dislike.png">
-        </a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="{% url 'vote_on_images' object.id 'clear' %}">Clear</a>
-
+        <span>
+            <a class="upvote" ref="{% url 'vote_on_images' object.id 'up' %}">
+            <img src="{{ STATIC_URL }}img/like.png">
+            </a>
+            <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
+            <a class="downvote" href="{% url 'vote_on_images' object.id 'down' %}">
+            	<img src="{{ STATIC_URL }}img/dislike.png">
+            </a>
+            <span class="nScore">{{score.num_down_votes}}</span>
+            <a  class="clearvote" href="{% url 'vote_on_images' object.id 'clear' %}">Clear</a>
+        </span>
 	{% elif object|get_class_name == "ThreadedComment" %}
-        <a id="up{{random}}" href="{% url 'vote_on_comments' object.id 'up' %}">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="{% url 'vote_on_comments' object.id 'down' %}">
-        	<img src="{{ STATIC_URL }}img/dislike.png">
-        </a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="{% url 'vote_on_comments' object.id 'clear' %}">Clear</a>
+        <span>
+            <a  class="upvote" href="{% url 'vote_on_comments' object.id 'up' %}">
+            <img src="{{ STATIC_URL }}img/like.png">
+            </a>
+            <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
+            <a class="downvote" href="{% url 'vote_on_comments' object.id 'down' %}">
+            	<img src="{{ STATIC_URL }}img/dislike.png">
+            </a>
+            <span class="nScore">{{score.num_down_votes}}</span>
+            <a  class="clearvote" href="{% url 'vote_on_comments' object.id 'clear' %}">Clear</a>
+        </span>
  	{% elif object|get_class_name == "UserWishRadio" %}
-        <a id="up{{random}}" href="{% url 'vote_on_wishes' object.id 'up' %}">
-        <img src="{{ STATIC_URL }}img/like.png">
-        </a>
-        <span><a id="pScore{{random}}" href="{{ voters }}">{{score.num_up_votes}}</a></span>
-        <a id="down{{random}}" href="{% url 'vote_on_wishes' object.id 'down' %}">
-        	<img src="{{ STATIC_URL }}img/dislike.png">
-        </a>
-        <span id="nScore{{random}}">{{score.num_down_votes}}</span>
-        <a id="clear{{random}}" href="{% url 'vote_on_wishes' object.id 'clear' %}">Clear</a>       
+        <span>
+            <a class="upvote" href="{% url 'vote_on_wishes' object.id 'up' %}">
+            <img src="{{ STATIC_URL }}img/like.png">
+            </a>
+            <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
+            <a class="downvote" href="{% url 'vote_on_wishes' object.id 'down' %}">
+            	<img src="{{ STATIC_URL }}img/dislike.png">
+            </a>
+            <span class="nScore">{{score.num_down_votes}}</span>
+            <a  class="clearvote" href="{% url 'vote_on_wishes' object.id 'clear' %}">Clear</a>  
+        </span>     
 	{% endif %}
 {% endif %}

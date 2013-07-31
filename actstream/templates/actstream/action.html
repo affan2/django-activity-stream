@@ -118,29 +118,7 @@ $(document).ready(function(){
 	            return false;
 	        });
 
-		    var upCommentsSelector = $('#up{{random}}');  
-		    var downCommentsSelector =  $('#down{{ random }}');
-		    var clearCommentsSelector = $('#clear{{ random }}');
-
-		    var handler = function() {
-		        var add_link = $(this);
-		    	$.post(add_link.attr('href'),{HTTP_X_REQUESTED:'XMLHttpRequest'},
-		           function(data) {
-		               if (data.success == true) {
-		                   $('#pScore'+'{{random}}').text(data.score.num_up_votes);
-		                   $('#nScore'+'{{random}}').text((data.score.num_down_votes));
-		               } else {
-		                   alert('ERROR: ' + data.error_message);
-		               }
-		            }, 'json');
-		    		return false;    
-		   		}
-
-		    upCommentsSelector.click(handler); 
-		    downCommentsSelector.click(handler);
-		    clearCommentsSelector.click(handler);
-
-		    $('#pScore{{ random }}').add($('#broadcasters{{random}}')).click(function() {
+		    $('.pScore').add('#broadcasters{{random}}').on("click", function(event) {
 		        var w = 700;
 		        var h = 500;
 		        var left = 100;
@@ -149,6 +127,8 @@ $(document).ready(function(){
 		        var settings = 'height=' + h + ',width=' + w + ',left=' + left + ',top=' + top + ',resizable=yes,scrollbars=yes,toolbar=no,menubar=no,location=yes,directories=no,status=yes';
 		        var url = $(this).attr("href");
 		        window.open(url, name, settings);
+		        event.stopPropagation();
+				event.preventDefault();
 		        return false;
 		    });
 
@@ -174,7 +154,7 @@ $(document).ready(function(){
 	                <div class='album-head'>
 	                    {% if action.target.get_head %}
 	                        {% render_album action.target %}
-							{% include 'actstream/render_voting.html' with random=random object=action.target %}
+							{% include 'actstream/render_voting.html' with object=action.target %}
 	                    {% endif %}
 	                </div>
 	            </div>
@@ -185,7 +165,7 @@ $(document).ready(function(){
 			        {% thumbnail action.target.image "150x150" crop="center" as img %}
 			                <a class="thumb{{random}}" rel='gallery-image[ilist]' href="{{ action.target.image.url }}">
 			                        <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
-									{% include 'actstream/render_voting.html' with random=random object=action.target %}
+									{% include 'actstream/render_voting.html' with object=action.target %}
 
 			                        {% if action.target.title %}
 			                            <br><span class='image-title'>{{ action.target.title }}</span>
@@ -226,7 +206,7 @@ $(document).ready(function(){
 				        {% endif %}
 
 				        {% if action.action_object|get_class_name == "Review" or action.action_object|get_class_name == "ThreadedComment"%}
-								{% include 'actstream/render_voting.html' with random=random object=action.action_object %}
+								{% include 'actstream/render_voting.html' with object=action.action_object %}
 						{% endif %}
 
 			      	</p>
@@ -238,7 +218,7 @@ $(document).ready(function(){
 			      </br>
 			      </p>
 
-				  {% include 'actstream/render_voting.html' with object=action.action_object random=random %}
+				  {% include 'actstream/render_voting.html' with object=action.action_object %}
 				  {% include 'actstream/render_subcomments.html' with object=action.action_object random=random %}
 
 			    {% else %}
