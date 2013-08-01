@@ -35,6 +35,10 @@
                 <a  class="clearvote" href="{% url 'vote_on_wishes' object.id 'clear' %}">Unlike</a>      
         {% endif %}
     {% endif %}
-     <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
+     <span class="cover-stat cover-stat-appreciations">
+            <span class="stat-label be-font-inline">F</span>
+            <a class="pScore" href="{{ voters }}">{{score.num_up_votes}}</a>
+     </span>    
+     
      </span>
 {% endif %}
