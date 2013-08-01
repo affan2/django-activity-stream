@@ -6,53 +6,6 @@
 {% load userProfile_tags %}
 {% load static %}
 
-{% block extra_head %}
-<style type="text/css">
-  #action{
-    border:1px solid #1769ff;
-    padding:3px 16px 0 16px;
-    text-overflow:ellipsis;
-    font-size:13px;
-    line-height:1.4;
-    font:normal 13px arial,sans-serif;
-    margin:10px;
-    width:600px;
-  }
-  #timestamp{
-    color: #999;
-    font-family:'lucida grande',tahoma,verdana,arial,sans-serif;
-    direction:ltr;
-    line-height:1.28;
-    text-align: right;
-  }
-
-</style>
-<script src="{% static "js/ajax.csrf.js" %}"></script>
-
-<script type="text/javascript">
-
-$(document).ready(function(){
-			$('.previewPosted').width('100%');
-
-            $(".imgIframe").click(function(){
-                var oldId = $(this).attr("id");
-                var currentId = oldId.substring(3);
-                pTP = "pTP"+currentId;
-                pDP = "pDP"+currentId;
-                oldId = "#"+oldId;
-                currentId = "#"+currentId;
-                $(oldId).css({'display': 'none'});
-                $(currentId).css({'display': 'block'});
-                $('#'+pTP).css({'width': '495px'});
-                $('#'+pDP).css({'width': '495px'});
-          	});
-
-          	//$('.broadcast').find('.message').linkify();
-	          
-}); 
-</script>
-{% endblock %}
-
 <div id="action{{action.id}}">
 
 	{% include 'actstream/render_actors.html' with action=action batched_actors=batched_actors %}
