@@ -1,7 +1,7 @@
 
 {% load activity_tags i18n static %}
 
-<ul>		   	
+<ul class="row-fluid">		   	
 {% get_list_of_batched_action_ids as batched_ids %}
 
 {% for action in action_list %}
@@ -13,11 +13,11 @@
 
 							{% get_batched_targets batched_action_ids_list action.id as batched_targets %}
 							{% get_batched_actors batched_action_ids_list action.id as batched_actors %}
-	    						<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex batched_targets=batched_targets batched_actors=batched_actors%}</li>
+	    						<li class="row-fluid">{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex batched_targets=batched_targets batched_actors=batched_actors%}</li>
     					
 	    			{% endwith %}
 	    		{% else %}
-	    				<li>{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex  %}</li>
+	    				<li class="row-fluid">{% include 'actstream/action.html'|backwards_compatibility_check with random=forloop.counter|add:sIndex  %}</li>
 	    		{% endif %}
 
     	{% endwith %}
