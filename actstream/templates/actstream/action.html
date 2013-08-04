@@ -8,11 +8,12 @@
 
 <div id="action{{action.id}}" class="row-fluid">
 
-	{% include 'actstream/render_actors.html' with action=action batched_actors=batched_actors %}
-
+	{% include 'actstream/render_actor.html' with actor=action.actor %}
 
 	<div class="span10">
 			<span id="verb">
+				{% include 'actstream/render_actor_name.html' with actor=action.actor  %}
+				{% include 'actstream/render_batched_actors.html' with batched_actors=batched_actors %}
 				{{ action.verb }}
 			</span>
 

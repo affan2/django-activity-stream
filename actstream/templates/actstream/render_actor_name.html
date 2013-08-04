@@ -1,0 +1,19 @@
+{% load activity_tags i18n %}
+{% load thumbnail %}
+{% load userProfile_tags %}
+
+{% if actor %}
+	{% if actor.get_absolute_url %}
+			<a href="{{ action.actor.get_absolute_url }}">
+			{% if actor|get_class_name == "User" %}
+				{% get_full_name action.actor %}
+			{% elif actor|get_class_name == "BlogPost" %}
+				{{actor}}
+			{% else %}
+				{{actor}}
+			{% endif %}
+			</a>
+	{% else %}
+		{{actor}}
+	{% endif %}
+{% endif %}

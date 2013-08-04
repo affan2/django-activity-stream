@@ -1,0 +1,16 @@
+
+{% load activity_tags i18n %}
+{% load thumbnail %}
+
+{% if batched_actors %}
+        {% for batched_actor in batched_actors %}
+            {#% include 'actstream/render_actor.html' with actor=batched_actor %#}
+            {% if forloop.counter == batched_actors|length %}
+              {% trans "and" %}
+            {% endif %}
+
+            {% include 'actstream/render_actor_name.html' with actor=batched_actor %}
+            
+        {% endfor %}
+{% endif %}
+
