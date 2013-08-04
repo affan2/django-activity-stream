@@ -6,12 +6,12 @@
 {% load userProfile_tags %}
 {% load static %}
 
-<div id="action{{action.id}}">
+<div id="action{{action.id}}" class="row-fluid">
 
 	{% include 'actstream/render_actors.html' with action=action batched_actors=batched_actors %}
 
 
-	<div id="action">
+	<div class="actionDetails span10">
 			<span id="verb{{random}}">
 				{{ action.verb }}
 			</span>
