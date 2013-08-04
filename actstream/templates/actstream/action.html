@@ -11,8 +11,8 @@
 	{% include 'actstream/render_actors.html' with action=action batched_actors=batched_actors %}
 
 
-	<div class="actionDetails span10">
-			<span id="verb{{random}}">
+	<div class="span10">
+			<span id="verb">
 				{{ action.verb }}
 			</span>
 
@@ -24,15 +24,16 @@
 				{% include 'actstream/render_subcomments.html' with object=action.target %}
 			{% endif %}
 
-			{% include 'actstream/render_follow_post.html' with action=action random=random %}
+			{% include 'actstream/render_follow_post.html' with action=action %}
 
-			{% include 'actstream/render_share_action.html' with action=action random=random %}
+			{% include 'actstream/render_share_action.html' with action=action %}
 
 			{% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
 				<a class="deleteAction" data-action-id="{{action.id}}" href="{% delete_action_url action %}" style="color:black">x</a>
 			{% endif %}
-
-			{% include 'actstream/render_spam_report.html' with action=action %}
+			{% if action.actor != request.user %}
+				{% include 'actstream/render_spam_report.html' with object=action %}
+			{% endif %}
 
 			<div id="timestamp">
 			 	{{ action.timestamp|timesince }} {% trans "ago" %}
