@@ -1,11 +1,11 @@
-{% load activity_tags %}
+{% load activity_tags static %}
 
 {% if action %}
 
  {% can_share_action action as canShare %}
 
  {% if canShare != 0 %}
-	 <a class="shareaction" href="{% share_action_url action %}" >share</a>
+	 <a class="shareaction" href="{% share_action_url action %}" ><img src='{% static "img/broadcast.ico" %}' title='share'></img></a>
 {% endif %}
 	{% get_share_count action as shareCount %}
 

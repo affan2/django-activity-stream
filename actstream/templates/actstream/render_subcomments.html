@@ -2,15 +2,21 @@
 {% load comment_tags  %}
       
 {% if object %}
-
+	<span>
 	<a href="{% comments_for_obj_url object %}" OnClick="
 	        var add_link = $(this);
 	        $.get(add_link.attr('href'), {}, function(data) {
-	            $('#subcomments{{random}}').html(data);
+	            add_link.parent().find('.subcomments').html(data);
+	            add_link.parent().find('.commenton').show();
+	            install_voting_handlers();
 	        });
-	        return false;">get comments</a>
+	        return false;">comment</a>
 
-	<div id="subcomments{{random}}"></div>
+	<a class="broadcasters" href="{% get_commenters_url object %}">{% comment_count_on_object object %}</a>
 
-	{% comments_for_review object %}
+	<span class="subcomments"></span>
+	<span class="commenton" style="display:none;">
+		{% comments_for_review object %}
+	</span>
+	</span>
 {% endif %}

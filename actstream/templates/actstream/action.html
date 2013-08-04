@@ -21,26 +21,24 @@
 
 			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "UserWishRadio" %}
 				{% include 'actstream/render_voting.html' with object=action.target %}
-				{% include 'actstream/render_subcomments.html' with object=action.target random=random %}
-
+				{% include 'actstream/render_subcomments.html' with object=action.target %}
 			{% endif %}
 
+			{% include 'actstream/render_follow_post.html' with action=action random=random %}
+
+			{% include 'actstream/render_share_action.html' with action=action random=random %}
+
+			{% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
+				<a class="deleteAction" data-action-id="{{action.id}}" href="{% delete_action_url action %}" style="color:black">x</a>
+			{% endif %}
+
+			{% include 'actstream/render_spam_report.html' with action=action %}
 
 			<div id="timestamp">
 			 	{{ action.timestamp|timesince }} {% trans "ago" %}
 			</div>
 
 	 </div>
-
-	{% include 'actstream/render_follow_post.html' with action=action random=random %}
-
-	{% include 'actstream/render_share_action.html' with action=action random=random %}
-
-	{% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
-		<a class="deleteAction" data-action-id="{{action.id}}" href="{% delete_action_url action %}" style="color:black">x</a>
-	{% endif %}
-
-	{% include 'actstream/render_spam_report.html' with action=action %}
 
 </div>
 	
