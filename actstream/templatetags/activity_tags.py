@@ -5,7 +5,9 @@ from django.template import Variable, Library, Node, TemplateSyntaxError, resolv
 from django.template.base import TemplateDoesNotExist
 from django.template.loader import render_to_string, find_template
 from django.core.cache import cache
+
 import itertools
+import re
 
 
 register = Library()
@@ -676,3 +678,19 @@ def backwards_compatibility_check(template_name):
     if backwards:
         template_name = template_name.replace('actstream/', 'activity/')
     return template_name
+
+@register.simple_tag
+def review_verb_linkify(action):
+    obj = None
+    if get_class_name(action.target) == "Review":
+        obj = action.target
+    elif get_class_name(action.action_object) == "Review":
+        obj = action.action_object
+    
+    if obj:
+        url = reverse('render_review', kwargs={
+            'blog_slug': obj.content_object.slug, 'review_id': obj.id})
+        linkified_url = "<a href=\""+url+"\">review</a>"
+        pattern = re.compile("review", re.IGNORECASE)
+        return pattern.sub(linkified_url, action.verb)
+    return ""

@@ -1,0 +1,10 @@
+{% load activity_tags i18n %}
+{% load thumbnail %}
+
+{% if action %}
+{% if action.target|get_class_name == "Review" or action.action_object|get_class_name == "Review" %}
+	{% review_verb_linkify action %}
+{% else %}
+	{{action.verb}}
+{% endif %}
+{% endif %}

@@ -14,7 +14,7 @@
 			<span id="verb">
 				{% include 'actstream/render_actor_name.html' with actor=action.actor  %}
 				{% include 'actstream/render_batched_actors.html' with batched_actors=batched_actors %}
-				{{ action.verb }}
+				{% include 'actstream/render_verb.html' with action=action %}
 			</span>
 
 			{% include 'actstream/render_targets.html' with action=action batched_targets=batched_targets %}
