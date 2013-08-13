@@ -4,9 +4,9 @@
 
 {% if actor %}
 	{% if actor.get_absolute_url %}
-			<a href="{{ action.actor.get_absolute_url }}">
+			<a href="{{ actor.get_absolute_url }}">
 			{% if actor|get_class_name == "User" %}
-				{% get_full_name action.actor %}
+				{% get_full_name actor %}
 			{% elif actor|get_class_name == "BlogPost" %}
 				{{actor}}
 			{% else %}
