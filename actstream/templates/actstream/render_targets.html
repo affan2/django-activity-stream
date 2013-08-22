@@ -36,7 +36,7 @@
         </div>
 
     {% else %}
-          <a href="{{ action.target.get_absolute_url }}">{{action.target}}</a>
+          {% include 'actstream/render_actor_name.html' with actor=action.target %}
           {% if batched_targets %}
 
               {% for batched_target in batched_targets %}
@@ -44,7 +44,7 @@
                         {% trans "and" %}
                     {% endif %}
 
-                    <a href="{{ batched_target.get_absolute_url }}">{{batched_target}}</a>
+                    {% include 'actstream/render_actor_name.html' with actor=batched_target %}
 
               {% endfor %}
               
