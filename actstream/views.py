@@ -8,6 +8,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import simplejson
 from django.db.models import Q
+from django.conf import settings
 
 from actstream import actions, models
 from actstream.models import Follow
@@ -120,7 +121,7 @@ def actstream_following(request, content_type_id, object_id):
     
     for followedActor in Follow.objects.following(user=actor):
         target_content_type = ContentType.objects.get_for_model(followedActor)
-        prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
+        prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=settings.FOLLOW_VERB, target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
         followAction = None
         if prevFollowActions:
             followAction =  prevFollowActions[0]
@@ -172,14 +173,14 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
                             stream = models.target_stream(followedObject, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream
         
-        allowed_verbs_for_user_in_common_feed = [u'said:', u'shared', u'has posted a review on']
+        allowed_verbs_for_user_in_common_feed = [settings.SAID_VERB, settings.SHARE_VERB, settings.REVIEW_POST_VERB]
         user_ctype = ContentType.objects.get_for_model(request.user)
         activity_queryset = activity_queryset.exclude(~Q(verb__in=allowed_verbs_for_user_in_common_feed) & Q(actor_content_type=user_ctype, actor_object_id=request.user.id) )
         
         followed_blog_posts = utils.get_following_vendors_for_user(request.user)
         blogPostContentType = ContentType.objects.get_for_model(BlogPost)
         if followed_blog_posts:
-            activity_queryset = activity_queryset.exclude(Q(verb='has posted a review on') & Q(target_content_type=blogPostContentType) & Q(target_object_id__in=[blogpost.id for blogpost in followed_blog_posts]))
+            activity_queryset = activity_queryset.exclude(Q(verb=settings.REVIEW_POST_VERB) & Q(target_content_type=blogPostContentType) & Q(target_object_id__in=[blogpost.id for blogpost in followed_blog_posts]))
 
         activity_queryset = activity_queryset.order_by('-timestamp')
         #cache.set(actor.username, activity_queryset)
@@ -215,7 +216,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
                 cutoff_time = activity.timestamp-timedelta(minutes=batch_minutes)
                 groupable_activities = None
 
-                if activity.verb == "started following":
+                if activity.verb == settings.FOLLOW_VERB:
                     actor_content_type = ContentType.objects.get_for_model(activity.actor)
                     groupable_activities = activity_queryset.filter(timestamp__gte=cutoff_time,timestamp__lte=activity.timestamp, actor_content_type=actor_content_type, actor_object_id=activity.actor.pk, verb=activity.verb,target_content_type=activity.target_content_type ).exclude(id=activity.id).order_by('-timestamp')
          
@@ -251,7 +252,7 @@ def actstream_rebuild_cache(request, content_type_id, object_id):
     for followedActor in Follow.objects.following(user=actor):
         if followedActor:
             target_content_type = ContentType.objects.get_for_model(followedActor)
-            prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
+            prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=settings.FOLLOW_VERB, target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
             followAction = None
             if prevFollowActions:
                 followAction =  prevFollowActions[0]
@@ -288,7 +289,7 @@ def actstream_update_activity(request, content_type_id, object_id):
     for followedActor in Follow.objects.following(user=actor):
     	if followedActor:
 	        target_content_type = ContentType.objects.get_for_model(followedActor)
-	        prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=u'started following', target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
+	        prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=settings.FOLLOW_VERB, target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
 	        followAction = None
 	        if prevFollowActions:
 	            followAction =  prevFollowActions[0]
@@ -383,7 +384,7 @@ def model(request, content_type_id):
 def shareAction(request, action_id):
 
     actionObject = get_object_or_404(models.Action, pk=action_id)
-    action.send(request.user, verb=_('shared'), target=actionObject)
+    action.send(request.user, verb=settings.SHARE_VERB, target=actionObject)
     if request.is_ajax():
         return HttpResponse('ok') 
     else:
@@ -414,7 +415,7 @@ def deleteAction(request, action_id):
         pActionObect = models.Action.objects.all().filter(target_object_id=actionObject.pk)
         if pActionObect is not None:
             for aObject in pActionObect:
-                if aObject.verb == _('shared'):
+                if aObject.verb == settings.SHARE_VERB:
                     aObject.delete()
         """
         now delete the action

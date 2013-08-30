@@ -14,7 +14,7 @@
             {% render_wish action.target %}
 
     {% elif action.target|get_class_name == "Album" %}
-              <div class='album'>
+              <div class='album span12'>
                   <div class='album-head'>
                       {% if action.target.get_head %}
                           {% render_album action.target %}
