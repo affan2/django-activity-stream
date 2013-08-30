@@ -4,7 +4,7 @@
 {% if actor %}
 	{% if actor.get_absolute_url %}
 		<div class="span1">
-			<a href="{{ action.actor.get_absolute_url }}">
+			<a href="{{ actor.get_absolute_url }}">
 			{% if actor|get_class_name == "User" %}
 				{% if actor.get_profile.profile_photo %}
 
