@@ -173,14 +173,15 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
                             stream = models.target_stream(followedObject, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream
         
-        allowed_verbs_for_user_in_common_feed = [settings.SAID_VERB, settings.SHARE_VERB, settings.REVIEW_POST_VERB]
+        allowed_verbs_for_user_in_common_feed = [settings.SAID_VERB, settings.SHARE_VERB, settings.REVIEW_POST_VERB, settings.DEAL_POST_VERB, settings.WISH_POST_VERB]
         user_ctype = ContentType.objects.get_for_model(request.user)
         activity_queryset = activity_queryset.exclude(~Q(verb__in=allowed_verbs_for_user_in_common_feed) & Q(actor_content_type=user_ctype, actor_object_id=request.user.id) )
-        
+
         followed_blog_posts = utils.get_following_vendors_for_user(request.user)
+
         blogPostContentType = ContentType.objects.get_for_model(BlogPost)
         if followed_blog_posts:
-            activity_queryset = activity_queryset.exclude(Q(verb=settings.REVIEW_POST_VERB) & Q(target_content_type=blogPostContentType) & Q(target_object_id__in=[blogpost.id for blogpost in followed_blog_posts]))
+            activity_queryset = activity_queryset.exclude(Q(verb=settings.REVIEW_POST_VERB) & Q(action_object_content_type=blogPostContentType) & Q(action_object_object_id__in=[blogpost.id for blogpost in followed_blog_posts]))
 
         activity_queryset = activity_queryset.order_by('-timestamp')
         #cache.set(actor.username, activity_queryset)
@@ -199,7 +200,6 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
         batched_actions = dict()
 
     #activity_batch_map = dict()
-    
 
     for activity in activities:
         if activity.is_batchable:
@@ -230,8 +230,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
                             batched_actions[activity.id].append(gact.id)
                     else:
                         batched_actions[activity.id] =  [gact.id]
-
-                                              
+                       
     cache.set(request.user.username+"batched_actions", batched_actions)
 
     return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {

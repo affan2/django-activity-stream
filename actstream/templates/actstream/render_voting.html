@@ -18,8 +18,12 @@
                 <a class="upvote" href="{% url 'vote_on_images' object.id 'up' %}">Like</a>
     	{% elif object|get_class_name == "ThreadedComment" %}
                 <a  class="upvote" href="{% url 'vote_on_comments' object.id 'up' %}">Like</a>
-     	{% elif object|get_class_name == "UserWishRadio" %}
-                <a class="upvote" href="{% url 'vote_on_wishes' object.id 'up' %}">Like</a>    
+     	{% elif object|get_class_name == "GenericWish" %}
+                <a class="upvote" href="{% url 'vote_on_post' object.id 'up' %}">Like</a>
+        {% elif object|get_class_name == "BroadcastWish" %}
+                <a class="upvote" href="{% url 'vote_on_wish' object.id 'up' %}">Like</a>   
+        {% elif object|get_class_name == "BroadcastDeal" %}
+                <a class="upvote" href="{% url 'vote_on_deal' object.id 'up' %}">Like</a>       
     	{% endif %}
 
     {% else %}
@@ -31,8 +35,12 @@
                 <a  class="clearvote" href="{% url 'vote_on_images' object.id 'clear' %}">Unlike</a>
         {% elif object|get_class_name == "ThreadedComment" %}
                 <a  class="clearvote" href="{% url 'vote_on_comments' object.id 'clear' %}">Unlike</a>
-        {% elif object|get_class_name == "UserWishRadio" %}
-                <a  class="clearvote" href="{% url 'vote_on_wishes' object.id 'clear' %}">Unlike</a>      
+        {% elif object|get_class_name == "GenericWish" %}
+                <a  class="clearvote" href="{% url 'vote_on_post' object.id 'clear' %}">Unlike</a> 
+        {% elif object|get_class_name == "BroadcastWish" %}
+                <a  class="clearvote" href="{% url 'vote_on_wish' object.id 'clear' %}">Unlike</a>
+        {% elif object|get_class_name == "BroadcastDeal" %}
+                <a  class="clearvote" href="{% url 'vote_on_post' object.id 'clear' %}">Unlike</a>     
         {% endif %}
     {% endif %}
      <span class="cover-stat cover-stat-appreciations">

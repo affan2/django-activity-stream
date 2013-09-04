@@ -1,11 +1,13 @@
 {% load userProfile_tags %}
 
-{% if action and action.target and action.target|get_class_name == "UserWishRadio" %}
-	<span>
-		{% if request.user|is_following_post:action.target %}
-	        <a class="unfollowpost" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
-	    {% else %}
-	        <a class="followpost" href="{% url followWish action.target.pk %}" >follow post</a>
-	    {% endif %}
-	</span>
+{% if action and action.target %}
+	{% if action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal" %}
+		<span>
+			{% if request.user|is_following_post:action.target %}
+		        <a class="unfollowpost" href="{% url unfollowWish action.target.pk %}" >unfollow post</a>
+		    {% else %}
+		        <a class="followpost" href="{% url followWish action.target.pk %}" >follow post</a>
+		    {% endif %}
+		</span>
+	{% endif %}
 {% endif %}

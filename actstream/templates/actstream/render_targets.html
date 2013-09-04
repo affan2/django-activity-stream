@@ -6,14 +6,21 @@
 {% load userProfile_tags %}
   
 {% if action.target %}
+
     {% if action.target|get_class_name == "Action" %}
           <p>{% render_action action.target %}
 
     {% elif action.target|get_class_name == "Review" %}
             {% render_comment action.target %}
 
-    {% elif action.target|get_class_name == "UserWishRadio" %}
+    {% elif action.target|get_class_name == "GenericWish" %}
+            {% render_post action.target %}
+
+    {% elif action.target|get_class_name == "BroadcastWish" %}
             {% render_wish action.target %}
+
+    {% elif action.target|get_class_name == "BroadcastDeal" %}
+            {% render_deal action.target %}
 
     {% elif action.target|get_class_name == "Album" %}
               <div class='album span12'>
