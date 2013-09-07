@@ -5,7 +5,7 @@ from django.contrib.contenttypes.models import ContentType
 
 from actstream.exceptions import check_actionable_model
 from actstream import settings
-
+from django.conf import settings as _settings
 try:
     from django.utils import timezone
     now = timezone.now
@@ -40,7 +40,7 @@ def follow(user, obj, send_action=True, actor_only=True):
         content_type=ContentType.objects.get_for_model(obj),
         actor_only=actor_only)
     if send_action and created:
-        action.send(user, verb=_('started following'), target=obj, batch_time_minutes=30, is_batchable=True)
+        action.send(user, verb=_settings.FOLLOW_VERB, target=obj, batch_time_minutes=30, is_batchable=True)
     return follow
 
 
@@ -61,7 +61,7 @@ def unfollow(user, obj, send_action=False):
     Follow.objects.filter(user=user, object_id=obj.pk,
         content_type=ContentType.objects.get_for_model(obj)).delete()
     if send_action:
-        action.send(user, verb=_('stopped following'), target=obj)
+        action.send(user, verb=_settings.UNFOLLOW_VERB, target=obj)
 
 
 def is_following(user, obj):
