@@ -5,6 +5,7 @@ from django.template import Variable, Library, Node, TemplateSyntaxError, resolv
 from django.template.base import TemplateDoesNotExist
 from django.template.loader import render_to_string, find_template
 from django.core.cache import cache
+from django.contrib.auth.models import AnonymousUser
 
 import itertools
 import re
@@ -165,6 +166,9 @@ class CanShareActivity(Node):
 
     def render(self, context):
         user = context['request'].user
+        if isinstance(user, AnonymousUser):
+             context[self.context_var] = 0
+             return ''
         action_instance = self.action.resolve(context)
         actor_content_type = ContentType.objects.get_for_model(user)
         target_content_type = ContentType.objects.get_for_model(action_instance)

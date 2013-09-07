@@ -57,7 +57,6 @@ def follow_unfollow(request, content_type_id, object_id, do_follow=True, actor_o
     actions.unfollow(request.user, actor)
     return respond(request, 204)   # NO CONTENT
 
-
 @login_required
 def stream(request):
     """
@@ -385,7 +384,7 @@ def shareAction(request, action_id):
     actionObject = get_object_or_404(models.Action, pk=action_id)
     action.send(request.user, verb=settings.SHARE_VERB, target=actionObject)
     if request.is_ajax():
-        return HttpResponse('ok') 
+        return HttpResponse(simplejson.dumps(dict(success=True))) 
     else:
         return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
                 'action': actionObject
