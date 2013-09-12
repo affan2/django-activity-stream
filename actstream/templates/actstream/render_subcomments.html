@@ -17,7 +17,7 @@
 
 	<span class="subcomments"></span>
 	<span class="commenton" style="display:none;">
-		{% comments_for_review object %}
+		{% comments_for_review object 'comment_popup' %} <!--comment_popup is the class which will be applied to the textarea widget of the comment in form. -->
 	</span>
 	</span>
 {% endif %}
