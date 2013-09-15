@@ -2,22 +2,20 @@
 {% load comment_tags  %}
       
 {% if object %}
-	<span class="subcomments_container">
-	<a href="{% comments_for_obj_url object %}" OnClick="
-	        var add_link = $(this);
-	        $.get(add_link.attr('href'), {}, function(data) {
-	            add_link.parent().find('.subcomments').html(data);
-	            add_link.parent().find('.commenton').show();
-	            install_voting_handlers();
-	            install_comment_on_object_handler();
-	        });
-	        return false;">comment</a>
+	<div class="subcomments_container">
+		<a href="{% comments_for_obj_url object %}" OnClick="
+		        var add_link = $(this);
+		        $.get(add_link.attr('href'), {}, function(data) {
+		            add_link.parent().find('.subcomments').html(data);
+		            add_link.parent().find('.commenton').show();
+		            install_voting_handlers();
+		            install_comment_on_object_handler();
+		        });
+		        return false;">comment</a>
 
-	<a class="broadcasters" href="{% get_commenters_url object %}">{% comment_count_on_object object %}</a>
+		<a class="broadcasters" href="{% get_commenters_url object %}">{% comment_count_on_object object %}</a>
 
-	<span class="subcomments"></span>
-	<span class="commenton" style="display:none;">
+		<div class="subcomments"></div>
 		{% comments_for_review object 'comment_popup' %} <!--comment_popup is the class which will be applied to the textarea widget of the comment in form. -->
-	</span>
-	</span>
+	</div>
 {% endif %}

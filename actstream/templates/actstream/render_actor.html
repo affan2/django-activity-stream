@@ -1,5 +1,5 @@
 {% load activity_tags i18n %}
-{% load thumbnail %}
+{% load static thumbnail %}
 
 {% if actor %}
 	{% if actor.get_absolute_url %}
@@ -9,20 +9,20 @@
 				{% if actor.get_profile.profile_photo %}
 
 					{% thumbnail actor.get_profile.profile_photo "100x100" as img %} 
-					<img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+					<img style="margin-right:20px;" src="{{img.url}}">
 					{% endthumbnail %}
 
 				{% elif actor.get_profile.image_url %}
 					<img style="margin-right:20px;" src="{{ actor.get_profile.image_url }}">
 
 					{% else %}
-						<img style="margin-right:20px;height=80px;width:80px;" src="{{ STATIC_URL }}img/defaultProfilePic.gif"> 
+						<img style="margin-right:20px;height=80px;width:80px;" src="{% static "img/defaultProfilePic.gif" %}"> 
 
 				{% endif %}
 
 				{% elif actor|get_class_name == "BlogPost" %}
 					{% thumbnail actor.featured_image "100x100" as img %} 
-					<img style="margin-right:20px;" src="{{ MEDIA_URL }}{{img}}">
+					<img style="margin-right:20px;" src="{{img.url}}">
 					{% endthumbnail %}
 			{% else %}
 				{{actor}}
