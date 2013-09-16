@@ -1,21 +1,46 @@
-{% load i18n %}
+{% load mezzanine_tags i18n future %}
 {% load comment_tags  %}
       
 {% if object %}
 	<div class="subcomments_container">
-		<a href="{% comments_for_obj_url object %}" OnClick="
-		        var add_link = $(this);
-		        $.get(add_link.attr('href'), {}, function(data) {
-		            add_link.parent().find('.subcomments').html(data);
-		            add_link.parent().find('.commenton').show();
-		            install_voting_handlers();
-		            install_comment_on_object_handler();
-		        });
-		        return false;">comment</a>
+		<a href="#" class="comment_radio">comment</a>
+		{% comment_count_on_object object as total_comments %}
+		<a class="broadcasters" href="{% get_commenters_url object %}">{{total_comments}}</a>
+		</br>
+		{% comments_subset_url object 0 5 as feed %}
+		{% get_comments_subset object 0 5 as comments %}
+		<div  style="width:100%; height:20px;border-style: solid;border-color: white;background-color: whitesmoke;">
+		<div style="float:left;"><span class="loaded_comments">{{comments.count}}</span> of <span class="total_comments">{{total_comments}}</span></div>
 
-		<a class="broadcasters" href="{% get_commenters_url object %}">{% comment_count_on_object object %}</a>
+		{% if comments.count and comments.count == 5 and comments.count < total_comments %}
+			<a href="{{feed}}" class="viewPreviousComments" style="float:right;">view Previous Comments</a>
+		{% endif %}
+		</div>
 
-		<div class="subcomments"></div>
+		<div class="subcomments"> 
+		<ul class="unstyled">
+		    {% for comment in comments %}
+
+		    <li id="comment-{{ comment.id }}">
+		        {% editable comment.is_public comment.is_removed %}
+		            {% if not comment.is_removed and comment.is_public %}
+		                <strong>
+		                    {% include 'generic/includes/render_owner.html' with owner=comment.user %}   
+		                </strong>
+		            
+		                <p>{{ comment.comment|comment_filter }}</p>
+
+		                {% include 'generic/includes/render_voting.html' with object=comment %}
+		                <span class="timespan">{% blocktrans with sometime=comment.submit_date|timesince %}{{ sometime }} ago{% endblocktrans %}</span>
+		            {% endif %}
+		        {% endeditable %}
+		    </li>
+		    {% endfor %}
+		    {% if no_comments %}
+		        <li>{% trans "There are currently no comments" %}</li>
+		    {% endif %}
+		</ul>
+		</div>
 		{% comments_for_review object 'comment_popup' %} <!--comment_popup is the class which will be applied to the textarea widget of the comment in form. -->
 	</div>
 {% endif %}
