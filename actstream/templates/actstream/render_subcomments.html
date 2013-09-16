@@ -7,12 +7,12 @@
 		{% comment_count_on_object object as total_comments %}
 		<a class="broadcasters" href="{% get_commenters_url object %}">{{total_comments}}</a>
 		</br>
-		{% comments_subset_url object 0 5 as feed %}
+		{% comments_subset_url object 5 10 as feed %}
 		{% get_comments_subset object 0 5 as comments %}
 		<div  style="width:100%; height:20px;border-style: solid;border-color: white;background-color: whitesmoke;">
-		<div style="float:left;"><span class="loaded_comments">{{comments.count}}</span> of <span class="total_comments">{{total_comments}}</span></div>
+		<div style="float:left;"><span class="loaded_comments">{{comments|length}}</span> of <span class="total_comments">{{total_comments}}</span></div>
 
-		{% if comments.count and comments.count == 5 and comments.count < total_comments %}
+		{% if comments|length and comments|length == 5 and comments|length < total_comments %}
 			<a href="{{feed}}" class="viewPreviousComments" style="float:right;">view Previous Comments</a>
 		{% endif %}
 		</div>
