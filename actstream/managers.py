@@ -3,6 +3,7 @@ from collections import defaultdict
 from django.db.models import get_model
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 
 from actstream.gfk import GFKManager
 from actstream.decorators import stream
@@ -98,7 +99,7 @@ class ActionManager(GFKManager):
 
     def get_broadcasters(self, object):
         ctype = ContentType.objects.get_for_model(object)
-        result = self.filter(verb='shared', target_content_type=ctype, target_object_id = object._get_pk_val())
+        result = self.filter(verb=settings.SHARE_VERB, target_content_type=ctype, target_object_id = object._get_pk_val())
 
         broadcasters =[] 
         for actionObject in result:

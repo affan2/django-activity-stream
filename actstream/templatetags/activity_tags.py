@@ -6,6 +6,7 @@ from django.template.base import TemplateDoesNotExist
 from django.template.loader import render_to_string, find_template
 from django.core.cache import cache
 from django.contrib.auth.models import AnonymousUser
+from django.conf import settings
 
 import itertools
 import re
@@ -156,7 +157,7 @@ class ShareActivityCount(Node):
     def render(self, context):
         action_instance = self.action.resolve(context)
         target_content_type = ContentType.objects.get_for_model(action_instance)
-        context[self.context_var] = Action.objects.filter(verb='shared', target_content_type=target_content_type, target_object_id = action_instance.pk).count()
+        context[self.context_var] = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_instance.pk).count()
         return  ''
 
 class CanShareActivity(Node):
@@ -172,9 +173,9 @@ class CanShareActivity(Node):
         action_instance = self.action.resolve(context)
         actor_content_type = ContentType.objects.get_for_model(user)
         target_content_type = ContentType.objects.get_for_model(action_instance)
-        alreadyShared = Action.objects.filter(actor_content_type=actor_content_type,actor_object_id=user._get_pk_val(), verb='shared', target_content_type=target_content_type, target_object_id = action_instance.pk).count()
+        alreadyShared = Action.objects.filter(actor_content_type=actor_content_type,actor_object_id=user._get_pk_val(), verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_instance.pk).count()
         if alreadyShared == 0:
-            if action_instance.verb != "shared" and action_instance.actor != user:
+            if action_instance.verb != settings.SHARE_VERB and action_instance.actor != user:
                 context[self.context_var] = 1  
             else:
                 context[self.context_var] = 0
@@ -441,14 +442,14 @@ def activity_dynamic_update(parser, token):
     else:
         return FollowerActivityDynamicUpdate(*bits[1:])
 
-def do_broadcasters_for_action(parser, token):
+def do_broadcasters_for_object(parser, token):
     """
     Retrieves the list of broadcasters for an action and stores them in a context variable which has
     ``broadcasters`` property.
 
     Example usage::
 
-        {% broadcasters_for_action widget as voters %}
+        {% broadcasters_for_object widget as voters %}
     """
     bits = token.contents.split()
     if len(bits) != 4:
@@ -666,7 +667,7 @@ register.tag(get_share_count)
 register.tag(share_action_url)
 register.tag(delete_action_url)
 register.tag(can_share_action)
-register.tag('broadcasters_for_action', do_broadcasters_for_action)
+register.tag('broadcasters_for_object', do_broadcasters_for_object)
 register.tag('get_list_of_batched_action_ids', do_get_list_of_batched_action_ids)
 register.tag('get_action_target',do_get_action_target)
 register.tag('get_action_actor',do_get_action_actor)

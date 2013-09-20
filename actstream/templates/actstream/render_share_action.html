@@ -9,7 +9,7 @@
 {% endif %}
 	{% get_share_count action as shareCount %}
 
-	{% broadcasters_for_action action as broadcasters_url %}
+	{% broadcasters_for_object action as broadcasters_url %}
 
 	{% if shareCount != 0 %}
 		#<a class="broadcasters" href="{{broadcasters_url}}">{{ shareCount }}</a>
