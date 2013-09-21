@@ -145,31 +145,30 @@ def actstream_following(request, content_type_id, object_id):
     }, context_instance=RequestContext(request))
 
 
-def actstream_following_subset(request, content_type_id, object_id, sIndex, lIndex):
-    
-    ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+def get_actions_following(request, content_type_id, object_id):
+    activity_queryset = None
+    ctype 			  = get_object_or_404(ContentType, pk=content_type_id)
+    actor 			  = get_object_or_404(ctype.model_class(), pk=object_id)
 
-    activity_queryset = None#cache.get(actor.username)
     if activity_queryset is None:    	
         activity_queryset = actor.actor_actions.public()
 
         for followedObject in Follow.objects.following(user=actor):
             if followedObject:
-                obj_content_type = ContentType.objects.get_for_model(followedObject)
-                followObject = Follow.objects.get(user=actor, content_type=obj_content_type, object_id=followedObject.pk )
+                obj_content_type 	  = ContentType.objects.get_for_model(followedObject)
+                followObject     	  = Follow.objects.get(user=actor, content_type=obj_content_type, object_id=followedObject.pk )
                 if followObject:
-                    stream = followedObject.actor_actions.public(timestamp__gte=followObject.started)
+                    stream 		 	  = followedObject.actor_actions.public(timestamp__gte=followObject.started)
                     activity_queryset = activity_queryset | stream
 
                 if not isinstance(followedObject, User) and not isinstance(followedObject, BlogPost):           
-                    _follow = _Follow.objects.get_follows(followedObject)
+                    _follow    = _Follow.objects.get_follows(followedObject)
                     if _follow:     
                         follow = _follow.get(user=actor)
                         if follow:        
-                            stream = models.action_object_stream(followedObject, timestamp__gte = follow.datetime )
+                            stream 			  = models.action_object_stream(followedObject, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream 
-                            stream = models.target_stream(followedObject, timestamp__gte = follow.datetime )
+                            stream 			  = models.target_stream(followedObject, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream
         
         allowed_verbs_for_user_in_common_feed = [settings.SAID_VERB, settings.SHARE_VERB, settings.REVIEW_POST_VERB, settings.DEAL_POST_VERB, settings.WISH_POST_VERB]
@@ -183,22 +182,18 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
             activity_queryset = activity_queryset.exclude(Q(verb=settings.REVIEW_POST_VERB) & Q(action_object_content_type=blogPostContentType) & Q(action_object_object_id__in=[blogpost.id for blogpost in followed_blog_posts]))
 
         activity_queryset = activity_queryset.order_by('-timestamp')
-        #cache.set(actor.username, activity_queryset)
 
-    #else:
-    #    return HttpResponse(simplejson.dumps(dict(success=False,
-    #                                          error_message="heyyy")))
-    #activity =  sorted(activity, key=operator.attrgetter('timestamp'), reverse=True)
+    return activity_queryset
 
-    s = (int)(""+sIndex)
-    l = (int)(""+lIndex)
-    activities = activity_queryset[s:l]
+def merge_action_subset_op(request, activity_queryset, sIndex, lIndex):
+    activities = activity_queryset[sIndex:lIndex]
+
+    if activities and len(activities) > 0 and 'last_processed_action' not in request.session:
+    	request.session['last_processed_action'] = activities[0].id
 
     batched_actions = cache.get(request.user.username+"batched_actions")
     if not batched_actions:
         batched_actions = dict()
-
-    #activity_batch_map = dict()
 
     for activity in activities:
         if activity.is_batchable:
@@ -206,21 +201,23 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
             
             for value in batched_actions.values():
                 if activity.id in value:
-                    is_batched=True
+                    is_batched = True
+
             if not is_batched:
                 batch_minutes = activity.batch_time_minutes
                 if not batch_minutes:
                     batch_minutes = ACTIVITY_DEFAULT_BATCH_TIME
-                #cutoff_time = datetime.datetime.now()-timedelta(minutes=batch_minutes)
-                cutoff_time = activity.timestamp-timedelta(minutes=batch_minutes)
+
+                cutoff_time = activity.timestamp - timedelta(minutes=batch_minutes)
+
                 groupable_activities = None
 
                 if activity.verb == settings.FOLLOW_VERB:
-                    actor_content_type = ContentType.objects.get_for_model(activity.actor)
+                    actor_content_type   = ContentType.objects.get_for_model(activity.actor)
                     groupable_activities = activity_queryset.filter(timestamp__gte=cutoff_time,timestamp__lte=activity.timestamp, actor_content_type=actor_content_type, actor_object_id=activity.actor.pk, verb=activity.verb,target_content_type=activity.target_content_type ).exclude(id=activity.id).order_by('-timestamp')
          
                 else: 
-                    actor_content_type = ContentType.objects.get_for_model(activity.actor)
+                    actor_content_type   = ContentType.objects.get_for_model(activity.actor)
                     groupable_activities = activity_queryset.filter(timestamp__gte=cutoff_time, timestamp__lte=activity.timestamp, actor_content_type=actor_content_type, verb=activity.verb,target_content_type=activity.target_content_type, target_object_id=activity.target.id ).exclude(id=activity.id).order_by('-timestamp')
 
                 for gact in groupable_activities:
@@ -229,45 +226,90 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
                             batched_actions[activity.id].append(gact.id)
                     else:
                         batched_actions[activity.id] =  [gact.id]
-                       
+
     cache.set(request.user.username+"batched_actions", batched_actions)
 
+    return batched_actions
+
+def actstream_following_subset(request, content_type_id, object_id, sIndex, lIndex):
+    
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+
+    activity_queryset = get_actions_following(request, content_type_id, object_id)
+
+    s = (int)(""+sIndex)
+    l = (int)(""+lIndex)
+    activities = activity_queryset[s:l]
+
+    batched_actions = merge_action_subset_op(request, activity_queryset, s, l)
+    
+    if 'last_activity_count' not in request.session:
+        request.session['last_activity_count'] = activity_queryset.count()
+
+    if activities and len(activities) > 0:
+        request.session['last_processed_action'] = activities[0].id
+
     return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
-       'action_list': activities, 'actor': actor,
-       'ctype': ctype, 'sIndex':s,
+       'action_list': activities, 
+       'actor': actor,
+       'ctype': ctype,
+       'sIndex':s,
        'batched_actions':batched_actions,
     }, context_instance=RequestContext(request))
 
+def actstream_update_activity(request, content_type_id, object_id): 
+    batched_actions   = dict()
+    ctype             = get_object_or_404(ContentType, pk=content_type_id)
+    actor 			  = get_object_or_404(ctype.model_class(), pk=object_id)
+
+    activity_queryset = get_actions_following(request, content_type_id, object_id)
+
+    last_processed_id = request.session.get('last_processed_action', -1)
+
+    if last_processed_id >= 0:
+        activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id)
+
+        lastCount 								= request.session.get('last_activity_count', 0)
+        request.session['last_activity_count']  = lastCount + activity_qs_unprocessed.count()
+    
+        if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0 and 'last_processed_action' in request.session:
+            request.session['last_processed_action'] = activity_qs_unprocessed[0].id
+
+        if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0:
+            batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
+
+        return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+           'action_list': activity_qs_unprocessed,
+           'actor': actor,
+           'ctype': ctype,
+           'sIndex':request.session.get('last_activity_count', 0),
+           'batched_actions':batched_actions,
+        }, context_instance=RequestContext(request))
+    else:
+    	"""
+    		If last_action_id is not set but there are some unprocessed initial activities,process them.
+    	"""
+    	if activity_queryset:
+            request.session['last_processed_action'] = activity_queryset[0].id
+            request.session['last_activity_count']  = activity_queryset.count()
+            return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+               'action_list': activity_queryset,
+               'actor': actor,
+               'ctype': ctype,
+               'sIndex':request.session.get('last_activity_count', 0),
+               'batched_actions':batched_actions,
+            }, context_instance=RequestContext(request))
+    	else:
+    	    return HttpResponse(simplejson.dumps(dict(success=True, message="No New Actions")))
+
 def actstream_rebuild_cache(request, content_type_id, object_id):
-    from itertools import chain
-    import operator 
+    if 'last_processed_action' in request.session:
+    	del request.session['last_processed_action']
 
-    cache.delete(request.user.username+"batched_actions")      
-    ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = get_object_or_404(ctype.model_class(), pk=object_id)
-    activity = actor.actor_actions.public()
+    if 'last_activity_count' in request.session:
+    	request.session['last_activity_count'] = -1
 
-    for followedActor in Follow.objects.following(user=actor):
-        if followedActor:
-            target_content_type = ContentType.objects.get_for_model(followedActor)
-            prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=settings.FOLLOW_VERB, target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
-            followAction = None
-            if prevFollowActions:
-                followAction =  prevFollowActions[0]
-            if followAction:
-                stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
-                activity = activity | stream
-            if not isinstance(followedActor, User):
-                _follow = _Follow.objects.get_follows(followedActor)
-                if _follow:     
-                    follow = _follow.get(user=actor)
-                    if follow:        
-                        stream = models.action_object_stream(followedActor, timestamp__gte = follow.datetime )
-                        activity = activity | stream 
-                        stream = models.target_stream(followedActor, timestamp__gte = follow.datetime )
-                        activity = activity | stream
-    activity =  activity.order_by('-timestamp')
-    cache.set(actor.username, activity)
     return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
 
 def actstream_actor_rebuild_cache(request, content_type_id, object_id):
@@ -278,51 +320,6 @@ def actstream_actor_rebuild_cache(request, content_type_id, object_id):
     activity = models.actor_stream(actor).order_by('-timestamp')
     cache.set(actor.username+"perso", activity)
     return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
-
-def actstream_update_activity(request, content_type_id, object_id): 
-    ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = get_object_or_404(ctype.model_class(), pk=object_id)
-    activity = actor.actor_actions.public()
-
-    for followedActor in Follow.objects.following(user=actor):
-    	if followedActor:
-	        target_content_type = ContentType.objects.get_for_model(followedActor)
-	        prevFollowActions = Action.objects.all().filter(actor_content_type=ctype, actor_object_id=object_id,verb=settings.FOLLOW_VERB, target_content_type=target_content_type, target_object_id = followedActor.pk ).order_by('-pk')
-	        followAction = None
-	        if prevFollowActions:
-	            followAction =  prevFollowActions[0]
-	        if followAction:
-	            stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
-	            activity = activity | stream
-	        
-	        if not isinstance(followedActor, User):
-	            _follow = _Follow.objects.get_follows(followedActor)
-	            if _follow:     
-	                follow = _follow.get(user=actor)
-	                if follow:        
-	                    stream = models.action_object_stream(followedActor, timestamp__gte = follow.datetime )
-	                    activity = activity | stream 
-	                    stream = models.target_stream(followedActor, timestamp__gte = follow.datetime )
-	                    activity = activity | stream
-
-    activity =  activity.order_by('-timestamp')
-
-    lastActivity = cache.get(actor.username)
-    oldIndex = 0
-    lastActivityCount = 0
-    if lastActivity:
-        lastActivityCount = lastActivity.count()
-    if activity:
-        oldIndex = activity.count() - lastActivityCount
-
-    cache.set(actor.username, activity)
-  
-    activity = activity[0:oldIndex]
-
-    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
-       'action_list': activity, 'actor': actor,
-       'ctype': ctype, 'sIndex':lastActivityCount + 1
-    }, context_instance=RequestContext(request))
 
 def actor(request, content_type_id, object_id):
     """
