@@ -231,6 +231,15 @@ class FollowerActivityDynamicUpdate(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_update_activity', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
 
+class FollowerActivityPendingCount(Node):
+    def __init__(self, actor):
+        self.actor = Variable(actor)
+
+    def render(self, context):
+        actor_instance = self.actor.resolve(context)
+        content_type = ContentType.objects.get_for_model(actor_instance).pk
+        return reverse('actstream_latest_activity_count', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
+
 class BroadcastersForObjectNode(Node):
     def __init__(self, object, context_var):
         self.object = object
@@ -441,6 +450,18 @@ def activity_dynamic_update(parser, token):
                                   "{% activity_dynamic_update [actor_instance] %}")
     else:
         return FollowerActivityDynamicUpdate(*bits[1:])
+
+def activity_pending_action_count(parser, token):
+    """
+    Refreshes the user activity feed cache
+
+    """
+    bits = token.split_contents()
+    if len(bits) != 2:
+        raise TemplateSyntaxError("Accepted format "
+                                  "{% activity_pending_action_count [actor_instance] %}")
+    else:
+        return FollowerActivityPendingCount(*bits[1:])
 
 def do_broadcasters_for_object(parser, token):
     """
@@ -663,6 +684,7 @@ register.tag(following_feedsubset_url)
 register.tag(activity_refresh_cache)
 register.tag(activity_actor_refresh_cache)
 register.tag(activity_dynamic_update)
+register.tag(activity_pending_action_count)
 register.tag(get_share_count)
 register.tag(share_action_url)
 register.tag(delete_action_url)

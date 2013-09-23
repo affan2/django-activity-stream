@@ -227,8 +227,6 @@ def merge_action_subset_op(request, activity_queryset, sIndex, lIndex):
                     else:
                         batched_actions[activity.id] =  [gact.id]
 
-    cache.set(request.user.username+"batched_actions", batched_actions)
-
     return batched_actions
 
 def actstream_following_subset(request, content_type_id, object_id, sIndex, lIndex):
@@ -243,7 +241,8 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     activities = activity_queryset[s:l]
 
     batched_actions = merge_action_subset_op(request, activity_queryset, s, l)
-    
+    cache.set(request.user.username+"batched_actions", batched_actions)
+
     if 'last_activity_count' not in request.session:
         request.session['last_activity_count'] = activity_queryset.count()
 
@@ -257,6 +256,37 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
        'sIndex':s,
        'batched_actions':batched_actions,
     }, context_instance=RequestContext(request))
+
+def actstream_latest_activity_count(request, content_type_id, object_id):
+    batched_actions   = dict()
+    ctype             = get_object_or_404(ContentType, pk=content_type_id)
+    actor 			  = get_object_or_404(ctype.model_class(), pk=object_id)
+
+    activity_queryset = get_actions_following(request, content_type_id, object_id)
+
+    last_processed_id = request.session.get('last_processed_action', -1)
+
+    activity_qs_unprocessed = None
+
+    if last_processed_id >= 0:
+        activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id)
+
+        if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0:
+            batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
+
+        try:
+            user = request.user
+            
+            action_id_maps = batched_actions
+            action_id_list = []
+            if action_id_maps:
+                action_id_list = action_id_maps.values()
+        except VariableDoesNotExist:
+            return ''
+        batched_ids = list(itertools.chain(*action_id_list))
+        activity_qs_unprocessed = activity_qs_unprocessed.exclude(id__in=batched_ids)
+
+    return HttpResponse(simplejson.dumps(dict(success=True, count=activity_qs_unprocessed.count())))    	
 
 def actstream_update_activity(request, content_type_id, object_id): 
     batched_actions   = dict()
@@ -272,13 +302,20 @@ def actstream_update_activity(request, content_type_id, object_id):
 
         lastCount 								= request.session.get('last_activity_count', 0)
         request.session['last_activity_count']  = lastCount + activity_qs_unprocessed.count()
-    
+        
         if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0 and 'last_processed_action' in request.session:
             request.session['last_processed_action'] = activity_qs_unprocessed[0].id
 
         if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0:
             batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
+            prev_batched_actions = cache.get(request.user.username+"batched_actions")
+            if prev_batched_actions:
+    	        combined_batch_actions = prev_batched_actions.copy()
+    	        combined_batch_actions.update(batched_actions)
+            else:
+    	        combined_batch_actions = batched_actions
 
+            cache.set(request.user.username+"batched_actions", combined_batch_actions)
         return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
            'action_list': activity_qs_unprocessed,
            'actor': actor,

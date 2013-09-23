@@ -43,7 +43,8 @@ urlpatterns = patterns('actstream.views',
         'actstream_actor_rebuild_cache', name='actstream_actor_rebuild_cache'),    
     url(r'^actstream_update_activity/(?P<content_type_id>\d+)/(?P<object_id>\d+)/$',
         'actstream_update_activity', name='actstream_update_activity'),
-
+    url(r'^actstream_latest_activity_count/(?P<content_type_id>\d+)/(?P<object_id>\d+)/$',
+        'actstream_latest_activity_count', name='actstream_latest_activity_count'),
     url(r'^actors/(?P<content_type_id>\d+)/$',
         'model', name='actstream_model'),
 
