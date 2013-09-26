@@ -282,13 +282,13 @@ def is_following(user, actor):
     return Follow.objects.is_following(user, actor)
 
 
-def follow_url(parser, token):
+def follow_activity_url(parser, token):
     """
     Renders the URL of the follow view for a particular actor instance
 
     Example::
 
-        <a href="{% follow_url other_user %}">
+        <a href="{% follow_activity_url other_user %}">
             {% if request.user|is_following:other_user %}
                 stop following
             {% else %}
@@ -298,7 +298,7 @@ def follow_url(parser, token):
     """
     bits = token.split_contents()
     if len(bits) != 2:
-        raise TemplateSyntaxError("Accepted format {% follow_url [instance] %}")
+        raise TemplateSyntaxError("Accepted format {% follow_activity_url [instance] %}")
     else:
         return DisplayActivityFollowUrl(bits[1])
 
@@ -675,7 +675,7 @@ register.filter(is_following)
 register.filter(get_class_name)
 register.tag(display_action)
 register.tag(render_action)
-register.tag(follow_url)
+register.tag(follow_activity_url)
 register.tag(follow_all_url)
 register.tag(actor_url)
 register.tag(actor_url_subset)

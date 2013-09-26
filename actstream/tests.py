@@ -195,7 +195,7 @@ class ActivityTestCase(ActivityBaseTestCase):
         self.assert_(not action in self.user1.actor_actions.public())
 
     def test_tag_follow_url(self):
-        src = '{% load activity_tags %}{% follow_url user %}'
+        src = '{% load activity_tags %}{% follow_activity_url user %}'
         output = Template(src).render(Context({'user': self.user1}))
         ct = ContentType.objects.get_for_model(User)
         self.assertEqual(output, '/follow/%s/%s/' % (ct.pk, self.user1.pk))
