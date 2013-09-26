@@ -269,7 +269,17 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
     activity_qs_unprocessed = None
 
     if last_processed_id >= 0:
-        activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id)
+        """
+            Feeds for like/unfollow are excluded in incremental update as user can keep toggling them due to which 
+            possibility of duplciation arises.
+        """
+        disallowed_verbs_for_incremental_feed = [settings.WISH_LIKE_VERB, settings.DEAL_LIKE_VERB, settings.POST_LIKE_VERB, \
+    											 settings.ALBUM_LIKE_WISH, settings.REVIEW_COMMENT_LIKE_VERB, settings.ALBUM_COMMENT_LIKE_VERB, \
+    											 settings.IMAGE_COMMENT_LIKE_VERB, settings.DEAL_COMMENT_LIKE_VERB, settings.WISH_COMMENT_LIKE_VERB,\
+    											 settings.POST_COMMENT_LIKE_VERB, settings.REVIEW_LIKE_VERB, settings.PHOTO_LIKE_VERB,\
+    											 settings.FOLLOW_VERB, settings.UNFOLLOW_VERB ]
+
+        activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id).exclude(Q(verb__in=disallowed_verbs_for_incremental_feed))
 
         if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0:
             batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
@@ -298,7 +308,17 @@ def actstream_update_activity(request, content_type_id, object_id):
     last_processed_id = request.session.get('last_processed_action', -1)
 
     if last_processed_id >= 0:
-        activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id)
+    	"""
+    		Feeds for like/unfollow are excluded in incremental update as user can keep toggling them due to which 
+    		possibility of duplciation arises.
+    	"""
+    	disallowed_verbs_for_incremental_feed = [settings.WISH_LIKE_VERB, settings.DEAL_LIKE_VERB, settings.POST_LIKE_VERB, \
+    											 settings.ALBUM_LIKE_WISH, settings.REVIEW_COMMENT_LIKE_VERB, settings.ALBUM_COMMENT_LIKE_VERB, \
+    											 settings.IMAGE_COMMENT_LIKE_VERB, settings.DEAL_COMMENT_LIKE_VERB, settings.WISH_COMMENT_LIKE_VERB,\
+    											 settings.POST_COMMENT_LIKE_VERB, settings.REVIEW_LIKE_VERB, settings.PHOTO_LIKE_VERB,\
+    											 settings.FOLLOW_VERB, settings.UNFOLLOW_VERB ]
+
+        activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id).exclude(Q(verb__in=disallowed_verbs_for_incremental_feed))
 
         lastCount 								= request.session.get('last_activity_count', 0)
         request.session['last_activity_count']  = lastCount + activity_qs_unprocessed.count()
