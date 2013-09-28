@@ -246,7 +246,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     if 'last_activity_count' not in request.session:
         request.session['last_activity_count'] = activity_queryset.count()
 
-    if activities and len(activities) > 0:
+    if activities and len(activities) > 0 and 'last_processed_action' not in request.session:
         request.session['last_processed_action'] = activities[0].id
 
     return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
