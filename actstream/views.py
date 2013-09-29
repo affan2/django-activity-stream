@@ -243,8 +243,12 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     batched_actions = merge_action_subset_op(request, activity_queryset, s, l)
     cache.set(request.user.username+"batched_actions", batched_actions)
 
+    activity_count = 0
+    if activity_queryset:
+        activity_count = activity_queryset.count()
+        
     if 'last_activity_count' not in request.session:
-        request.session['last_activity_count'] = activity_queryset.count()
+        request.session['last_activity_count'] = activity_count
 
     if activities and len(activities) > 0 and 'last_processed_action' not in request.session:
         request.session['last_processed_action'] = activities[0].id
@@ -295,8 +299,11 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
             return ''
         batched_ids = list(itertools.chain(*action_id_list))
         activity_qs_unprocessed = activity_qs_unprocessed.exclude(id__in=batched_ids)
-
-    return HttpResponse(simplejson.dumps(dict(success=True, count=activity_qs_unprocessed.count())))    	
+    
+    activity_count = 0
+    if activity_qs_unprocessed:
+        activity_count = activity_qs_unprocessed.count()
+    return HttpResponse(simplejson.dumps(dict(success=True, count=activity_count)))    	
 
 def actstream_update_activity(request, content_type_id, object_id): 
     batched_actions   = dict()
