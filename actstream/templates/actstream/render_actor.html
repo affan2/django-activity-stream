@@ -7,22 +7,18 @@
 			<a href="{{ actor.get_absolute_url }}">
 			{% if actor|get_class_name == "User" %}
 				{% if actor.get_profile.profile_photo %}
-
 					{% thumbnail actor.get_profile.profile_photo "100x100" as img %} 
-					<img style="margin-right:20px;" src="{{img.url}}">
+					<img style="" width="55px" height="55px" src="{{img.url}}">
 					{% endthumbnail %}
-
 				{% elif actor.get_profile.image_url %}
-					<img style="margin-right:20px;" src="{{ actor.get_profile.image_url }}">
-
+					<img style="" width="55px" height="55px" src="{{ actor.get_profile.image_url }}">
 					{% else %}
-						<img style="margin-right:20px;height=80px;width:80px;" src="{% static "img/defaultProfilePic.gif" %}"> 
-
+					<img style="" width="55px" height="55px" src="{% static "img/defaultProfilePic.gif" %}"> 
 				{% endif %}
 
-				{% elif actor|get_class_name == "BlogPost" %}
+			{% elif actor|get_class_name == "BlogPost" %}
 					{% thumbnail actor.featured_image "100x100" as img %} 
-					<img style="margin-right:20px;" src="{{img.url}}">
+					<img style="" width="55px" height="55px" src="{{img.url}}">
 					{% endthumbnail %}
 			{% else %}
 				{{actor}}

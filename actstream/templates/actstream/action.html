@@ -6,12 +6,12 @@
 {% load userProfile_tags %}
 {% load static %}
 
-<div id="action{{action.id}}" class="row-fluid">
+<div id="action{{action.id}}" class="row">
 
 	{% include 'actstream/render_actor.html' with actor=action.actor %}
 
-	<div class="span11">
-			<span id="verb">
+	<div class="span6" style="margin-left:0px;">
+			<span class="fontTitillium2 fontSize12 color5D">
 				{% include 'actstream/render_actor_name.html' with actor=action.actor  %}
 				{% include 'actstream/render_batched_actors.html' with batched_actors=batched_actors %}
 				{% include 'actstream/render_verb.html' with action=action %}
@@ -36,7 +36,7 @@
 				{% include 'actstream/render_spam_report.html' with object=action %}
 			{% endif %}
 
-			<div id="timestamp">
+			<div class="timestamp">
 			 	{{ action.timestamp|timesince }} {% trans "ago" %}
 			</div>
 
