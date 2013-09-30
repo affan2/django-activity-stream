@@ -1,12 +1,13 @@
+import json
+
 from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.template import RequestContext, VariableDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
 
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
-from django.utils import simplejson
 from django.db.models import Q
 from django.conf import settings
 
@@ -14,8 +15,6 @@ from actstream import actions, models
 from actstream.models import Follow
 from django.core.cache import cache
 from actstream import action
-from django.utils.translation import ugettext_lazy as _
-from mezzanine.blog.models import BlogPost
 from actstream.models import Action
 from follow.models import Follow as _Follow
 from follow import utils
@@ -303,7 +302,7 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
     activity_count = 0
     if activity_qs_unprocessed:
         activity_count = activity_qs_unprocessed.count()
-    return HttpResponse(simplejson.dumps(dict(success=True, count=activity_count)))    	
+    return HttpResponse(json.dumps(dict(success=True, count=activity_count)))    	
 
 def actstream_update_activity(request, content_type_id, object_id): 
     batched_actions   = dict()
@@ -365,7 +364,7 @@ def actstream_update_activity(request, content_type_id, object_id):
                'batched_actions':batched_actions,
             }, context_instance=RequestContext(request))
     	else:
-    	    return HttpResponse(simplejson.dumps(dict(success=True, message="No New Actions")))
+    	    return HttpResponse(json.dumps(dict(success=True, message="No New Actions")))
 
 def actstream_rebuild_cache(request, content_type_id, object_id):
     if 'last_processed_action' in request.session:
@@ -374,7 +373,7 @@ def actstream_rebuild_cache(request, content_type_id, object_id):
     if 'last_activity_count' in request.session:
     	request.session['last_activity_count'] = -1
 
-    return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
+    return HttpResponse(json.dumps(dict(success=True, message="Cache Updated")))
 
 def actstream_actor_rebuild_cache(request, content_type_id, object_id):
     from itertools import chain
@@ -383,7 +382,7 @@ def actstream_actor_rebuild_cache(request, content_type_id, object_id):
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
     activity = models.actor_stream(actor).order_by('-timestamp')
     cache.set(actor.username+"perso", activity)
-    return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
+    return HttpResponse(json.dumps(dict(success=True, message="Cache Updated")))
 
 def actor(request, content_type_id, object_id):
     """
@@ -398,7 +397,7 @@ def actor(request, content_type_id, object_id):
     }, context_instance=RequestContext(request))
 
 def json_error_response(error_message):
-    return HttpResponse(simplejson.dumps(dict(success=False,
+    return HttpResponse(json.dumps(dict(success=False,
                                               error_message=error_message)))
 
 def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
@@ -445,7 +444,7 @@ def shareAction(request, action_id):
     actionObject = get_object_or_404(models.Action, pk=action_id)
     action.send(request.user, verb=settings.SHARE_VERB, target=actionObject)
     if request.is_ajax():
-        return HttpResponse(simplejson.dumps(dict(success=True))) 
+        return HttpResponse(json.dumps(dict(success=True)))
     else:
         return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
                 'action': actionObject

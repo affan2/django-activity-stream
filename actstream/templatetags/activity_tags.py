@@ -7,12 +7,14 @@ from django.template.loader import render_to_string, find_template
 from django.core.cache import cache
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
+from django import template
+
 
 import itertools
 import re
 
 
-register = Library()
+register = template.Library()
 
 
 def _is_following_helper(context, actor):
