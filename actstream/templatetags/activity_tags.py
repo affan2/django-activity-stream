@@ -717,7 +717,7 @@ def review_verb_linkify(action):
     if obj:
         url = reverse('render_review', kwargs={
             'blog_slug': obj.content_object.slug, 'review_id': obj.id})
-        linkified_url = "<a class='fontTitillium2 fontSize13 color5D' href=\""+url+"\">review</a>"
+        linkified_url = "<a class='fontSize13' href=\""+url+"\">review</a>"
         pattern = re.compile("review", re.IGNORECASE)
         return pattern.sub(linkified_url, action.verb)
     return ""
