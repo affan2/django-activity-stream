@@ -1,0 +1,11 @@
+{% load activity_tags %}
+
+{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
+    {% include 'generic/includes/render_voting.html' with object=action.target %}
+{% endif %}
+
+{% include 'actstream/render_share_action.html' with action=action %}
+
+{% include 'actstream/render_comment_text.html' with object=action.target %}
+
+{% include 'actstream/render_follow_post.html' with action=action %}

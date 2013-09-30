@@ -4,15 +4,13 @@
 
 {% if actor %}
 	{% if actor.get_absolute_url %}
-			<a href="{{ actor.get_absolute_url }}">
 			{% if actor|get_class_name == "User" %}
-				{% get_full_name actor %}
+				<a href="{{ actor.get_absolute_url }}" class="fontTitillium1 fontSize13">{% get_full_name actor %}</a>
 			{% elif actor|get_class_name == "BlogPost" %}
-				{{actor}}
+				<a href="{{ actor.get_absolute_url }}" class="fontHelvetica fontSize13 radioColor">{{actor}}</a>
 			{% else %}
 				{{actor}}
 			{% endif %}
-			</a>
 	{% else %}
 		{{actor}}
 	{% endif %}

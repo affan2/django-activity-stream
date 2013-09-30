@@ -3,9 +3,6 @@
       
 {% if object %}
 	<div class="subcomments_container">
-		<a href="#" class="comment_radio">comment</a>
-		{% comment_count_on_object object as total_comments %}
-		<a class="broadcasters" href="{% get_commenters_url object %}">{{total_comments}}</a>
 		</br>
 		{% comments_subset_url object 5 10 as feed %}
 		{% get_comments_subset object 0 5 as comments %}
