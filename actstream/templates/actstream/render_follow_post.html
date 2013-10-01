@@ -2,12 +2,10 @@
 
 {% if action and action.target %}
 	{% if action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal" %}
-		<span>
-			{% if request.user|is_following_post:action.target %}
-		        <a class="unfollowpost" href="#" data-href="{% url unfollowWish action.target.pk %}" >Unfollow Post</a>
-		    {% else %}
-		        <a class="followpost" href="#" data-href="{% url followWish action.target.pk %}" >Follow Post</a>
-		    {% endif %}
-		</span>
+		{% if request.user|is_following_post:action.target %}
+	        <a class="unfollowpost" href="#" data-href="{% url unfollowWish action.target.pk %}" >Unfollow Post</a>
+	    {% else %}
+	        <a class="followpost" href="#" data-href="{% url followWish action.target.pk %}" >Follow Post</a>
+	    {% endif %}
 	{% endif %}
 {% endif %}

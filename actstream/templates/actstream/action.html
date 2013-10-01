@@ -8,7 +8,7 @@
 
 <div id="action{{action.id}}" class="row">
 
-	{% include 'actstream/render_actor.html' with actor=action.actor %}
+	{% include 'generic/includes/render_owner.html' with actor=action.actor %}
 
 	<div class="span6 fontTitillium1 color5D fontSize12" style="margin-left:0px;">
 			<span>
@@ -19,18 +19,11 @@
 
 			{% include 'actstream/render_targets.html' with action=action batched_targets=batched_targets %}
 
-			<div class="timestamp">
+			<div class="timestamp fontSize11">
 			 	{{ action.timestamp|timesince }} {% trans "ago" %}
 			</div>
 
 			{% include 'actstream/render_radio_module.html' with action=action %}
-
-			{% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
-				<a class="deleteAction" data-action-id="{{action.id}}" href="{% delete_action_url action %}" style="color:black">x</a>
-			{% endif %}
-			{% if action.actor != request.user %}
-				{% include 'actstream/render_spam_report.html' with object=action %}
-			{% endif %}
 
 			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
 			    {% include 'actstream/render_subcomments.html' with object=action.target %}

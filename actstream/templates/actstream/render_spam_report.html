@@ -2,13 +2,11 @@
 {% load inbox %}
 
 {% if object %}
-<div class="reportSpam">
 <a href="{% report_spam_url object %}" onclick="var add_link = $(this);
             var link = add_link.attr('href');
             $.get(link, {}, function(data) {
                 if(data == 'ok')
                   alert('Reported');
             });
-            return false;"><img title="Flag as spam" src="{{STATIC_URL}}img/flag_blue.ico"></a>
-</div>
+            return false;">Report Abuse</a>
 {% endif %}

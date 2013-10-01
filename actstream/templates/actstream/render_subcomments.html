@@ -4,6 +4,7 @@
 {% if object %}
 	<div class="subcomments_container">
 		</br>
+		{% comment_count_on_object object as total_comments %}
 		{% comments_subset_url object 5 10 as feed %}
 		{% get_comments_subset object 0 5 as comments %}
 		<div  style="width:100%; height:20px;border-style: solid;border-color: white;background-color: whitesmoke;">
