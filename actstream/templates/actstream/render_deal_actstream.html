@@ -16,7 +16,7 @@
     <div class="row topHalfGutter">
         <div class="span6 pagination-centered">
             {% get_reldata_url deal as rel_data_url %}
-            {% thumbnail deal.wishimage "800x400" crop="center" as img %} 
+            {% thumbnail deal.wishimage "800x400" as img %} 
                 <a class="wishimg-deal{{deal.id}}" href="{{  deal.wishimage.url }}" data-reldata-url="{{rel_data_url}}">
                     <img src="{{ MEDIA_URL }}{{img}}" style="max-height:250px;">
                 </a> 
