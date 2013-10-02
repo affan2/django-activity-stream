@@ -1,9 +1,6 @@
 {% load i18n %}
-{% load voting_tags %}
 {% load thumbnail %}
 {% load activity_tags %}
-{% load comment_tags  %}
-{% load userProfile_tags %}
 {% load static %}
 
 <div id="action{{action.id}}" class="row-fluid">
@@ -21,8 +18,6 @@
 
 
 			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
-				{% include 'actstream/render_voting.html' with object=action.target %}
-				{% include 'actstream/render_subcomments.html' with object=action.target %}
 			{% endif %}
 
 			{% include 'actstream/render_follow_post.html' with action=action %}

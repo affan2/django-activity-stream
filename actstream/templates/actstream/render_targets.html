@@ -1,26 +1,12 @@
 {% load activity_tags i18n %}
 {% load i18n %}
-{% load comment_tags  %}
 {% load thumbnail %}
 {% load url from future %}
-{% load userProfile_tags %}
-  
+
 {% if action.target %}
 
     {% if action.target|get_class_name == "Action" %}
           <p>{% render_action action.target %}
-
-    {% elif action.target|get_class_name == "Review" %}
-            {% render_comment action.target %}
-
-    {% elif action.target|get_class_name == "GenericWish" %}
-            {% render_post action.target %}
-
-    {% elif action.target|get_class_name == "BroadcastWish" %}
-            {% render_wish action.target %}
-
-    {% elif action.target|get_class_name == "BroadcastDeal" %}
-            {% render_deal action.target %}
 
     {% elif action.target|get_class_name == "Album" %}
               <div class='album span12'>
@@ -33,7 +19,7 @@
 
     {% elif action.target|get_class_name == "Image" %}
         <div class="album-feed-container"> 
-              {% get_reldata_url action.target as rel_data_url %} 
+{#              {% get_reldata_url action.target as rel_data_url %} #}
               {% thumbnail action.target.image "150x150" crop="center" as img %}
                       <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ action.target.image.url }}" data-album-url="{% url 'imagestore:render_album_ex' action.target.album.id action.target.id %}" data-reldata-url="{{rel_data_url}}">
                               <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
@@ -42,7 +28,6 @@
                                   <br><span class='image-title'>{{ action.target.title }}</span>
                               {% endif %}   
                       </a>
-              {% endthumbnail %}           
         </div>
 
     {% else %}

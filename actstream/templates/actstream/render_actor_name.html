@@ -1,12 +1,11 @@
 {% load activity_tags i18n %}
 {% load thumbnail %}
-{% load userProfile_tags %}
 
 {% if actor %}
 	{% if actor.get_absolute_url %}
 			<a href="{{ actor.get_absolute_url }}">
 			{% if actor|get_class_name == "User" %}
-				{% get_full_name actor %}
+				{{ actor }}
 			{% elif actor|get_class_name == "BlogPost" %}
 				{{actor}}
 			{% else %}
