@@ -1,0 +1,42 @@
+{% load i18n %}
+{% load thumbnail %}
+{% load userProfile_tags %}
+{% load thumbnail %}
+
+<div class="row">
+    <div class="span6">
+        <span class="message">
+            {{wish.message}}
+        </span>
+        {% if  wish.blog_category %}
+            <a class="categoryTag pull-right" href="{{ wish.blog_category.get_absolute_url }}"> {{wish.blog_category}} </a>
+        {% endif %}
+    </div>
+</div>
+{% if wish.wishimage %}
+    <div class="row" style="margin-top:10px; margin-bottom:10px;">
+        <div class="span6 pagination-centered">
+            {% get_reldata_url deal as rel_data_url %}
+            {% thumbnail wish.wishimage "800x400" crop="center" as img %} 
+                <a class="wishimg-wish{{deal.id}}" href="{{  wish.wishimage.url }}" data-reldata-url="{{rel_data_url}}">
+                    <img src="{{ MEDIA_URL }}{{img}}" style="max-height:250px;">
+                </a> 
+                <script type="text/javascript">
+                      $('a.wishimg-wish{{wish.id}}').fancybox({
+                        scrolling: 'yes',
+                        minWidth:500,
+                        minHeight:450,
+                        autoSize: true
+                      });
+                </script> 
+            {% endthumbnail %}
+        </div>
+    </div>
+{% endif %}
+<div class="row">
+    <div class="span6">
+        {% autoescape off %}
+            {{wish.urlPreviewContent}}
+        {% endautoescape %}
+    </div>
+</div>
