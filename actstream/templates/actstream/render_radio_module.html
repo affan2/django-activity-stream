@@ -21,7 +21,7 @@
     </div>
     <div class="span2 noGutter">
         {% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
-            <span class="manageFeed" onclick="var $this = $(this); if ( $this.hasClass('manageFeedUp') ) { $this.removeClass('manageFeedUp'); $this.parent().find('.whiteBox').hide();} else { $this.addClass('manageFeedUp'); $this.parent().find('.whiteBox').show().css('display', 'inline-block');}"></span>
+            <span class="manageFeed" onclick="var $this = $(this); if ( $this.hasClass('manageFeedUp') ) { $this.removeClass('manageFeedUp moveManageFeedUp'); $this.parent().find('.whiteBox').hide();} else { $this.addClass('manageFeedUp moveManageFeedUp'); $this.parent().find('.whiteBox').show().css('display', 'inline-block');}"></span>
             <span style="height:50px;line-height:25px;display:none;padding:0px 15px;position:relative;top:-20px;" class="whiteBox">
                 <div>
                     <a class="deleteAction" data-action-id="{{action.id}}" href="{% delete_action_url action %}">Delete</a>
