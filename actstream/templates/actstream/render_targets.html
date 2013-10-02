@@ -1,6 +1,5 @@
 {% load activity_tags i18n %}
 {% load i18n %}
-{% load comment_tags  %}
 {% load thumbnail %}
 {% load url from future %}
 {% load userProfile_tags %}
@@ -11,7 +10,7 @@
     {% render_action action.target %}
 
   {% elif action.target|get_class_name == "Review" %}
-    {% render_comment action.target %}
+    {% render_review_actstream action.target %}
 
   {% elif action.target|get_class_name == "GenericWish" %}
     {% render_post action.target %}

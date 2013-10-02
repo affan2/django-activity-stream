@@ -491,6 +491,13 @@ def render_album(context, album):
     })
     return context
 
+@register.inclusion_tag("actstream/render_review_actstream.html", takes_context=True)
+def render_review_actstream(context, comment):
+    context.update({
+        "comment": comment,
+    })
+    return context
+
 @register.inclusion_tag("actstream/render_wish_actstream.html", takes_context=True)
 def render_wish_actstream(context, wish):
     context.update({
