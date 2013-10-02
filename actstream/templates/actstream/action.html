@@ -8,9 +8,9 @@
 
 <div id="action{{action.id}}" class="row">
 
-	{% include 'generic/includes/render_owner.html' with actor=action.actor %}
+	{% include 'generic/includes/render_owner.html' with owner=action.actor %}
 
-	<div class="span6 fontTitillium1 color5D fontSize12" style="margin-left:0px;">
+	<div class="span6 fontTitillium1 color5D fontSize12 noGutter">
 			<div class="row">
 				<div class="span6">
 					{% include 'actstream/render_actor_name.html' with actor=action.actor  %}
@@ -24,7 +24,7 @@
 					{% include 'actstream/render_targets.html' with action=action batched_targets=batched_targets %}
 				</div>
 			</div>
-			<div class="row">
+			<div class="row topHalfGutter">
 				<div class="span6">
 					{% include 'actstream/render_radio_module.html' with action=action %}
 				</div>
