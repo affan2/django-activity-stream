@@ -13,18 +13,18 @@
 
 							{% get_batched_targets batched_action_ids_list action.id as batched_targets %}
 							{% get_batched_actors batched_action_ids_list action.id as batched_actors %}
-	    						<li>{% include 'actstream/action.html'|backwards_compatibility_check with  batched_targets=batched_targets batched_actors=batched_actors%}</li>
+	    						<li class="topHalfGutter">{% include 'actstream/action.html'|backwards_compatibility_check with  batched_targets=batched_targets batched_actors=batched_actors%}</li>
     					
 	    			{% endwith %}
 	    		{% else %}
-	    				<li>{% include 'actstream/action.html'|backwards_compatibility_check %}</li>
+	    				<li class="topHalfGutter">{% include 'actstream/action.html'|backwards_compatibility_check %}</li>
 	    		{% endif %}
 
     	{% endwith %}
 	{% endif %}
+	<hr class="dottedSeparator">
 	{% empty %}
 		{% trans "No actions yet" %}
-
 {% endfor %}
 </ul>
 

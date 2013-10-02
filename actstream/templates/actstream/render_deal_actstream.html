@@ -1,0 +1,41 @@
+{% load i18n %}
+{% load thumbnail %}
+{% load userProfile_tags %}
+
+<div class="row">
+    <div class="span6">
+        <span class="message">
+            {{deal.message}}
+        </span>
+        {% if  deal.blog_category %}
+            <a class="categoryTag pull-right" href="{{ deal.blog_category.get_absolute_url }}"> {{deal.blog_category}} </a>
+        {% endif %}
+    </div>
+</div>
+{% if deal.wishimage %}
+    <div class="row" style="margin-top:10px; margin-bottom:10px;">
+        <div class="span6 pagination-centered">
+            {% get_reldata_url deal as rel_data_url %}
+            {% thumbnail deal.wishimage "800x400" crop="center" as img %} 
+                <a class="wishimg-deal{{deal.id}}" href="{{  deal.wishimage.url }}" data-reldata-url="{{rel_data_url}}">
+                    <img src="{{ MEDIA_URL }}{{img}}" style="max-height:250px;">
+                </a> 
+                <script type="text/javascript">
+                      $('a.wishimg-deal{{deal.id}}').fancybox({
+                      	scrolling: 'yes',
+            			minWidth:500,
+            			minHeight:450,
+            			autoSize: true
+                      });
+                </script> 
+            {% endthumbnail %}
+        </div>
+    </div>
+{% endif %}
+<div class="row">
+    <div class="span6">
+        {% autoescape off %}
+            {{deal.urlPreviewContent}}
+        {% endautoescape %}
+    </div>
+</div>

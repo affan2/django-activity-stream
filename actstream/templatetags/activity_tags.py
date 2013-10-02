@@ -491,6 +491,20 @@ def render_album(context, album):
     })
     return context
 
+@register.inclusion_tag("wish/render_wish_actstream.html", takes_context=True)
+def render_wish_actstream(context, wish):
+    context.update({
+        "wish": wish,
+    })
+    return context
+
+@register.inclusion_tag("actstream/render_deal_actstream.html", takes_context=True)
+def render_deal_acstream(context, deal):
+    context.update({
+        "deal": deal,
+    })
+    return context
+
 @register.filter
 def get_value_from_dict(dictionary, key):
     return dictionary.get(key)
