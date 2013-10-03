@@ -5,7 +5,7 @@
     {# TO DO #}
 {% else %}
 <div class="row">
-    <div class="span4" style="height:22px;">
+    <div class="span6" style="height:22px;">
         <span class="radioModuleFeedRadio"></span>
         <span class="radioModuleFeedContainer">
             {% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
@@ -18,26 +18,26 @@
 
             {% include 'actstream/render_follow_post.html' with action=action %}
         </span>
-    </div>
-    <div class="span2 noGutter">
+        <span class="halfGutter">
         {% if action.actor|get_class_name == "User" and action.actor == request.user or action.actor|get_class_name == "BlogPost" and action.actor.user == request.user %}
             <span class="manageFeed" onclick="var $this = $(this); if ( $this.hasClass('manageFeedUp') ) { $this.removeClass('manageFeedUp moveManageFeedUp'); $this.parent().find('.whiteBox').hide();} else { $this.addClass('manageFeedUp moveManageFeedUp'); $this.parent().find('.whiteBox').show().css('display', 'inline-block');}"></span>
-            <span style="height:50px;line-height:25px;display:none;padding:0px 15px;position:relative;top:-20px;" class="whiteBox">
-                <div>
+            <span style="height:50px;display:none;padding:0px 15px;" class="whiteBox">
+                <span style="line-height:25px;float:left">
                     <a class="deleteAction" data-action-id="{{action.id}}" href="{% delete_action_url action %}">Delete</a>
-                </div>
-                <div>
+                </span>
+                <span style="line-height:25px;float:left;clear:both">
                     {% include 'actstream/render_spam_report.html' with object=action %}
-                </div>
-            </span>
+                </span>
+            </div>
         {% else %}
             <span class="manageFeed" onclick=" if ( $(this).hasClass('manageFeedUp') ) { $(this).removeClass('manageFeedUp'); $(this).parent().find('.whiteBox').hide();} else { $(this).addClass('manageFeedUp'); $(this).parent().find('.whiteBox').show().css('display', 'inline-block');}"></span>
-            <span style="height:25px;line-height:25px;display:none;padding:0px 15px;position:relative;top:-10px;" class="whiteBox">
+            <span style="height:25px;line-height:25px;display:none;padding:0px 15px;" class="whiteBox">
                 <div>
                     {% include 'actstream/render_spam_report.html' with object=action %}
                 </div>
             </span>
         {% endif %}
+        </span>
     </div>
 </div>
 {% endif %}
