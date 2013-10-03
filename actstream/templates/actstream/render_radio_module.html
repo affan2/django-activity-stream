@@ -28,13 +28,13 @@
                 <span style="line-height:25px;float:left;clear:both">
                     {% include 'actstream/render_spam_report.html' with object=action %}
                 </span>
-            </div>
+            </span>
         {% else %}
             <span class="manageFeed" onclick=" if ( $(this).hasClass('manageFeedUp') ) { $(this).removeClass('manageFeedUp'); $(this).parent().find('.whiteBox').hide();} else { $(this).addClass('manageFeedUp'); $(this).parent().find('.whiteBox').show().css('display', 'inline-block');}"></span>
             <span style="height:25px;line-height:25px;display:none;padding:0px 15px;" class="whiteBox">
-                <div>
+                <span>
                     {% include 'actstream/render_spam_report.html' with object=action %}
-                </div>
+                </span>
             </span>
         {% endif %}
         </span>
