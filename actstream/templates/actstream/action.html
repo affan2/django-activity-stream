@@ -29,10 +29,10 @@
 					{% include 'actstream/render_radio_module.html' with action=action %}
 				</div>
 			</div>
-			<div class="row">
+			<div class="row topHalfGutter whiteBox">
 				<div class="span6">
 				{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
-			    	{% include 'actstream/render_subcomments.html' with object=action.target %}
+			    	{% include 'actstream/render_subcomments_actstream.html' with object=action.target %}
 				{% endif %}
 				</div>
 			</div>
