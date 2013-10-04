@@ -19,13 +19,11 @@
     <div class="span6">
 By:
     {% if comment.user|get_class_name == "User" %}
-        <a href="{{ comment.user.get_absolute_url }}" class="fontSize13">
-          {% get_full_name comment.user %}
-        </a> 
+        {% include 'actstream/render_actor_name.html' with actor=comment.user  %}
     {% else %}
         {% trans "Anonymous" %}
     {% endif %}
-        on <a href="{{ comment.content_object.get_absolute_url }}" class="radioColor hontHelvetica fontSize13">{{ comment.content_object }}</a>
+        on <a href="{{ comment.content_object.get_absolute_url }}" class="radioColor fontHelvetica fontSize13">{{ comment.content_object }}</a>
     </div>
 </div>        
 {% endeditable %}
