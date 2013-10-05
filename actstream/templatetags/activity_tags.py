@@ -129,6 +129,21 @@ class RenderAction(Node):
         return render_to_string(templates, {'action': action_instance},
             context)
 
+class RenderTargetAction(Node):
+    def __init__(self, action):
+        self.action = Variable(action)
+
+    def render(self, context):
+        action_instance = self.action.resolve(context)
+        templates = [
+            'actstream/%s/target_action.html' % action_instance.verb.replace(' ', '_'),
+            'actstream/target_action.html',
+            'activity/%s/target_action.html' % action_instance.verb.replace(' ', '_'),
+            'activity/target_action.html',
+        ]
+        return render_to_string(templates, {'action': action_instance},
+            context)
+
 class DisplayFollowerActivitySubsetUrl(AsNode):
 
     def render_result(self, context):
