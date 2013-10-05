@@ -1,15 +1,8 @@
 {% load activity_tags static %}
 {% load userProfile_tags %}
 {% if action %}
-
-	{% can_share_action action as canShare %}
-
-	{% if canShare != 0 or request.user|get_class_name == "AnonymousUser" %}
-		<a class="shareaction" href="#" data-href="{% share_action_url action %}" style="margin-right:0px;">Share</a>
-		{% get_share_count action as shareCount %}
-
-		{% broadcasters_for_object action as broadcasters_url %}
-
-		<a class="broadcasters sharedCount" href="{{broadcasters_url}}"  style="margin-left:0px;">({{ shareCount }})</a>
-	{% endif %}
+	<a class="shareaction" href="#" data-href="{% share_action_url action %}" style="margin-right:0px;">Share</a>
+	{% get_share_count action as shareCount %}
+	{% broadcasters_for_object action as broadcasters_url %}
+	<a class="broadcasters sharedCount" href="{{broadcasters_url}}"  style="margin-left:0px;">({{ shareCount }})</a>
 {% endif %}
