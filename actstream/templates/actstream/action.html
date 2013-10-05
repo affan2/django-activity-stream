@@ -24,14 +24,16 @@
 					{% include 'actstream/render_targets.html' with action=action batched_targets=batched_targets %}
 				</div>
 			</div>
-			<div class="row topHalfGutter radio_module">
+			<div class="row topHalfGutter bottomHalfGutter radio_module">
 				<div class="span6">
 					{% include 'actstream/render_radio_module.html' with action=action %}
 				</div>
 			</div>
 			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
-				<div class="row topHalfGutter">
-					<div class="span6 whiteBoxLarge subcomments_container">
+
+				{% comment_count_on_object action.target as total_comments %}
+				<div class="row">
+					<div class="span6 whiteBoxLarge subcomments_container {% if total_comments == 0 %}hide{% endif %}">
 				    	{% include 'actstream/render_subcomments_actstream.html' with object=action.target %}
 					</div>
 				</div>
