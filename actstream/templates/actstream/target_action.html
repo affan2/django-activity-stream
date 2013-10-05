@@ -1,0 +1,39 @@
+{% load i18n %}
+{% load voting_tags %}
+{% load thumbnail %}
+{% load activity_tags %}
+{% load comment_tags  %}
+{% load userProfile_tags %}
+{% load static %}
+
+<div class="row">
+
+	<div class="span6 fontTitillium1 color5D fontSize12 topHalfGutter">
+			<div class="row">
+				<div class="span6">
+					{% include 'actstream/render_actor_name.html' with actor=action.actor  %}
+					{% include 'actstream/render_batched_actors.html' with batched_actors=batched_actors %}
+					{% include 'actstream/render_verb.html' with action=action %}
+					<span class="pull-right fontSize10">{{ action.timestamp|timesince }} {% trans "ago" %}</span>
+				</div>
+			</div>
+			<div class="row">
+				<div class="span6">
+					{% include 'actstream/render_targets.html' with action=action batched_targets=batched_targets %}
+				</div>
+			</div>
+			<div class="row topHalfGutter radio_module">
+				<div class="span6">
+					{% include 'actstream/render_radio_module.html' with action=action %}
+				</div>
+			</div>
+			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
+				<div class="row topHalfGutter">
+					<div class="span6 whiteBoxLarge subcomments_container">
+				    	{% include 'actstream/render_subcomments_actstream.html' with object=action.target %}
+					</div>
+				</div>
+			{% endif %}
+	 </div>
+</div>
+	

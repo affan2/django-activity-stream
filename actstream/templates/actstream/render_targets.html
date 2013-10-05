@@ -7,7 +7,7 @@
 {% if action.target %}
 
   {% if action.target|get_class_name == "Action" %}
-    {% render_action action.target %}
+    {% render_target_action action.target %}
 
   {% elif action.target|get_class_name == "Review" %}
     {% render_review_actstream action.target %}

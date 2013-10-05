@@ -1,7 +1,7 @@
 {% load activity_tags %}
 {% load userProfile_tags %}
 
-{% if action.verb == 'FOLLOW_VERB'|settings_value or action.verb == 'UNFOLLOW_VERB'|settings_value %}
+{% if action.verb == 'FOLLOW_VERB'|settings_value or action.verb == 'UNFOLLOW_VERB'|settings_value or action.verb == 'SHARE_VERB'|settings_value %}
     {# TO DO #}
 {% else %}
 <div class="row">
