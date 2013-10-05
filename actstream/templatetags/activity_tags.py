@@ -283,6 +283,9 @@ def render_action(parser, token):
     bits = token.split_contents()
     return RenderAction(bits[1])
 
+def render_target_action(parser, token):
+    bits = token.split_contents()
+    return RenderTargetAction(bits[1])
 
 def is_following(user, actor):
     """
@@ -711,6 +714,7 @@ register.filter(is_following)
 register.filter(get_class_name)
 register.tag(display_action)
 register.tag(render_action)
+register.tag(render_target_action)
 register.tag(follow_activity_url)
 register.tag(follow_all_url)
 register.tag(actor_url)
