@@ -9,7 +9,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.utils import simplejson
 from django.db.models import Q
 from django.conf import settings
-
+from django.core.exceptions import MultipleObjectsReturned
 from actstream import actions, models
 from actstream.models import Follow
 from django.core.cache import cache
@@ -130,8 +130,17 @@ def actstream_following(request, content_type_id, object_id):
 
         if not isinstance(followedActor, User):
             _follow = _Follow.objects.get_follows(followedActor)
-            if _follow:     
-                follow = _follow.get(user=actor)
+            if _follow:
+                try:     
+                    follow = _follow.get(user=actor)
+                except (MultipleObjectsReturned, _Follow.DoesNotExist) as e:
+                    if isinstance(e, MultipleObjectsReturned):
+                        follow = _follow.filter(user=actor)[0]
+                        pass
+                    else:
+                        follow = None
+                        pass
+                        
                 if follow:        
                     stream = models.action_object_stream(followedActor, timestamp__gte = follow.datetime )
                     activity = activity | stream 
@@ -163,8 +172,18 @@ def get_actions_following(request, content_type_id, object_id):
 
                 if not isinstance(followedObject, User) and not isinstance(followedObject, BlogPost):           
                     _follow    = _Follow.objects.get_follows(followedObject)
-                    if _follow:     
-                        follow = _follow.get(user=actor)
+                    if _follow:
+                        follow = None     
+                        try:
+                            follow = _follow.get(user=actor)
+                        except (MultipleObjectsReturned, _Follow.DoesNotExist) as e:
+                            if isinstance(e, MultipleObjectsReturned):
+                                follow = _follow.filter(user=actor)[0]
+                                pass
+                            else:
+                                follow = None
+                                pass
+
                         if follow:        
                             stream 			  = models.action_object_stream(followedObject, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream 
