@@ -1,4 +1,4 @@
 {% load comment_tags  %}
 <a href="#" class="comment_radio" style="margin-right:0px;">Comment</a>
 	{% comment_count_on_object object as total_comments %}
-<a class="broadcasters" href="{% get_commenters_url object %}" style="margin-left:0px;">({{total_comments}})</a>
+<a class="broadcasters commentCount" href="{% get_commenters_url object %}" style="margin-left:0px;">({{total_comments}})</a>
