@@ -463,8 +463,10 @@ def shareAction(request, action_id):
 
     actionObject = get_object_or_404(models.Action, pk=action_id)
     action.send(request.user, verb=settings.SHARE_VERB, target=actionObject)
+    target_content_type = ContentType.objects.get_for_model(actionObject)
+    shareCount = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = actionObject.pk).count()
     if request.is_ajax():
-        return HttpResponse(simplejson.dumps(dict(success=True))) 
+        return HttpResponse(simplejson.dumps(dict(success=True, count=shareCount)))
     else:
         return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
                 'action': actionObject
