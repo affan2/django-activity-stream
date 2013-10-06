@@ -14,16 +14,5 @@
         </span>
     </div>
 </div>
-{% endif %}
-<div class="row">
-    <div class="span6">
-By:
-    {% if comment.user|get_class_name == "User" %}
-        {% include 'actstream/render_actor_name.html' with actor=comment.user  %}
-    {% else %}
-        {% trans "Anonymous" %}
-    {% endif %}
-        on <a href="{{ comment.content_object.get_absolute_url }}" class="radioColor fontHelvetica fontSize13">{{ comment.content_object }}</a>
-    </div>
-</div>        
+{% endif %}       
 {% endeditable %}

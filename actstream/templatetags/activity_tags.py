@@ -164,15 +164,15 @@ class ShareActivityUrl(Node):
         return reverse('shareAction', kwargs={
             'action_id':action_instance.pk})
 
-class ShareActivityCount(Node):
-    def __init__(self, action, context_var):
-        self.action = Variable(action)
+class ShareObjectActivityCount(Node):
+    def __init__(self, action_target, context_var):
+        self.action_target = Variable(action_target)
         self.context_var = context_var
 
     def render(self, context):
-        action_instance = self.action.resolve(context)
-        target_content_type = ContentType.objects.get_for_model(action_instance)
-        context[self.context_var] = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_instance.pk).count()
+        action_target_instance = self.action_target.resolve(context)
+        target_content_type = ContentType.objects.get_for_model(action_target_instance)
+        context[self.context_var] = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_target_instance.pk).count()
         return  ''
 
 class CanShareActivity(Node):
@@ -403,7 +403,7 @@ def get_share_count(parser, token):
         raise TemplateSyntaxError("'%s' tag takes exactly three arguments" % bits[0])
     if bits[2] != 'as':
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
-    return ShareActivityCount(bits[1], bits[3])
+    return ShareObjectActivityCount(bits[1], bits[3])
 
 def can_share_action(parser, token):
     bits = token.contents.split()
