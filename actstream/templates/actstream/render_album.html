@@ -4,6 +4,7 @@
 {% load voting_tags %}
 {% load comment_tags %}
 {% load url from future %}
+{% load userProfile_tags %}
 {% load inbox %}
 
 {% block content %}
@@ -11,8 +12,10 @@
 		<div class="album-feed-container">
 			<div style="float:left;margin-left:0px" class="row-fluid span12">
 		        {% with image_list|first as image %}
+		        	{% get_reldata_url image as reldata_url %}
+
 		            {% thumbnail image.image "500x400" crop="center" as im %}
-		                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 1 %}">
+		                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 1 %}" data-reldata-url="{{reldata_url}}">
 		                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 						</a>
 		                <a href="{% include "imagestore/image-href.html" %}">
@@ -30,9 +33,10 @@
 		<div class="album-feed-container">
 			<div style="float:left;margin-left:0px;" class="row-fluid span12">
 	            {% for image in image_list %}
+	            	{% get_reldata_url image as reldata_url %}
 	            	<span style="float:left;">
 	                    {% thumbnail image.image "250x200" crop="center" as im %}
-	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 2 %}">
+	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 2 %}" data-reldata-url="{{reldata_url}}">
 	                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                        </a>
 	                        <a href="{% include "imagestore/image-href.html" %}">
@@ -50,9 +54,10 @@
         {% elif image_list.count == 3 %}
         	<div class="album-feed-container">
         		<div style="float:left;margin-left:0px;" class="row-fluid span12">
-	                {% with image_list|first as image%}
+	                {% with image_list|first as image %}
+	                	{% get_reldata_url image as reldata_url %}
 	                    {% thumbnail image.image "500x400" crop="center" as im %}
-	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}">
+	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
 	                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                        </a>
 	                        <a href="{% include "imagestore/image-href.html" %}">
@@ -68,9 +73,10 @@
                 <div style="float:left;margin-left:0px;" class="row-fluid span12">
 	                {% for image in image_list %}
 	                    {% if forloop.counter > 1 %}
+	                    	{% get_reldata_url image as reldata_url %}
 	                        <span style="float:left;">
 	                            {% thumbnail image.image "250x200" crop="center" as im %}
-	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}">
+	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
 	                                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                                </a>
 	                                <a href="{% include "imagestore/image-href.html" %}">
@@ -89,9 +95,10 @@
         {% elif image_list.count >= 4 %}
         	<div class="album-feed-container">
         		<div style="float:left;margin-left:0px" class="row-fluid span12">
-	                {% with image_list|first as image%}
+	                {% with image_list|first as image %}
+	                	{% get_reldata_url image as reldata_url %}
 	                    {% thumbnail image.image "500x400" crop="center" as im %}
-	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}">
+	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
 	                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                        </a>
 	                        <a href="{% include "imagestore/image-href.html" %}">
@@ -107,9 +114,10 @@
 	            <div style="float:left;margin-left:0px" class="row-fluid span12">
 	                {% for image in image_list %}
 	                    {% if forloop.counter > 1 and forloop.counter < 5 %}
+	                    	{% get_reldata_url image as reldata_url %}
 	                        <span style="float:left;">
 	                            {% thumbnail image.image "160x150" crop="center" as im %}
-	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}">
+	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
 	                                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                                </a>
 	                                <a href="{% include "imagestore/image-href.html" %}">
