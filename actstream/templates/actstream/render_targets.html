@@ -22,13 +22,9 @@
     {% render_deal_acstream action.target %}
 
   {% elif action.target|get_class_name == "Album" %}
-    <div class='album span12'>
-      <div class='album-head'>
         {% if action.target.get_head %}
           {% render_album action.target %}
         {% endif %}
-      </div>
-    </div>
 
   {% elif action.target|get_class_name == "Image" %}
     <div class="album-feed-container"> 

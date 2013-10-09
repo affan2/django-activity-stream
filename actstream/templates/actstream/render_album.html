@@ -9,130 +9,76 @@
 
 {% block content %}
 		{% if image_list.count == 1 %}
-		<div class="album-feed-container">
-			<div style="float:left;margin-left:0px" class="row-fluid span12">
-		        {% with image_list|first as image %}
-		        	{% get_reldata_url image as reldata_url %}
-
-		            {% thumbnail image.image "500x400" crop="center" as im %}
-		                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 1 %}" data-reldata-url="{{reldata_url}}">
-		                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
-						</a>
-		                <a href="{% include "imagestore/image-href.html" %}">
-		                    {% if image.title %}
-		                        <br><span class='image-title'>{{ image.title }}</span>
-		                    {% else %}
-		                        {% trans 'Info' %}
-		                    {% endif %}
-		                </a>
-		            {% endthumbnail %}	
-		        {% endwith %}	
-		    </div>
-		</div>
+	        {% with image_list|first as image %}
+	        {% thumbnail image.image "800x400" as im %}
+			{% get_reldata_url image as reldata_url %}
+            <div class="row topHalfGutter album-feed-container">
+				<div class="span6 pagination-centered">
+	                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 1 %}" data-reldata-url="{{reldata_url}}">
+	                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:250px;">              
+					</a>
+            	</div>
+        	</div>
+	        {% endthumbnail %}
+	        {% endwith %}
 		{% elif image_list.count == 2 %}
-		<div class="album-feed-container">
-			<div style="float:left;margin-left:0px;" class="row-fluid span12">
-	            {% for image in image_list %}
-	            	{% get_reldata_url image as reldata_url %}
-	            	<span style="float:left;">
-	                    {% thumbnail image.image "250x200" crop="center" as im %}
-	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 2 %}" data-reldata-url="{{reldata_url}}">
-	                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
-	                        </a>
-	                        <a href="{% include "imagestore/image-href.html" %}">
-	                            {% if image.title %}
-	                                <br><span class='image-title'>{{ image.title }}</span>
-	                            {% else %}
-	                                {% trans 'Info' %}
-	                            {% endif %}
-	                        </a>
-	                    {% endthumbnail %}
-	                </span>
-	            {% endfor %} 
-	        </div> 
-	    </div>       
+		    <div class="row topHalfGutter album-feed-container">
+				<div class="span6 pagination-centered">
+					<div class="row">
+			            {% for image in image_list %}
+		                    {% thumbnail image.image "800x400" as im %}
+							{% get_reldata_url image as reldata_url %}
+		                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 2 %}" data-reldata-url="{{reldata_url}}">
+		                            <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:250px;">
+		                        </a>
+		                    {% endthumbnail %}
+			            {% endfor %} 
+	        		</div>
+	        	</div> 
+	   		</div>       
         {% elif image_list.count == 3 %}
-        	<div class="album-feed-container">
-        		<div style="float:left;margin-left:0px;" class="row-fluid span12">
-	                {% with image_list|first as image %}
-	                	{% get_reldata_url image as reldata_url %}
-	                    {% thumbnail image.image "500x400" crop="center" as im %}
-	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
-	                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
-	                        </a>
-	                        <a href="{% include "imagestore/image-href.html" %}">
-	                            {% if image.title %}
-	                                <br><span class='image-title'>{{ image.title }}</span>
-	                            {% else %}
-	                                {% trans 'Info' %}
-	                            {% endif %}
-	                        </a>
-	                    {% endthumbnail %}  
-	                {% endwith %}
-	            </div>
-                <div style="float:left;margin-left:0px;" class="row-fluid span12">
-	                {% for image in image_list %}
-	                    {% if forloop.counter > 1 %}
-	                    	{% get_reldata_url image as reldata_url %}
-	                        <span style="float:left;">
-	                            {% thumbnail image.image "250x200" crop="center" as im %}
-	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
-	                                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
-	                                </a>
-	                                <a href="{% include "imagestore/image-href.html" %}">
-	                                    {% if image.title %}
-	                                        <br><span class='image-title'>{{ image.title }}</span>
-	                                    {% else %}
-	                                        {% trans 'Info' %}
-	                                    {% endif %}
-	                                </a>
-	                            {% endthumbnail %}
-	                        </span>
-	                    {% endif %}
-	                {% endfor %} 
+        	<div class="row topHalfGutter album-feed-container">
+        		<div class="span6">
+            		<div class="row">
+		                {% for image in image_list %}
+                            {% thumbnail image.image "800x400" as im %}
+							{% get_reldata_url image as reldata_url %}
+                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
+                                    <img class="preview span2" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+                                </a>
+                            {% endthumbnail %}
+		                {% endfor %}
+	            	</div>
 				</div>
 			</div>
         {% elif image_list.count >= 4 %}
-        	<div class="album-feed-container">
-        		<div style="float:left;margin-left:0px" class="row-fluid span12">
-	                {% with image_list|first as image %}
-	                	{% get_reldata_url image as reldata_url %}
-	                    {% thumbnail image.image "500x400" crop="center" as im %}
-	                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
-	                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
-	                        </a>
-	                        <a href="{% include "imagestore/image-href.html" %}">
-	                            {% if image.title %}
-	                                <br><span class='image-title'>{{ image.title }}</span>
-	                            {% else %}
-	                                {% trans 'Info' %}
-	                            {% endif %}
-	                        </a>
-	                    {% endthumbnail %}  
-	                {% endwith %}
-	            </div>
-	            <div style="float:left;margin-left:0px" class="row-fluid span12">
-	                {% for image in image_list %}
-	                    {% if forloop.counter > 1 and forloop.counter < 5 %}
-	                    	{% get_reldata_url image as reldata_url %}
-	                        <span style="float:left;">
-	                            {% thumbnail image.image "160x150" crop="center" as im %}
-	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
-	                                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
-	                                </a>
-	                                <a href="{% include "imagestore/image-href.html" %}">
-	                                    {% if image.title %}
-	                                        <br><span class='image-title'>{{ image.title }}</span>
-	                                    {% else %}
-	                                        {% trans 'Info' %}
-	                                    {% endif %}
+        	<div class="row topHalfGutter album-feed-container">
+        		<div class="span6">
+            		<div class="row">
+		                {% for image in image_list %}
+		                	{% if forloop.counter > 0 and forloop.counter < 3 %}
+	                            {% thumbnail image.image "800x400" as im %}
+								{% get_reldata_url image as reldata_url %}
+	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
+	                                    <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                                </a>
 	                            {% endthumbnail %}
-	                        </span>
-	                    {% endif %}
-	                {% endfor %}
-                </div>
-            </div>         
+                            {% endif %}
+		                {% endfor %}
+	            	</div>
+	            	<div class="row topHalfGutter">
+		                {% for image in image_list %}
+		               		{% if forloop.counter > 2 and forloop.counter < 5 %}
+	                            {% thumbnail image.image "800x400" as im %}
+								{% get_reldata_url image as reldata_url %}
+	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
+	                                    <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+	                                </a>
+	                            {% endthumbnail %}
+                            {% endif %}
+		                {% endfor %}
+	            	</div>
+				</div>
+			</div>
         {% endif %}
-    </div>
  {% endblock %}
