@@ -59,7 +59,7 @@
 		                	{% if forloop.counter > 0 and forloop.counter < 3 %}
 	                            {% thumbnail image.image "800x400" as im %}
 								{% get_reldata_url image as reldata_url %}
-	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
+	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
 	                                    <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                                </a>
 	                            {% endthumbnail %}
@@ -71,7 +71,7 @@
 		               		{% if forloop.counter > 2 and forloop.counter < 5 %}
 	                            {% thumbnail image.image "800x400" as im %}
 								{% get_reldata_url image as reldata_url %}
-	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
+	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
 	                                    <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
 	                                </a>
 	                            {% endthumbnail %}
