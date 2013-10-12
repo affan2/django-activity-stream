@@ -1,11 +1,13 @@
 {% load userProfile_tags %}
 
 {% if action and action.target %}
-	{% if action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal" %}
-		{% if request.user|is_following_post:action.target %}
-	        <a class="unfollowpost" href="#" data-href="{% url unfollowWish action.target.pk %}" >Unfollow Post</a>
-	    {% else %}
-	        <a class="followpost" href="#" data-href="{% url followWish action.target.pk %}" >Follow Post</a>
+		{% if action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal" or action.target|get_class_name == "Review" %}
+			{% if request.user|is_following_post:action.target %}
+				{% get_unfollow_object_url action.target as unfollowObjectUrl %}
+	        	<a class="unfollowpost" href="#" data-href="{{unfollowObjectUrl}}" >Unfollow Post</a>
+	    	{% else %}
+	    		{% get_follow_object_url action.target as followObjectUrl %}
+	        	<a class="followpost" href="#" data-href="{{followObjectUrl}}" >Follow Post</a>
+	    	{% endif %}
 	    {% endif %}
-	{% endif %}
 {% endif %}
