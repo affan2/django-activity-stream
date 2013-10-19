@@ -35,7 +35,6 @@
 			{% endif %}
 
 			{% if action.target|get_class_name == "Review" or action.target|get_class_name == "Album"  or action.target|get_class_name == "Image" or action.target|get_class_name == "GenericWish" or action.target|get_class_name == "BroadcastWish" or action.target|get_class_name == "BroadcastDeal"%}
-
 				{% comment_count_on_object action.target as total_comments %}
 				<div class="row">
 					<div class="span6 whiteBoxLarge subcomments_container {% if total_comments == 0 %}hide{% endif %}">
