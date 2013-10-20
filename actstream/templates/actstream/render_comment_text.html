@@ -1,4 +1,10 @@
 {% load comment_tags  %}
-<a href="#" class="comment_radio" style="margin-right:0px;">Comment</a>
+{% if object|get_class_name == "BlogPost" %}
+<a href="{{object.get_absolute_url}}" class="" style="margin-right:0px;">Review</a>
 	{% comment_count_on_object object as total_comments %}
 <a class="broadcasters commentCount" href="{% get_commenters_url object %}" style="margin-left:0px;">({{total_comments}})</a>
+{% else %}
+<a href="javascript:void(0)" class="comment_radio" style="margin-right:0px;">Comment</a>
+	{% comment_count_on_object object as total_comments %}
+<a class="broadcasters commentCount" href="{% get_commenters_url object %}" style="margin-left:0px;">({{total_comments}})</a>
+{% endif %}
