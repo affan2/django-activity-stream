@@ -6,7 +6,7 @@
 <div class="row">
     <div class="span6">
         <span class="message">
-            {{wish.message}}
+            {{ wish.message|urlize }}
         </span>
         {% if  wish.blog_category %}
             <a class="categoryTag pull-right" href="{{ wish.blog_category.get_absolute_url }}"> {{wish.blog_category}} </a>
