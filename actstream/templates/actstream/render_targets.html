@@ -27,15 +27,14 @@
         {% endif %}
 
   {% elif action.target|get_class_name == "Image" %}
-    <div class="album-feed-container"> 
+    <div class="row topHalfGutter album-feed-container"> 
       {% get_reldata_url action.target as rel_data_url %} 
-      {% thumbnail action.target.image "150x150" crop="center" as img %}
-        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ action.target.image.url }}" data-album-url="{% url 'imagestore:render_album_ex' action.target.album.id action.target.id %}" data-reldata-url="{{rel_data_url}}">
-          <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"></br>
-          {% if action.target.title %}
-            <br><span class='image-title'>{{ action.target.title }}</span>
-          {% endif %}   
-        </a>
+      {% thumbnail action.target.image "800x400" crop="center" as img %}
+        <div class="span6 pagination-centered">
+          <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ action.target.image.url }}" data-album-url="{% url 'imagestore:render_album_ex' action.target.album.id action.target.id %}" data-reldata-url="{{rel_data_url}}">
+            <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}" style="max-height:250px;">
+          </a>
+        </div>
       {% endthumbnail %}
     </div>
 
