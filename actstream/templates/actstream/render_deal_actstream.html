@@ -7,9 +7,6 @@
         <span class="message">
             {{ deal.message|urlize }}
         </span>
-        {% if  deal.blog_category %}
-            <a class="categoryTag pull-right" href="{{ deal.blog_category.get_absolute_url }}"> {{deal.blog_category}} </a>
-        {% endif %}
     </div>
 </div>
 {% if deal.wishimage and deal.wishimage.image %}
@@ -38,5 +35,12 @@
         {% autoescape off %}
             {{deal.urlPreviewContent}}
         {% endautoescape %}
+    </div>
+</div>
+<div class="row topHalfGutter">
+    <div class="span6">
+        {% if  deal.blog_category %}
+            <a class="categoryTag" href="{{ deal.blog_category.get_absolute_url }}"> {{deal.blog_category}} </a>
+        {% endif %}
     </div>
 </div>
