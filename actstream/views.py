@@ -272,6 +272,9 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     if activities and len(activities) > 0 and s == 0:
         request.session['last_processed_action'] = activities[0].id
 
+    if len(activities) == 0 and s != 0:
+    	return HttpResponse('None')
+
     return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
        'action_list': activities, 
        'actor': actor,
