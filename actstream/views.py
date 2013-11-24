@@ -444,9 +444,13 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
 
     activity = activity[s:l]
 
+    if len(activity) == 0 and s != 0:
+        return HttpResponse('None')
+
     return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
        'action_list': activity, 'actor': actor,
-       'ctype': ctype, 'sIndex':s
+       'ctype': ctype, 'sIndex':s,
+       'timeline': "true"
     }, context_instance=RequestContext(request))
 
 
