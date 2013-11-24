@@ -24,17 +24,25 @@
     <hr class="dottedSeparator">
 	{% endif %}
 	{% empty %}
-	<div class="row">
-		<div class="span6 fontTitillium1 color5D fontSize14 topHalfGutter">
-			{% trans "Start By Searching for the trending stores and the hottest deals" %}
+	{% if timeline == "true" %}
+		<div class="row">
+			<div class="span6 fontTitillium1 color5D fontSize14 topHalfGutter">
+				{% trans "No Acitivty yet" %}
+			</div>
 		</div>
-		<div class="span6 fontTitillium1 color5D fontSize13">
-			{% trans "Follow your friends to take buying decisions socially." %}
+	{% else %}
+		<div class="row">
+			<div class="span6 fontTitillium1 color5D fontSize14 topHalfGutter">
+				{% trans "Start By Searching for the trending stores and the hottest deals" %}
+			</div>
+			<div class="span6 fontTitillium1 color5D fontSize13">
+				{% trans "Follow your friends to take buying decisions socially." %}
+			</div>
+			<div class="span6 fontTitillium1 color5D fontSize13">
+				{% trans "Follow stores to get the best deals and promotions." %}
+			</div>
 		</div>
-		<div class="span6 fontTitillium1 color5D fontSize13">
-			{% trans "Follow stores to get the best deals and promotions." %}
-		</div>
-	</div>
+	{% endif %}
 {% endfor %}
 </ul>
 
