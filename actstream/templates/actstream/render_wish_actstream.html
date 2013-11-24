@@ -8,9 +8,6 @@
         <span class="message">
             {{ wish.message|urlize }}
         </span>
-        {% if  wish.blog_category %}
-            <a class="categoryTag pull-right" href="{{ wish.blog_category.get_absolute_url }}"> {{wish.blog_category}} </a>
-        {% endif %}
     </div>
 </div>
 {% if wish.wishimage and wish.wishimage.image %}
@@ -41,3 +38,10 @@
         {% endautoescape %}
     </div>
 </div>
+{% if  wish.blog_category %}
+<div class="row topHalfGutter">
+    <div class="span6">
+            <a class="categoryTag pull-right" href="{{ wish.blog_category.get_absolute_url }}"> {{wish.blog_category}} </a>
+    </div>
+</div>
+{% endif %}
