@@ -509,7 +509,7 @@ def deleteAction(request, action_id):
         """
         actionObject.delete()
 
-        return HttpResponse('ok')
+        return HttpResponse(simplejson.dumps(dict(success=True)))
     else:
         return json_error_response('Unauthorized operation!! request cannot be completed')
 
