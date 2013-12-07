@@ -11,12 +11,12 @@
     </div>
 </div>
 {% if wish.wishimage and wish.wishimage.image %}
-    <div class="row" style="margin-top:10px; margin-bottom:10px;">
-        <div class="span6 pagination-centered">
+    <div class="row topHalfGutter">
+        <div class="span6">
             {% get_reldata_url wish as rel_data_url %}
             {% thumbnail wish.wishimage.image "800x400" as img %} 
                 <a class="wishimg-wish{{wish.id}}" href="{{  wish.wishimage.image.url }}" data-reldata-url="{{rel_data_url}}">
-                    <img src="{{ MEDIA_URL }}{{img}}" style="max-height:250px;">
+                    <img src="{{ MEDIA_URL }}{{img}}" style="max-height:150px;">
                 </a> 
                 <script type="text/javascript">
                       $('a.wishimg-wish{{wish.id}}').fancybox({

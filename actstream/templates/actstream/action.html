@@ -8,15 +8,14 @@
 
 <div id="action{{action.id}}" class="row">
 
-	{% include 'generic/includes/render_owner.html' with owner=action.actor %}
+	{% include 'generic/includes/render_owner.html' with owner=action.actor timestamp=action.timestamp %}
 
-	<div class="span6 fontTitillium1 color5D fontSize12 noGutter">
+	<div class="span6 fontTitillium1 color5D fontSize12 halfGutter">
 			<div class="row">
 				<div class="span6">
 					{% include 'actstream/render_actor_name.html' with actor=action.actor  %}
 					{% include 'actstream/render_batched_actors.html' with batched_actors=batched_actors %}
 					{% include 'actstream/render_verb.html' with action=action %}
-					<span class="pull-right fontSize10">{{ action.timestamp|timesince }} {% trans "ago" %}</span>
 				</div>
 			</div>
 			<div class="row">
