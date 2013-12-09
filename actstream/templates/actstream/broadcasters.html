@@ -1,9 +1,1 @@
-{#% extends "base.html" %#}
-{% load i18n %}
-{#% block title %}{% trans "Find Friends" %}{% endblock %#}
-
-{% block content %}
-
-{% include 'follow/friend_list_all.html' with friends=broadcasters %}
-
-{% endblock %}
+{% include 'relationships/friend_list_all.html' with friends=broadcasters %}

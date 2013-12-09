@@ -14,7 +14,7 @@
 		<hr class="dottedSeparator">
 	{% endif %}
 
-	<div class="subcomments">
+	<div class="row subcomments">
 		{% for comment in comments %}
 			{% editable comment.is_public comment.is_removed %}
 	        {% if not comment.is_removed and comment.is_public %}
