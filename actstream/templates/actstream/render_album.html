@@ -15,7 +15,7 @@
             <div class="row topHalfGutter album-feed-container">
 				<div class="span6 pagination-centered">
 	                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 1 %}" data-reldata-url="{{reldata_url}}">
-	                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:250px;">              
+	                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:150px;">              
 					</a>
             	</div>
         	</div>
@@ -28,9 +28,11 @@
 			            {% for image in image_list %}
 		                    {% thumbnail image.image "800x400" as im %}
 							{% get_reldata_url image as reldata_url %}
+							<div class="span3 pagination-centered">
 		                        <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 2 %}" data-reldata-url="{{reldata_url}}">
-		                            <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:250px;">
+		                            <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:150px;">
 		                        </a>
+		                    </div>
 		                    {% endthumbnail %}
 			            {% endfor %} 
 	        		</div>
@@ -43,9 +45,11 @@
 		                {% for image in image_list %}
                             {% thumbnail image.image "800x400" as im %}
 							{% get_reldata_url image as reldata_url %}
+							<div class="span2 pagination-centered">
                                 <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 3 %}" data-reldata-url="{{reldata_url}}">
-                                    <img class="preview span2" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+                                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:150px;">              
                                 </a>
+                            </div>
                             {% endthumbnail %}
 		                {% endfor %}
 	            	</div>
@@ -59,9 +63,11 @@
 		                	{% if forloop.counter > 0 and forloop.counter < 3 %}
 	                            {% thumbnail image.image "800x400" as im %}
 								{% get_reldata_url image as reldata_url %}
+								<div class="span3 pagination-centered">
 	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
-	                                    <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+	                                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:150px;">              
 	                                </a>
+	                            </div>
 	                            {% endthumbnail %}
                             {% endif %}
 		                {% endfor %}
@@ -71,9 +77,11 @@
 		               		{% if forloop.counter > 2 and forloop.counter < 5 %}
 	                            {% thumbnail image.image "800x400" as im %}
 								{% get_reldata_url image as reldata_url %}
+								<div class="span3 pagination-centered">
 	                                <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ image.image.url }}" data-album-url="{% url 'imagestore:render_min_album' image.album.id 4 %}" data-reldata-url="{{reldata_url}}">
-	                                    <img class="preview span3" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}">              
+	                                    <img class="preview" {% if image.title %} alt="{{ image.title }}" {% endif %} src="{{ im.url }}" style="max-height:150px;">              
 	                                </a>
+	                            </div>
 	                            {% endthumbnail %}
                             {% endif %}
 		                {% endfor %}

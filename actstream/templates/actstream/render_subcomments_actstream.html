@@ -7,11 +7,13 @@
 	{% get_comments_subset object 0 3 as comments %}
 
 	{% if comments|length and comments|length == 3 and comments|length < total_comments %}
-		<div class="span5 dottedSeparatorIncresedMargin dottedSeparatorIncresedMarginBottom">
+		<div class="span5 dottedSeparatorIncresedMargin dottedSeparatorIncresedMarginBottom" style="margin-left:6px;">
 			<a href="{{feed}}" class="viewPreviousComments">{% trans "View previous comments" %}</a>
 			<span class="pull-right"><span class="loaded_comments">{{comments|length}}</span>{% trans " of " %}<span class="total_comments">{{total_comments}}</span></span>
 		</div>
-		<hr class="dottedSeparator">
+		<div class="row">
+			<hr class="dottedSeparator">
+		</div>
 	{% endif %}
 
 	<div class="row subcomments">

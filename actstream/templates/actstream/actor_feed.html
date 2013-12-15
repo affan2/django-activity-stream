@@ -1,7 +1,7 @@
 
 {% load activity_tags i18n static %}
 
-<ul>		   	
+<ul class="halfGutter halfGutterRight">		   	
 {% get_list_of_batched_action_ids as batched_ids %}
 
 {% for action in action_list %}
@@ -21,7 +21,7 @@
 	    		{% endif %}
 
     	{% endwith %}
-    <hr class="dottedSeparator">
+    <hr class="dottedSeparator fullSeparator" style="margin-top:0px;">
 	{% endif %}
 	{% empty %}
 	{% if timeline == "true" %}
