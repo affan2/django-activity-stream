@@ -167,7 +167,7 @@ def get_actions_following(request, content_type_id, object_id):
                 obj_content_type 	  = ContentType.objects.get_for_model(followedObject)
                 followObject     	  = Follow.objects.get(user=actor, content_type=obj_content_type, object_id=followedObject.pk )
                 if followObject:
-                    stream 		 	  = followedObject.actor_actions.public(timestamp__gte=followObject.started)
+                    stream 		 	  = followedObject.actor_actions.public()#timestamp__gte=followObject.started)
                     activity_queryset = activity_queryset | stream
 
                 if not isinstance(followedObject, User) and not isinstance(followedObject, BlogPost):           
@@ -185,9 +185,9 @@ def get_actions_following(request, content_type_id, object_id):
                                 pass
 
                         if follow:        
-                            stream 			  = models.action_object_stream(followedObject, timestamp__gte = follow.datetime )
+                            stream 			  = models.action_object_stream(followedObject)#, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream 
-                            stream 			  = models.target_stream(followedObject, timestamp__gte = follow.datetime )
+                            stream 			  = models.target_stream(followedObject)#, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream
         
         allowed_verbs_for_user_in_common_feed = [settings.SAID_VERB, settings.SHARE_VERB, settings.REVIEW_POST_VERB, settings.DEAL_POST_VERB, settings.WISH_POST_VERB]
