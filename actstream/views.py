@@ -398,15 +398,6 @@ def actstream_rebuild_cache(request, content_type_id, object_id):
 
     return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
 
-def actstream_actor_rebuild_cache(request, content_type_id, object_id):
-    from itertools import chain
-    import operator    
-    ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = get_object_or_404(ctype.model_class(), pk=object_id)
-    activity = models.actor_stream(actor).order_by('-timestamp')
-    cache.set(actor.username+"perso", activity)
-    return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
-
 def actor(request, content_type_id, object_id):
     """
     ``Actor`` focused activity stream for actor defined by ``content_type_id``,
@@ -428,17 +419,11 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     ``Actor`` focused activity stream for actor defined by ``content_type_id``,
     ``object_id``.
     """
-    import operator
-
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
+ 
+    activity = models.actor_stream(actor).order_by('-timestamp') 
 
-    activity = cache.get(actor.username+"perso")
-
-    if activity is None: 
-        activity = models.actor_stream(actor).order_by('-timestamp') 
-        cache.set(actor.username+"perso", activity)
-        #return json_error_response("hellooo")
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
 

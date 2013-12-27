@@ -228,15 +228,6 @@ class FollowerActivityRebuildCache(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_rebuild_cache', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
 
-class FollowerActivityActorRebuildCache(Node):
-    def __init__(self, actor):
-        self.actor = Variable(actor)
-
-    def render(self, context):
-        actor_instance = self.actor.resolve(context)
-        content_type = ContentType.objects.get_for_model(actor_instance).pk
-        return reverse('actstream_actor_rebuild_cache', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
-
 class FollowerActivityDynamicUpdate(Node):
     def __init__(self, actor):
         self.actor = Variable(actor)
@@ -444,18 +435,6 @@ def activity_refresh_cache(parser, token):
                                   "{% activity_refresh_cache [actor_instance] %}")
     else:
         return FollowerActivityRebuildCache(*bits[1:])
-
-def activity_actor_refresh_cache(parser, token):
-    """
-    Refreshes the user activity feed cache
-
-    """
-    bits = token.split_contents()
-    if len(bits) != 2:
-        raise TemplateSyntaxError("Accepted format "
-                                  "{% activity_actor_refresh_cache [actor_instance] %}")
-    else:
-        return FollowerActivityActorRebuildCache(*bits[1:])
 
 def activity_dynamic_update(parser, token):
     """
@@ -722,7 +701,6 @@ register.tag(actor_url_subset)
 register.tag(following_feed_url)
 register.tag(following_feedsubset_url)
 register.tag(activity_refresh_cache)
-register.tag(activity_actor_refresh_cache)
 register.tag(activity_dynamic_update)
 register.tag(activity_pending_action_count)
 register.tag(get_share_count)
