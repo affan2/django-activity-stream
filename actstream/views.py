@@ -376,7 +376,7 @@ def actstream_update_activity(request, content_type_id, object_id):
     	"""
     		If last_action_id is not set but there are some unprocessed initial activities,process them.
     	"""
-    	if activity_queryset:
+    	if activity_queryset and activity_queryset.count() > 0:
             request.session['last_processed_action'] = activity_queryset[0].id
             request.session['last_activity_count']  = activity_queryset.count()
             return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
@@ -387,7 +387,9 @@ def actstream_update_activity(request, content_type_id, object_id):
                'batched_actions':batched_actions,
             }, context_instance=RequestContext(request))
     	else:
-    	    return HttpResponse(simplejson.dumps(dict(success=True, message="No New Actions")))
+    	    return HttpResponse('None')
+    	    
+    return HttpResponse('None')
 
 def actstream_rebuild_cache(request, content_type_id, object_id):
     if 'last_processed_action' in request.session:
