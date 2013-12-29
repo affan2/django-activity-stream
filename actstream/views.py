@@ -10,6 +10,8 @@ from django.utils import simplejson
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
+from userProfile.views import deleteObject
+from userProfile.models import GenericWish
 from actstream import actions, models
 from actstream.models import Follow
 from django.core.cache import cache
@@ -469,7 +471,7 @@ def shareAction(request, action_id):
 
 def deleteAction(request, action_id):
     if not request.is_ajax():
-        return json_error_response('only supported with AJAX')
+       return json_error_response('only supported with AJAX')
 
     actionObject = get_object_or_404(models.Action, pk=action_id)
     blog_posts = BlogPost.objects.published(
@@ -491,6 +493,17 @@ def deleteAction(request, action_id):
             for aObject in pActionObect:
                 if aObject.verb == settings.SHARE_VERB:
                     aObject.delete()
+
+        """
+            If target is generic post, delete it along with feed.
+            We do not use type method and not isinstance as BroadcastWish & BroadcastDeal models 
+            inherit from GenericWish and will pass the check.
+        """
+        if actionObject.target and type(actionObject.target) == GenericWish:
+            object_instance = actionObject.target
+            content_type_id = ContentType.objects.get_for_model(object_instance).pk
+            deleteObject(request, content_type_id, object_instance.pk)
+
         """
         now delete the action
         """
