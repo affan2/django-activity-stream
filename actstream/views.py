@@ -481,6 +481,7 @@ def deleteAction(request, action_id):
         Going forward we will restrict the #blogposts to be one per user therefore fetching the first element only is sufficient.
         Remove this loop then.
     """
+    blog_post = None
     if blog_posts:
         blog_post = blog_posts[0]   
     if (actionObject.actor.__class__.__name__ == "User" and actionObject.actor == request.user) or (actionObject.actor.__class__.__name__ == "BlogPost" and blog_post and actionObject.actor == blog_post):
