@@ -212,7 +212,8 @@ def merge_action_subset_op(request, activity_queryset, sIndex, lIndex):
     if activities and len(activities) > 0 and 'last_processed_action' not in request.session:
     	request.session['last_processed_action'] = activities[0].id
 
-    batched_actions = cache.get(request.user.username+"batched_actions")
+    batched_actions = request.session.get('batched_following_actions', dict())
+
     if not batched_actions:
         batched_actions = dict()
 
@@ -255,14 +256,20 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
 
-    activity_queryset = get_actions_following(request, content_type_id, object_id)
+    activity_queryset = get_actions_following(request, content_type_id, object_id)    
 
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
+
+    if s == 0 and 'batched_following_actions' in request.session:
+    	del request.session['batched_following_actions']
+
     activities = activity_queryset[s:l]
 
     batched_actions = merge_action_subset_op(request, activity_queryset, s, l)
-    cache.set(request.user.username+"batched_actions", batched_actions)
+    merged_batch_actions = request.session.get('batched_following_actions',  dict())
+    merged_batch_actions.update(batched_actions)
+    request.session['batched_following_actions'] = merged_batch_actions
 
     activity_count = 0
     if activity_queryset:
@@ -282,7 +289,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
        'actor': actor,
        'ctype': ctype,
        'sIndex':s,
-       'batched_actions':batched_actions,
+       'batched_actions':merged_batch_actions,
     }, context_instance=RequestContext(request))
 
 def actstream_latest_activity_count(request, content_type_id, object_id):
@@ -312,16 +319,18 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
         if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0:
             batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
 
+        batched_ids = []
         try:
             user = request.user
             
             action_id_maps = batched_actions
             action_id_list = []
             if action_id_maps:
-                action_id_list = action_id_maps.values()
+                for k, v in action_id_maps.items():
+                    batched_ids += v
         except VariableDoesNotExist:
             return ''
-        batched_ids = list(itertools.chain(*action_id_list))
+
         activity_qs_unprocessed = activity_qs_unprocessed.exclude(id__in=batched_ids)
     
     activity_count = 0
@@ -359,14 +368,16 @@ def actstream_update_activity(request, content_type_id, object_id):
 
         if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0:
             batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
-            prev_batched_actions = cache.get(request.user.username+"batched_actions")
+
+            prev_batched_actions = request.session.get('batched_following_actions', dict())
+
             if prev_batched_actions:
     	        combined_batch_actions = prev_batched_actions.copy()
     	        combined_batch_actions.update(batched_actions)
             else:
     	        combined_batch_actions = batched_actions
 
-            cache.set(request.user.username+"batched_actions", combined_batch_actions)
+            request.session['batched_following_actions'] = combined_batch_actions
         return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
            'action_list': activity_qs_unprocessed,
            'actor': actor,
@@ -376,7 +387,7 @@ def actstream_update_activity(request, content_type_id, object_id):
         }, context_instance=RequestContext(request))
     else:
     	"""
-    		If last_action_id is not set but there are some unprocessed initial activities,process them.
+    		If last_action_id is not set but there are some unprocessed initial activities, process them.
     	"""
     	if activity_queryset and activity_queryset.count() > 0:
             request.session['last_processed_action'] = activity_queryset[0].id

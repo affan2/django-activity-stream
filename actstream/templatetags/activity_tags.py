@@ -536,13 +536,14 @@ class GetListOfBatchedActionIDs(Node):
     def render(self, context):
         try:
             user = context['request'].user
-            action_id_maps = cache.get(user.username+"batched_actions")
+            action_id_maps = context["request"].session.get("batched_following_actions" ,dict())
             action_id_list = []
-            if action_id_maps:
-                action_id_list = action_id_maps.values()
         except VariableDoesNotExist:
             return ''
-        context[self.context_var] = list(itertools.chain(*action_id_list))
+        if action_id_maps:
+            for k, v in action_id_maps.items():
+                action_id_list += v
+        context[self.context_var] = action_id_list
         return ''
 
 def do_get_action_target(parser, token):
