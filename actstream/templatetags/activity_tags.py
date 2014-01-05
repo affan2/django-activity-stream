@@ -546,6 +546,39 @@ class GetListOfBatchedActionIDs(Node):
         context[self.context_var] = action_id_list
         return ''
 
+def do_get_list_of_batched_actor_action_ids(parser, token):
+    """
+    Retrieves the list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% do_get_list_of_batched_actor_action_ids as voters %}
+    """
+    bits = token.contents.split()
+    if len(bits) != 3:
+        raise template.TemplateSyntaxError("'%s' tag takes exactly two arguments" % bits[0])
+    if bits[1] != 'as':
+        raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
+    return GetListOfBatchedActorActionIDs(bits[2])
+
+class GetListOfBatchedActorActionIDs(Node):
+    def __init__(self, context_var):
+        self.context_var = context_var
+
+    def render(self, context):
+        try:
+            user = context['request'].user
+            action_id_maps = context["request"].session.get("batched_actor_actions" ,dict())
+            action_id_list = []
+        except VariableDoesNotExist:
+            return ''
+        if action_id_maps:
+            for k, v in action_id_maps.items():
+                action_id_list += v
+        context[self.context_var] = action_id_list
+        return ''
+
 def do_get_action_target(parser, token):
     """
     Retrieves the list of broadcasters for an action and stores them in a context variable which has
@@ -710,6 +743,7 @@ register.tag(delete_action_url)
 register.tag(can_share_action)
 register.tag('broadcasters_for_object', do_broadcasters_for_object)
 register.tag('get_list_of_batched_action_ids', do_get_list_of_batched_action_ids)
+register.tag('get_list_of_batched_actor_action_ids', do_get_list_of_batched_actor_action_ids)
 register.tag('get_action_target',do_get_action_target)
 register.tag('get_action_actor',do_get_action_actor)
 register.tag('get_batched_actors', do_get_batched_actors)

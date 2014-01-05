@@ -1,5 +1,6 @@
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext
+from django.template.loader import render_to_string
 from django.http import HttpResponseRedirect, HttpResponse
 
 from django.contrib.auth.decorators import login_required
@@ -232,7 +233,7 @@ def merge_action_subset_op(request, activity_queryset, sIndex, lIndex):
 
                 cutoff_time = activity.timestamp - timedelta(minutes=batch_minutes)
 
-                groupable_activities = None
+                groupable_activities = Action.objects.none()
 
                 if activity.verb == settings.FOLLOW_VERB:
                     actor_content_type   = ContentType.objects.get_for_model(activity.actor)
@@ -262,14 +263,37 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     l = (int)(""+lIndex)
 
     if s == 0 and 'batched_following_actions' in request.session:
-    	del request.session['batched_following_actions']
+        del request.session['batched_following_actions']
 
     activities = activity_queryset[s:l]
+    
+    if len(activities) == 0 and s != 0:
+        ret_data = {
+            'html': 'None',
+            'more': False,
+            'success': True
+        }
+        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
 
     batched_actions = merge_action_subset_op(request, activity_queryset, s, l)
     merged_batch_actions = request.session.get('batched_following_actions',  dict())
     merged_batch_actions.update(batched_actions)
     request.session['batched_following_actions'] = merged_batch_actions
+
+    batched_ids = []
+    for k, v in merged_batch_actions.items():
+        batched_ids += v
+
+    current_batched_ids = [ activity.id for activity in activities if activity.id not in batched_ids ]
+
+    if len(current_batched_ids) == 0:
+        ret_data = {
+            'html': 'None',
+            'more':True,
+            'success': True
+        }
+        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+
 
     activity_count = 0
     if activity_queryset:
@@ -281,16 +305,29 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     if activities and len(activities) > 0 and s == 0:
         request.session['last_processed_action'] = activities[0].id
 
-    if len(activities) == 0 and s != 0:
-    	return HttpResponse('None')
+    context = RequestContext(request)
+    context.update({
+           'action_list': activities, 
+           'actor': actor,
+           'ctype': ctype,
+           'sIndex':s,
+           'batched_actions':merged_batch_actions
+        })
 
-    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
-       'action_list': activities, 
-       'actor': actor,
-       'ctype': ctype,
-       'sIndex':s,
-       'batched_actions':merged_batch_actions,
-    }, context_instance=RequestContext(request))
+    ret_data = {
+        'html': render_to_string(('actstream/actor_feed.html', 'activity/actor_feed.html'), context_instance=context).strip(),
+        'success': True,
+        'more':True
+    }
+    return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+
+    # return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+    #    'action_list': activities, 
+    #    'actor': actor,
+    #    'ctype': ctype,
+    #    'sIndex':s,
+    #    'batched_actions':merged_batch_actions,
+    # }, context_instance=RequestContext(request))
 
 def actstream_latest_activity_count(request, content_type_id, object_id):
     batched_actions   = dict()
@@ -429,6 +466,43 @@ def json_error_response(error_message):
     return HttpResponse(simplejson.dumps(dict(success=False,
                                               error_message=error_message)))
 
+def merge_actor_actions_subset_op(request, activity_queryset, sIndex, lIndex):
+    activities = activity_queryset[sIndex:lIndex]
+
+    batched_actions = request.session.get('batched_actor_actions', dict())
+    if not batched_actions:
+        batched_actions = dict()
+
+    for activity in activities:
+        if activity.is_batchable:
+            is_batched=False
+            
+            for value in batched_actions.values():
+                if activity.id in value:
+                    is_batched = True
+
+            if not is_batched:
+                batch_minutes = activity.batch_time_minutes
+                if not batch_minutes:
+                    batch_minutes = ACTIVITY_DEFAULT_BATCH_TIME
+
+                cutoff_time = activity.timestamp - timedelta(minutes=batch_minutes)
+
+                groupable_activities = Action.objects.none()
+
+                if activity.verb == settings.FOLLOW_VERB:
+                    actor_content_type   = ContentType.objects.get_for_model(activity.actor)
+                    groupable_activities = activity_queryset.filter(timestamp__gte=cutoff_time,timestamp__lte=activity.timestamp, actor_content_type=actor_content_type, actor_object_id=activity.actor.pk, verb=activity.verb,target_content_type=activity.target_content_type ).exclude(id=activity.id).order_by('-timestamp')
+         
+                for gact in groupable_activities:
+                    if activity.id in batched_actions:
+                        if gact.id not in batched_actions[activity.id]:
+                            batched_actions[activity.id].append(gact.id)
+                    else:
+                        batched_actions[activity.id] =  [gact.id]
+
+    return batched_actions
+
 def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     """
     ``Actor`` focused activity stream for actor defined by ``content_type_id``,
@@ -437,21 +511,64 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
  
-    activity = models.actor_stream(actor).order_by('-timestamp') 
+    activity_queryset = models.actor_stream(actor).order_by('-timestamp') 
 
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
 
-    activity = activity[s:l]
+    if s == 0 and 'batched_actor_actions' in request.session:
+        del request.session['batched_actor_actions']
 
-    if len(activity) == 0 and s != 0:
-        return HttpResponse('None')
+    activities = activity_queryset[s:l]
+    if len(activities) == 0 and s != 0:
+        ret_data = {
+            'html': 'None',
+            'more': False,
+            'success': True
+        }
+        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
 
-    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
-       'action_list': activity, 'actor': actor,
-       'ctype': ctype, 'sIndex':s,
-       'timeline': "true"
-    }, context_instance=RequestContext(request))
+    batched_actions = merge_actor_actions_subset_op(request, activity_queryset, s, l)
+    merged_batch_actions = request.session.get('batched_actor_actions',  dict())
+    merged_batch_actions.update(batched_actions)
+    request.session['batched_actor_actions'] = merged_batch_actions
+
+    batched_ids = []
+    for k, v in merged_batch_actions.items():
+        batched_ids += v
+
+    current_batched_ids = [ activity.id for activity in activities if activity.id not in batched_ids ]
+
+    if len(current_batched_ids) == 0:
+        ret_data = {
+            'html': 'None',
+            'more':True,
+            'success': True
+        }
+        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+
+    context = RequestContext(request)
+    context.update({
+            'action_list': activities,
+            'actor': actor,
+            'ctype': ctype,
+            'timeline': "true",
+            'batched_actions':merged_batch_actions
+        })
+
+    ret_data = {
+        'html': render_to_string(('actstream/actor_feed.html', 'activity/actor_feed.html'), context_instance=context).strip(),
+        'success': True,
+        'more':True
+    }
+    return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+    # return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+    #    'action_list': activity, 'actor': actor,
+    #    'ctype': ctype,
+    #    'timeline': "true",
+    #    'batched_actions':merged_batch_actions,
+    #    'sIndex':s,
+    # }, context_instance=RequestContext(request))
 
 
 def model(request, content_type_id):

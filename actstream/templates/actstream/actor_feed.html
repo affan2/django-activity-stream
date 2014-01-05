@@ -1,8 +1,12 @@
 
 {% load activity_tags i18n static %}
 
-<ul class="halfGutter halfGutterRight">		   	
-{% get_list_of_batched_action_ids as batched_ids %}
+<ul class="halfGutter halfGutterRight">
+{% if timeline == "true" %}
+	{% get_list_of_batched_actor_action_ids as batched_ids %}
+{% else %}		   	
+	{% get_list_of_batched_action_ids as batched_ids %}
+{% endif %}
 
 {% for action in action_list %}
 	{% if action.id  not in batched_ids %}
