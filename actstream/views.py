@@ -11,6 +11,7 @@ from django.utils import simplejson
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
+from django.core.urlresolvers import reverse
 from userProfile.views import deleteObject
 from userProfile.models import GenericWish
 from actstream import actions, models
@@ -650,5 +651,29 @@ def get_broadcasters_info(request, content_type_id, object_id):
 
     return render_to_response("actstream/broadcasters.html", {
         "broadcasters": unique_broadcasters,
+    }, context_instance=RequestContext(request))
+
+def get_broadcasters_chunk_info(request, content_type_id, object_id, sIndex=0, lIndex=0):
+    s = (int)(""+sIndex)
+    l = (int)(""+lIndex)
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    object = get_object_or_404(ctype.model_class(), pk=object_id)
+    broadcasters = Action.objects.get_broadcasters_chunk(object, s, l)
+    template = "actstream/broadcasters.html"
+
+    if s == 0:
+        data_href = reverse('get_broadcasters_chunk_info', kwargs={ 'content_type_id':content_type_id,
+                                                                    'object_id':object_id,
+                                                                    'sIndex':0,
+                                                                    'lIndex': settings.MIN_BROADCASTERS_CHUNK})
+        return render_to_response(template, {
+            'broadcasters': broadcasters,
+            'is_incremental': False,
+            'data_href':data_href,
+            'data_chunk':settings.MIN_BROADCASTERS_CHUNK
+        }, context_instance=RequestContext(request))
+
+    return render_to_response(template, {
+        "broadcasters": broadcasters,
     }, context_instance=RequestContext(request))
 

@@ -5,6 +5,6 @@
     {% get_share_object_url object as shareTargetUrl %}
     <a class="shareObject" href="#" data-href="{{shareTargetUrl}}" style="margin-right:0px;">Share</a>
 	{% get_share_count object as shareCount %}
-	{% broadcasters_for_object object as broadcasters_url %}
+	{% broadcasters_chunk_for_object object 0 'MIN_FOLLOWERS_CHUNK'|settings_value as broadcasters_url %}
 	<a class="broadcasters sharedCount" href="{{broadcasters_url}}"  style="margin-left:0px;">({{ shareCount }})</a>
 {% endif %}

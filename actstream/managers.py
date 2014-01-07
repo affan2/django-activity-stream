@@ -4,7 +4,7 @@ from django.db.models import get_model
 from django.db.models import Q
 from django.contrib.contenttypes.models import ContentType
 from django.conf import settings
-
+from django.contrib.auth.models import User
 from actstream.gfk import GFKManager
 from actstream.decorators import stream
 
@@ -108,6 +108,14 @@ class ActionManager(GFKManager):
         return {
             'users':broadcasters,
         }
+
+    def get_broadcasters_chunk(self, object, sIndex=0, lIndex=0):
+        ctype = ContentType.objects.get_for_model(object)
+        result = self.filter(verb=settings.SHARE_VERB, target_content_type=ctype, target_object_id = object._get_pk_val())
+        result = result.values_list('actions_with_auth_user_as_actor', flat=True).order_by('actions_with_auth_user_as_actor').distinct()[sIndex:lIndex]
+        broadcasters =  User.objects.filter(id__in=list(result))
+        return broadcasters
+        
 
 
 class FollowManager(GFKManager):

@@ -476,6 +476,35 @@ def do_broadcasters_for_object(parser, token):
         raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return BroadcastersForObjectNode(bits[1], bits[3])
 
+def do_broadcasters_chunk_for_object(parser, token):
+    """
+    Retrieves the sub list of broadcasters for an action and stores them in a context variable which has
+    ``broadcasters`` property.
+
+    Example usage::
+
+        {% broadcasters_chunk_for_object object sindex lindex as url %}
+    """
+    bits = token.split_contents()
+    if len(bits) != 6:
+        raise TemplateSyntaxError("Accepted format "
+                                  "{% broadcasters_chunk_for_object object sindex lindex as url %}")
+    else:
+        return BroadcastersChunkForObjectNode.handle_token(parser, token)
+
+class BroadcastersChunkForObjectNode(AsNode):
+    def render_result(self, context):
+        try:
+            object = self.args[0].resolve(context)
+            sIndex = self.args[1].resolve(context)
+            lIndex = self.args[2].resolve(context)
+            content_type = ContentType.objects.get_for_model(object).pk
+        except VariableDoesNotExist:
+            return ''
+        
+        return reverse('get_broadcasters_chunk_info', kwargs={
+            'content_type_id': content_type, 'object_id': object.pk, 'sIndex':sIndex, 'lIndex':lIndex})
+
 def get_class_name(obj):
     return obj.__class__.__name__
 
@@ -742,6 +771,7 @@ register.tag(share_action_url)
 register.tag(delete_action_url)
 register.tag(can_share_action)
 register.tag('broadcasters_for_object', do_broadcasters_for_object)
+register.tag('broadcasters_chunk_for_object', do_broadcasters_chunk_for_object)
 register.tag('get_list_of_batched_action_ids', do_get_list_of_batched_action_ids)
 register.tag('get_list_of_batched_actor_action_ids', do_get_list_of_batched_actor_action_ids)
 register.tag('get_action_target',do_get_action_target)
