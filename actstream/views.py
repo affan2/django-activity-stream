@@ -287,7 +287,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
 
     current_batched_ids = [ activity.id for activity in activities if activity.id not in batched_ids ]
 
-    if len(current_batched_ids) == 0:
+    if len(current_batched_ids) == 0 and len(activities) > 0:
         ret_data = {
             'html': 'None',
             'more':True,
@@ -540,7 +540,7 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
 
     current_batched_ids = [ activity.id for activity in activities if activity.id not in batched_ids ]
 
-    if len(current_batched_ids) == 0:
+    if len(current_batched_ids) == 0 and len(activities) > 0:
         ret_data = {
             'html': 'None',
             'more':True,
