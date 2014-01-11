@@ -3,6 +3,7 @@
 {% load userProfile_tags %}
 {% load thumbnail %}
 
+{% if wish.message %}
 <div class="row">
     <div class="span6">
         <span class="message">
@@ -10,6 +11,7 @@
         </span>
     </div>
 </div>
+{% endif %}
 {% if wish.wishimage and wish.wishimage.image %}
     <div class="row topHalfGutter">
         <div class="span6">
@@ -31,6 +33,7 @@
         </div>
     </div>
 {% endif %}
+{% if wish.urlPreviewContent %}
 <div class="row topHalfGutter">
     <div class="span6">
         {% autoescape off %}
@@ -38,6 +41,7 @@
         {% endautoescape %}
     </div>
 </div>
+{% endif %}
 {% if  wish.blog_category %}
 <div class="row topHalfGutter">
     <div class="span6">

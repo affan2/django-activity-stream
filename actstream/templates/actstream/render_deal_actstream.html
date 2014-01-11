@@ -2,6 +2,7 @@
 {% load thumbnail %}
 {% load userProfile_tags %}
 
+{% if deal.message %}
 <div class="row">
     <div class="span6">
         <span class="message">
@@ -9,6 +10,7 @@
         </span>
     </div>
 </div>
+{% endif %}
 {% if deal.wishimage and deal.wishimage.image %}
     <div class="row topHalfGutter">
         <div class="span6">

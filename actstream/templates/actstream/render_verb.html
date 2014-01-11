@@ -10,6 +10,9 @@
 	{% endif %}
 
 	{% if action.verb == 'SHARE_VERB'|settings_value %}
+	{% endif %}
+
+	{% if action.verb == 'SHARE_VERB'|settings_value %}
 		{% if action.target|get_class_name == "BroadcastDeal" %}
 			{% get_wish_owner action.target as deal_owner %}
 			{% include 'actstream/render_actor_name.html' with actor=deal_owner %}'s Deal
