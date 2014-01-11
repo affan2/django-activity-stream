@@ -30,13 +30,15 @@
         </div>
     </div>
 {% endif %}
-<div class="row topHalfGutter">
-    <div class="span6">
-        {% autoescape off %}
-            {{deal.urlPreviewContent}}
-        {% endautoescape %}
+{% if deal.urlPreviewContent %}
+    <div class="row topHalfGutter">
+        <div class="span6">
+            {% autoescape off %}
+                {{deal.urlPreviewContent}}
+            {% endautoescape %}
+        </div>
     </div>
-</div>
+{% endif %}
 {% if  deal.blog_category %}
 <div class="row topHalfGutter">
     <div class="span6">
