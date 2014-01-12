@@ -41,10 +41,12 @@
         </div>
     </div>
 {% endif %}
-{% if  deal.blog_category %}
+{% if deal.blog_category.all %}
 <div class="row topHalfGutter">
     <div class="span6">
-            <a class="categoryTag" href="{{ deal.blog_category.get_absolute_url }}"> {{deal.blog_category}} </a>
+        {% for blog_category in deal.blog_category.all %}
+            <a class="categoryTag" href="{{ blog_category.get_absolute_url }}"> {{blog_category}} </a>
+        {% endfor %}          
     </div>
 </div>
 {% endif %}

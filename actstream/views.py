@@ -194,7 +194,7 @@ def get_actions_following(request, content_type_id, object_id):
                             stream 			  = models.target_stream(followedObject)#, timestamp__gte = follow.datetime )
                             activity_queryset = activity_queryset | stream
         
-        allowed_verbs_for_user_in_common_feed = [settings.SAID_VERB, settings.SHARE_VERB, settings.REVIEW_POST_VERB, settings.DEAL_POST_VERB, settings.WISH_POST_VERB]
+        allowed_verbs_for_user_in_common_feed = [settings.SAID_VERB, settings.SHARE_VERB, settings.DEAL_POST_VERB, settings.WISH_POST_VERB]# settings.REVIEW_POST_VERB, ]
         user_ctype = ContentType.objects.get_for_model(request.user)
         activity_queryset = activity_queryset.exclude(~Q(verb__in=allowed_verbs_for_user_in_common_feed) & Q(actor_content_type=user_ctype, actor_object_id=request.user.id) )
 
