@@ -798,9 +798,27 @@ def review_verb_linkify(action):
         obj = action.action_object
     
     if obj:
-        url = reverse('render_review', kwargs={
-            'blog_slug': obj.content_object.slug, 'review_id': obj.id})
-        linkified_url = "<a class='radioColor' href=\""+url+"\">review</a>"
+        linkified_url = ""
+        blog = obj.content_object
+        user = obj.user
+        if (action.verb == settings.REVIEW_LIKE_VERB or action.verb == settings.REVIEW_COMMENT_VERB or action.verb == settings.REVIEW_COMMENT_LIKE_VERB):
+            user_url = user.get_absolute_url()
+            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+user_url+"\">" + (user.first_name + " " + user.last_name).title() + "</a>'s&nbsp;"
+            blog_url = blog.get_absolute_url()
+            linkified_url += "<a class='radioColor fontHelvetica fontSize13' href=\""+blog_url+"\">" + blog.title.title() + "</a>&nbsp;"
+            url = reverse('render_review', kwargs={
+                'blog_slug': blog.slug, 'review_id': obj.id})
+            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a>"
+        elif (action.verb == settings.REVIEW_POST_VERB):
+            url = reverse('render_review', kwargs={
+                'blog_slug': blog.slug, 'review_id': obj.id})
+            linkified_url += "posted a <a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a> for "
+            blog_url = blog.get_absolute_url()
+            linkified_url += "<a class='radioColor fontHelvetica fontSize13' href=\""+blog_url+"\">" + blog.title.title() + "</a>"
+        else:
+            url = reverse('render_review', kwargs={
+                'blog_slug': blog.slug, 'review_id': obj.id})
+            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a>"
         pattern = re.compile("review", re.IGNORECASE)
-        return pattern.sub(linkified_url, action.verb)
+        return pattern.sub(linkified_url, settings.ACTSTREAM_VERB_DICT[action.verb])
     return ""
