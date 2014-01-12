@@ -43,7 +43,7 @@
 			{% get_wish_owner action.target as post_owner %}
 			{% include 'actstream/render_actor_name.html' with actor=post_owner %}{% trans "'s Post" %}
 		{% else %}
-			{% settings_actstream_verb 'ALBUM_ADD_IMAGE_VERB' %}
+			{% settings_actstream_verb action.verb %}
 		{% endif %}
 	{% endif %}
 

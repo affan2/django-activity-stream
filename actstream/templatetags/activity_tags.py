@@ -790,6 +790,10 @@ def backwards_compatibility_check(template_name):
     return template_name
 
 @register.simple_tag
+def settings_actstream_verb(verb):
+    return settings.ACTSTREAM_VERB_DICT[verb]
+
+@register.simple_tag
 def review_verb_linkify(action):
     obj = None
     if get_class_name(action.target) == "Review":
