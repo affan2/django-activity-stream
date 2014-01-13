@@ -26,7 +26,7 @@
 		                    {% include 'generic/includes/render_owner.html' with owner=comment.user %}   
 		                </strong>
 		            
-		                <p>{{ comment.comment|comment_filter }}</p>
+		                <p>{{ comment.comment|comment_filter|urlize }}</p>
 
 		                {% include 'generic/includes/render_voting.html' with object=comment %}
 		                <span class="timespan">{% blocktrans with sometime=comment.submit_date|timesince %}{{ sometime }} ago{% endblocktrans %}</span>

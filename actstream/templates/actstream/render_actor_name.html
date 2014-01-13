@@ -6,11 +6,11 @@
 			{% if actor|get_class_name == "User" %}
 				<a href="{{ actor.get_absolute_url }}" class="fontTitillium1 fontSize13 radioColor">{% get_full_name actor %}</a>
 			{% elif actor|get_class_name == "BlogPost" %}
-				<a href="{{ actor.get_absolute_url }}" class="fontHelvetica fontSize13 radioColor">{{actor}}</a>
+				<a href="{{ actor.get_absolute_url }}" class="fontHelvetica fontSize13 radioColor">{{actor|title}}</a>
 			{% else %}
-				{{actor}}
+				{{actor|title}}
 			{% endif %}
 	{% else %}
-		{{actor}}
+		{{actor|title}}
 	{% endif %}
 {% endif %}

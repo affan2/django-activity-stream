@@ -6,10 +6,45 @@
 	{% if action.target|get_class_name == "Review" or action.action_object|get_class_name == "Review" %}
 		{% review_verb_linkify action %}
 	{% else %}
-		{{action.verb}}
-	{% endif %}
-
-	{% if action.verb == 'SHARE_VERB'|settings_value %}
+		{% if action.verb == 'WISH_LIKE_VERB'|settings_value %}
+			{% trans "liked" %}
+			{% get_wish_owner action.target as wish_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=wish_owner %}{% trans "'s Wish" %}
+		{% elif action.verb == 'DEAL_LIKE_VERB'|settings_value %}
+			{% trans "liked" %}
+			{% get_wish_owner action.target as deal_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=deal_owner %}{% trans "'s Deal" %}
+		{% elif action.verb == 'POST_LIKE_VERB'|settings_value %}
+			{% trans "liked" %}
+			{% get_wish_owner action.target as post_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=post_owner %}{% trans "'s Post" %}
+		{% elif action.verb == 'WISH_COMMENT_VERB'|settings_value %}
+			{% trans "commented on" %}
+			{% get_wish_owner action.target as wish_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=wish_owner %}{% trans "'s Wish" %}
+		{% elif action.verb == 'DEAL_COMMENT_VERB'|settings_value %}
+			{% trans "commented on" %}
+			{% get_wish_owner action.target as deal_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=deal_owner %}{% trans "'s Deal" %}
+		{% elif action.verb == 'POST_COMMENT_VERB'|settings_value %}
+			{% trans "commented on" %}
+			{% get_wish_owner action.target as post_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=post_owner %}{% trans "'s Post" %}
+		{% elif action.verb == 'WISH_COMMENT_LIKE_VERB'|settings_value %}
+			{% trans "liked a comment on" %}
+			{% get_wish_owner action.target as wish_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=wish_owner %}{% trans "'s Wish" %}
+		{% elif action.verb == 'DEAL_COMMENT_LIKE_VERB'|settings_value %}
+			{% trans "liked a comment on" %}
+			{% get_wish_owner action.target as deal_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=deal_owner %}{% trans "'s Deal" %}
+		{% elif action.verb == 'POST_COMMENT_LIKE_VERB'|settings_value %}
+			{% trans "liked a comment on" %}
+			{% get_wish_owner action.target as post_owner %}
+			{% include 'actstream/render_actor_name.html' with actor=post_owner %}{% trans "'s Post" %}
+		{% else %}
+			{% settings_actstream_verb action.verb %}
+		{% endif %}
 	{% endif %}
 
 	{% if action.verb == 'SHARE_VERB'|settings_value %}
@@ -31,6 +66,6 @@
 	{% endif %}
 	
 	{% if action.verb == 'GOT_REVIEW_VERB'|settings_value %}
-		from {% include 'actstream/render_actor_name.html' with actor=action.target.user %}
+		{% trans "from " %}{% include 'actstream/render_actor_name.html' with actor=action.target.user %}
 	{% endif %}
 {% endif %}

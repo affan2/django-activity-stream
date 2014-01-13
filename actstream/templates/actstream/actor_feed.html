@@ -31,7 +31,20 @@
 	{% if timeline == "true" %}
 		<div class="row">
 			<div class="span6 fontTitillium1 color5D fontSize14 topHalfGutter">
-				{% trans "No Activity yet" %}
+				{% if request.user == actor %}
+					<div class="row">
+						<div class="span6">
+							{% trans "You have'nt been very active on Wishradio yet. No worries, it's never too late to start" %}
+						</div>
+					</div>
+					<div class="row">
+						<div class="span6">
+							{% trans "Invite your friends, Follow the stores you like, Check out some deals - so that you have a filled in Timeline" %}
+						</div>
+					</div>
+				{% else %}
+					{% trans "No Activity yet" %}
+				{% endif %}
 			</div>
 		</div>
 	{% else %}
