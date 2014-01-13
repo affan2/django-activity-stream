@@ -42,10 +42,12 @@
     </div>
 </div>
 {% endif %}
-{% if  wish.blog_category %}
+{% if wish.blog_category.all %}
 <div class="row topHalfGutter">
     <div class="span6">
-            <a class="categoryTag" href="{{ wish.blog_category.get_absolute_url }}"> {{wish.blog_category}} </a>
+        {% for blog_category in wish.blog_category.all %}
+            <a class="categoryTag" href="{{ blog_category.get_absolute_url }}"> {{blog_category}} </a>
+        {% endfor %}
     </div>
 </div>
 {% endif %}
