@@ -48,9 +48,9 @@ urlpatterns = patterns('actstream.views',
 
     url(r'^detail/(?P<action_id>\d+)/$', 'detail', name='actstream_detail'),
     url(r'^(?P<username>[-\w]+)/$', 'user', name='actstream_user'),
-    url(r'^shareAction/(?P<action_id>\d+)/$', 'shareAction', name='shareAction'),
-    url(r'^deleteAction/(?P<action_id>\d+)/$', 'deleteAction', name='deleteAction'),  
+    url(r'^action/(?P<action_id>\d+)/share/$', 'shareAction', name='shareAction'),
+    url(r'^action/(?P<action_id>\d+)/delete/$', 'deleteAction', name='deleteAction'),  
     url(r'^$', 'stream', name='actstream'),
     url(r'^broadcasters/(?P<content_type_id>\d+)/(?P<object_id>\d+)/$', 'get_broadcasters_info', name='get_broadcasters_info'),
-    url(r'^broadcasters/chunk/(?P<content_type_id>\d+)/(?P<object_id>\d+)/(?P<sIndex>\d+)/(?P<lIndex>\d+)/$', 'get_broadcasters_chunk_info', name='get_broadcasters_chunk_info'),
+    url(r'^broadcasters/object/(?P<content_type_id>\d+)/(?P<object_id>\d+)/range/(?P<sIndex>\d+)/(?P<lIndex>\d+)/$', 'get_broadcasters_chunk_info', name='get_broadcasters_chunk_info'),
 )

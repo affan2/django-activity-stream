@@ -1,6 +1,6 @@
 {% load comment_tags  %}
 
-{% get_range_commenters_url object 0 5 as commenters_url %}
+{% get_range_commenters_url object 0 10 as commenters_url %}
 {% if object|get_class_name == "BlogPost" %}
 <a href="{{object.get_absolute_url}}" class="" style="margin-right:0px;">Review</a>
 	{% comment_count_on_object object as total_comments %}
