@@ -30,16 +30,16 @@
 	{% empty %}
 	{% if timeline == "true" %}
 		<div class="row">
-			<div class="span6 fontTitillium1 color5D fontSize14 topHalfGutter">
+			<div class="span6 fontTitillium1 color5D fontSize14">
 				{% if request.user == actor %}
 					<div class="row">
 						<div class="span6">
 							{% trans "You have'nt been very active on Wishradio yet. No worries, it's never too late to start" %}
 						</div>
 					</div>
-					<div class="row">
+					<div class="row topHalfGutter">
 						<div class="span6">
-							{% trans "Invite your friends, Follow the stores you like, Check out some deals - so that you have a filled in Timeline" %}
+							<span class="fontSize20">{% trans "Invite " %}</span>{% trans "your friends, " %}<span class="fontSize20">{% trans "Follow " %}</span>{% trans "the stores you like, check out some " %}<span class="fontSize20">{% trans "Deals " %}</span>{% trans "- so that you have a filled in Timeline" %}
 						</div>
 					</div>
 				{% else %}
@@ -50,13 +50,13 @@
 	{% else %}
 		<div class="row noActions">
 			<div class="span6 fontTitillium1 color5D fontSize14 topHalfGutter">
-				{% trans "Start By Searching for the trending stores and the hottest deals" %}
+				<span class="fontSize20">{% trans "START " %}</span>{% trans "by searching for the " %}<span class="fontSize20">{% trans "trending stores " %}</span>{% trans "and the " %}<span class="fontSize20">{% trans "hottest deals" %}</span>
 			</div>
 			<div class="span6 fontTitillium1 color5D fontSize13">
-				{% trans "Follow your friends to take buying decisions socially." %}
+				<span class="fontSize16">{% trans "Follow " %}</span>{% trans "your friends to take buying decisions socially." %}
 			</div>
 			<div class="span6 fontTitillium1 color5D fontSize13">
-				{% trans "Follow stores to get the best deals and promotions." %}
+				<span class="fontSize16">{% trans "Follow " %}</span>{% trans "stores to get the best deals and promotions." %}
 			</div>
 		</div>
 	{% endif %}
