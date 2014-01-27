@@ -816,7 +816,7 @@ def review_verb_linkify(action):
         elif (action.verb == settings.REVIEW_POST_VERB):
             url = reverse('render_review', kwargs={
                 'blog_slug': blog.slug, 'review_id': obj.id})
-            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a>'ed"
+            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a>'ed "
             blog_url = blog.get_absolute_url()
             linkified_url += "<a class='radioColor fontHelvetica fontSize13' href=\""+blog_url+"\">" + blog.title.title() + "</a>"
         else:
