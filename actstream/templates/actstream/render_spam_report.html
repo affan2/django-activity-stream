@@ -5,8 +5,9 @@
 <a href="{% report_spam_url object %}" onclick="var add_link = $(this);
             var link = add_link.attr('href');
             $.get(link, {}, function(data) {
-                if(data == 'ok')
-                  alert('Reported');
+                if(data == 'ok') {
+                	/* Do Nothing */
+                }
             });
             return false;">{% trans "Report&nbsp;Abuse" %}</a>
 {% endif %}
