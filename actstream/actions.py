@@ -97,7 +97,7 @@ def action_handler(verb, **kwargs):
         public=bool(kwargs.pop('public', True)),
         description=kwargs.pop('description', None),
         timestamp=kwargs.pop('timestamp', now()),
-        batch_time_minutes=kwargs.pop('timestamp', 30),
+        batch_time_minutes=kwargs.pop('batch_time_minutes', 30),
         is_batchable=kwargs.pop('is_batchable', False)
     )
 
