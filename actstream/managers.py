@@ -19,6 +19,7 @@ class ActionManager(GFKManager):
         Only return public actions
         """
         kwargs['public'] = True
+        kwargs['state'] = 1
         return self.filter(*args, **kwargs)
 
     @stream
@@ -65,7 +66,8 @@ class ActionManager(GFKManager):
         following.
         """
         q = Q()
-        qs = self.filter(public=True)
+        q_ex = Q()
+        qs = self.filter(public=True, state=1)
         actors_by_content_type = defaultdict(lambda: [])
         others_by_content_type = defaultdict(lambda: [])
 
@@ -94,7 +96,20 @@ class ActionManager(GFKManager):
                 action_object_content_type=content_type_id,
                 action_object_object_id__in=object_ids,
             )
-        qs = qs.filter(q, **kwargs)
+            q_ex = q_ex | Q(
+                target_content_type=content_type_id,
+                target_object_id__in=object_ids,
+                verb__startswith="viewed"
+            )
+
+        #exclude current user except fpr certain actions
+        content_type_id = ContentType.objects.get_for_model(object.__class__())
+        q_ex = q_ex | Q(
+            actor_content_type = content_type_id,
+            actor_object_id = object.id,
+        )
+
+        qs = qs.filter(q, **kwargs).exclude(q_ex)
         return qs
 
     def get_broadcasters(self, object):
