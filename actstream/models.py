@@ -19,6 +19,13 @@ from actstream.signals import action
 from actstream.actions import action_handler
 from actstream.managers import FollowManager
 
+
+STATE_TYPES = (
+    (-1, u'Deleted'),
+    (1, u'Published'),
+)
+
+
 class Follow(models.Model):
     """
     Lets a user follow the activities of any specific actor
@@ -98,6 +105,8 @@ class Action(models.Model):
                                              blank=True)
 
     is_batchable = models.BooleanField(default=False)
+
+    state = models.SmallIntegerField(verbose_name=_('Publish state'), choices=STATE_TYPES, default=1)
 
     objects = actstream_settings.get_action_manager()
 
