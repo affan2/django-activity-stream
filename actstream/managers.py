@@ -102,11 +102,11 @@ class ActionManager(GFKManager):
                 verb__startswith="viewed"
             )
 
-        #exclude current user except fpr certain actions
+        #exclude current user except for certain actions
         content_type_id = ContentType.objects.get_for_model(object.__class__())
         q_ex = q_ex | Q(
-            actor_content_type = content_type_id,
-            actor_object_id = object.id,
+            actor_content_type=content_type_id,
+            actor_object_id=object.id,
         )
 
         qs = qs.filter(q, **kwargs).exclude(q_ex)
