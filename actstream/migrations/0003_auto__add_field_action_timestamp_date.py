@@ -14,8 +14,7 @@ class Migration(SchemaMigration):
                       keep_default=False)
 
         # getting data from timestamp
-        from actstream.models import Action
-        actions = Action.objects.all()
+        actions = orm.Action.objects.all()
         for action in actions:
             action.timestamp_date = action.timestamp
             action.save()
