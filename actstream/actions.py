@@ -90,24 +90,58 @@ def action_handler(verb, **kwargs):
     kwargs.pop('signal', None)
     actor = kwargs.pop('sender')
     check_actionable_model(actor)
-    newaction = Action(
-        actor_content_type=ContentType.objects.get_for_model(actor),
-        actor_object_id=actor.pk,
-        verb=unicode(verb),
-        public=bool(kwargs.pop('public', True)),
-        description=kwargs.pop('description', None),
-        timestamp=kwargs.pop('timestamp', now()),
-        batch_time_minutes=kwargs.pop('batch_time_minutes', 30),
-        is_batchable=kwargs.pop('is_batchable', False)
-    )
 
-    for opt in ('target', 'action_object'):
-        obj = kwargs.pop(opt, None)
-        if not obj is None:
-            check_actionable_model(obj)
-            setattr(newaction, '%s_object_id' % opt, obj.pk)
-            setattr(newaction, '%s_content_type' % opt,
-                    ContentType.objects.get_for_model(obj))
-    if settings.USE_JSONFIELD and len(kwargs):
-        newaction.data = kwargs
-    newaction.save()
+    if check_action_exists(actor, verb, **kwargs):
+        newaction = Action(
+            actor_content_type=ContentType.objects.get_for_model(actor),
+            actor_object_id=actor.pk,
+            verb=unicode(verb),
+            public=bool(kwargs.pop('public', True)),
+            description=kwargs.pop('description', None),
+            timestamp=kwargs.pop('timestamp', now()),
+            batch_time_minutes=kwargs.pop('batch_time_minutes', 30),
+            is_batchable=kwargs.pop('is_batchable', False)
+        )
+
+        for opt in ('target', 'action_object'):
+            obj = kwargs.pop(opt, None)
+            if not obj is None:
+                check_actionable_model(obj)
+                setattr(newaction, '%s_object_id' % opt, obj.pk)
+                setattr(newaction, '%s_content_type' % opt,
+                        ContentType.objects.get_for_model(obj))
+        if settings.USE_JSONFIELD and len(kwargs):
+            newaction.data = kwargs
+        newaction.save()
+
+
+def check_action_exists(actor, verb, **kwargs):
+    from actstream.models import Action
+
+    try:
+        filters = {
+            'actor_content_type': ContentType.objects.get_for_model(actor),
+            'actor_object_id': actor.pk,
+            'verb': unicode(verb),
+            'state': 1,
+            'timestamp_date': kwargs.get('timestamp', now()),
+        }
+        for opt in ('target', 'action_object'):
+            obj = kwargs.pop(opt, None)
+            if not obj is None:
+                check_actionable_model(obj)
+                filters.update({'%s_object_id' % opt: obj.pk})
+                filters.update({'%s_content_type' % opt:
+                                    ContentType.objects.get_for_model(obj)})
+
+        action = Action.objects.get(**filters)
+
+        action.timestamp = kwargs.get('timestamp', now())
+        action.save()
+
+    except Action.DoesNotExist:
+        return True
+
+    return False
+
+

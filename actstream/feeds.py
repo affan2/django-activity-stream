@@ -128,7 +128,7 @@ class ActivityStreamsObjectActivityFeed(AtomObjectActivityFeed):
         try:
             object_id = obj.action_object.get_absolute_url()
         except:
-            object_id = '%s/%s' % (obj.action_object_content_type.model,
+            object_id = '%s/%s' % (obj.action_object_content_type.model.lower(),
                 obj.action_object.id)
 
         object_id = get_tag_uri(object_id, None)
@@ -142,14 +142,14 @@ class ActivityStreamsObjectActivityFeed(AtomObjectActivityFeed):
             'object': obj.action_object,
             'object_id': object_id,
             'object_title': unicode(obj.action_object),
-            'object_object_type': obj.action_object_content_type.model,
+            'object_object_type': obj.action_object_content_type.model.lower(),
         }
 
         if obj.target:
             try:
                 target_id = obj.target.get_absolute_url()
             except Exception:
-                target_id = '%s/%s' % (obj.target_content_type.model,
+                target_id = '%s/%s' % (obj.target_content_type.model.lower(),
                     obj.action_object.id)
 
             target_id = get_tag_uri(target_id, obj.timestamp)
