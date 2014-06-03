@@ -13,24 +13,26 @@ class Migration(SchemaMigration):
                       self.gf('django.db.models.fields.DateField')(default=datetime.datetime.now),
                       keep_default=False)
 
-        # getting data from timestamp
-        actions = orm.Action.objects.all()
-        for action in actions:
-            action.timestamp_date = action.timestamp
-            action.save()
+        if not db.dry_run:
+            # getting data from timestamp
+            actions = orm.Action.objects.all()
+            for action in actions:
+                action.timestamp_date = action.timestamp
+                action.save()
 
-        cursor = connection.cursor()
-        cursor.execute('''
-            DELETE n1 FROM actstream_action AS n1, actstream_action AS n2 WHERE
-            n1.actor_content_type_id = n2.actor_content_type_id AND
-            n1.actor_object_id = n2.actor_object_id AND
-            n1.verb = n2.verb AND
-            n1.target_content_type_id = n2.target_content_type_id AND
-            n1.target_object_id = n2.target_object_id AND
-            n1.timestamp_date = n2.timestamp_date AND
-            n1.state=1 AND n2.state=1 AND
-            n1.id > n2.id
-        ''')
+            #cleaning dupes
+            cursor = connection.cursor()
+            cursor.execute('''
+                DELETE n1 FROM actstream_action AS n1, actstream_action AS n2 WHERE
+                n1.actor_content_type_id = n2.actor_content_type_id AND
+                n1.actor_object_id = n2.actor_object_id AND
+                n1.verb = n2.verb AND
+                n1.target_content_type_id = n2.target_content_type_id AND
+                n1.target_object_id = n2.target_object_id AND
+                n1.timestamp_date = n2.timestamp_date AND
+                n1.state=1 AND n2.state=1 AND
+                n1.id > n2.id
+            ''')
 
 
     def backwards(self, orm):
