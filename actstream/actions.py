@@ -102,8 +102,7 @@ def action_handler(verb, **kwargs):
     Handler function to create Action instance upon action signal call.
     """
     from actstream.models import Action
-    print verb
-    print kwargs
+
     kwargs.pop('signal', None)
     actor = kwargs.pop('sender')
     check_actionable_model(actor)
