@@ -33,14 +33,30 @@ def follow(user, obj, send_action=True, actor_only=True):
         follow(request.user, group, actor_only=False)
     """
     from actstream.models import Follow, action
+    from people.tasks import task_notice
 
     check_actionable_model(obj)
-    follow, created = Follow.objects.get_or_create(user=user,
+    follow, created = Follow.objects.get_or_create(
+        user=user,
         object_id=obj.pk,
         content_type=ContentType.objects.get_for_model(obj),
-        actor_only=actor_only)
+        actor_only=actor_only
+    )
     if send_action and created:
-        action.send(user, verb=_settings.FOLLOW_VERB, target=obj, batch_time_minutes=30, is_batchable=True)
+        action.send(
+            user,
+            verb=_settings.FOLLOW_VERB,
+            target=obj,
+            batch_time_minutes=30,
+            is_batchable=True
+        )
+        task_notice.delay(
+            [obj],
+            "follower",
+            {'target': obj},
+            sender=user
+        )
+
     return follow
 
 
@@ -86,7 +102,8 @@ def action_handler(verb, **kwargs):
     Handler function to create Action instance upon action signal call.
     """
     from actstream.models import Action
-
+    print verb
+    print kwargs
     kwargs.pop('signal', None)
     actor = kwargs.pop('sender')
     check_actionable_model(actor)
