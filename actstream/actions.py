@@ -134,22 +134,21 @@ def action_handler(verb, **kwargs):
 def check_action_exists(actor, verb, **kwargs):
     from actstream.models import Action
 
-    try:
-        filters = {
-            'actor_content_type': ContentType.objects.get_for_model(actor),
-            'actor_object_id': actor.pk,
-            'verb': unicode(verb),
-            'state': 1,
-            'timestamp_date': kwargs.get('timestamp', now()),
-        }
-        for opt in ('target', 'action_object'):
-            obj = kwargs.pop(opt, None)
-            if not obj is None:
-                check_actionable_model(obj)
-                filters.update({'%s_object_id' % opt: obj.pk})
-                filters.update({'%s_content_type' % opt:
-                                    ContentType.objects.get_for_model(obj)})
+    filters = {
+        'actor_content_type': ContentType.objects.get_for_model(actor),
+        'actor_object_id': actor.pk,
+        'verb': unicode(verb),
+        'state': 1,
+        'timestamp_date': kwargs.get('timestamp', now()),
+    }
+    for opt in ('target', 'action_object'):
+        obj = kwargs.pop(opt, None)
+        if not obj is None:
+            check_actionable_model(obj)
+            filters.update({'%s_object_id' % opt: obj.pk})
+            filters.update({'%s_content_type' % opt: ContentType.objects.get_for_model(obj)})
 
+    try:
         action = Action.objects.get(**filters)
 
         action.timestamp = kwargs.get('timestamp', now())
@@ -157,6 +156,17 @@ def check_action_exists(actor, verb, **kwargs):
 
     except Action.DoesNotExist:
         return True
+
+    except Action.MultipleObjectsReturned:
+        actions = Action.objects.filter(**filters).order_by('-id')
+        i = 1
+        for action in actions:
+            if i == 1:
+                action.timestamp = kwargs.get('timestamp', now())
+                action.save()
+                i += 1
+            else:
+                action.delete()
 
     return False
 
