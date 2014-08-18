@@ -2,6 +2,7 @@ import datetime
 
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
+from itertools import chain
 
 from actstream.exceptions import check_actionable_model
 from actstream import settings
@@ -50,8 +51,16 @@ def follow(user, obj, send_action=True, actor_only=True):
             batch_time_minutes=30,
             is_batchable=True
         )
+        recipients = [obj]
+        if obj.__class__.__name__ == 'Company':
+            admins = obj.admins.all()
+            recipients = set(chain(
+                [obj.admin_primary] if obj.admin_primary and not obj.admin_primary.is_staff else [],
+                admins
+            ))
+
         task_notice.delay(
-            [obj],
+            recipients,
             "follower",
             {'target': obj},
             sender=user
