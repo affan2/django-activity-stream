@@ -59,12 +59,13 @@ def follow(user, obj, send_action=True, actor_only=True):
                 admins
             ))
 
-        task_notice.delay(
-            recipients,
-            "follower",
-            {'target': obj},
-            sender=user
-        )
+        if not obj.__class__.__name__ == 'Post':
+            task_notice.delay(
+                recipients,
+                "follower",
+                {'target': obj},
+                sender=user
+            )
 
     return follow
 
