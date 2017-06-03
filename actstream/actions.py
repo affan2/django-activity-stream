@@ -41,7 +41,8 @@ def follow(user, obj, send_action=True, actor_only=True):
         user=user,
         object_id=obj.pk,
         content_type=ContentType.objects.get_for_model(obj),
-        actor_only=actor_only
+        actor_only=actor_only,
+        site_id=settings.SITE_ID,
     )
     if send_action and created:
         action.send(
@@ -103,8 +104,12 @@ def is_following(user, obj):
     from actstream.models import Follow
 
     check_actionable_model(obj)
-    return bool(Follow.objects.filter(user=user, object_id=obj.pk,
-        content_type=ContentType.objects.get_for_model(obj)).count())
+    return bool(Follow.objects.filter(
+        user=user,
+        object_id=obj.pk,
+        content_type=ContentType.objects.get_for_model(obj),
+        site_id=settings.SITE_ID
+    ).count())
 
 
 def action_handler(verb, **kwargs):
@@ -113,7 +118,6 @@ def action_handler(verb, **kwargs):
     """
     from actstream.models import Action
 
-    import pdb; pdb.set_trace()
     kwargs.pop('signal', None)
     actor = kwargs.pop('sender')
     check_actionable_model(actor)
@@ -126,7 +130,8 @@ def action_handler(verb, **kwargs):
             description=kwargs.pop('description', None),
             timestamp=kwargs.pop('timestamp', now()),
             batch_time_minutes=kwargs.pop('batch_time_minutes', 30),
-            is_batchable=kwargs.pop('is_batchable', False)
+            is_batchable=kwargs.pop('is_batchable', False),
+            site_id=settings.SITE_ID
         )
 
         for opt in ('target', 'action_object'):
@@ -150,6 +155,7 @@ def check_action_exists(actor, verb, **kwargs):
         'verb': unicode(verb),
         'state': 1,
         'timestamp_date': kwargs.get('timestamp', now()),
+        'site_id': settings.SITE_ID,
     }
     for opt in ('target', 'action_object'):
         obj = kwargs.pop(opt, None)
