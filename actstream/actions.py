@@ -37,12 +37,13 @@ def follow(user, obj, send_action=True, actor_only=True):
     from people.tasks import task_notice
 
     check_actionable_model(obj)
+    import pdb; pdb.set_trace()
     follow, created = Follow.objects.get_or_create(
         user=user,
         object_id=obj.pk,
         content_type=ContentType.objects.get_for_model(obj),
         actor_only=actor_only,
-        site_id=settings.SITE_ID,
+        site_id=_settings.SITE_ID,
     )
     if send_action and created:
         action.send(
@@ -108,7 +109,7 @@ def is_following(user, obj):
         user=user,
         object_id=obj.pk,
         content_type=ContentType.objects.get_for_model(obj),
-        site_id=settings.SITE_ID
+        site_id=_settings.SITE_ID
     ).count())
 
 
@@ -131,7 +132,7 @@ def action_handler(verb, **kwargs):
             timestamp=kwargs.pop('timestamp', now()),
             batch_time_minutes=kwargs.pop('batch_time_minutes', 30),
             is_batchable=kwargs.pop('is_batchable', False),
-            site_id=settings.SITE_ID
+            site_id=_settings.SITE_ID
         )
 
         for opt in ('target', 'action_object'):
@@ -155,7 +156,7 @@ def check_action_exists(actor, verb, **kwargs):
         'verb': unicode(verb),
         'state': 1,
         'timestamp_date': kwargs.get('timestamp', now()),
-        'site_id': settings.SITE_ID,
+        'site_id': _settings.SITE_ID,
     }
     for opt in ('target', 'action_object'):
         obj = kwargs.pop(opt, None)
