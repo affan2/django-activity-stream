@@ -1,11 +1,13 @@
 from django.db import models
+from django.conf import settings
+from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.models import ContentType
+from django.contrib.auth.models import User
+from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
 
-from django.contrib.contenttypes import generic
-from django.contrib.contenttypes.models import ContentType
-from django.contrib.auth.models import User
 
 try:
     from django.utils import timezone
@@ -32,12 +34,26 @@ class Follow(models.Model):
     """
     user = models.ForeignKey(User)
 
-    content_type = models.ForeignKey(ContentType)
-    object_id = models.CharField(max_length=255)
+    content_type = models.ForeignKey(
+        ContentType
+    )
+    object_id = models.CharField(
+        max_length=255
+    )
     follow_object = generic.GenericForeignKey()
-    actor_only = models.BooleanField("Only follow actions where the object is "
-        "the target.", default=True)
-    started = models.DateTimeField(default=now)
+    actor_only = models.BooleanField(
+        "Only follow actions where the object is the target.",
+        default=True
+    )
+    started = models.DateTimeField(
+        default=now
+    )
+    site = models.ForeignKey(
+        Site,
+        related_name="follow_site",
+        default=settings.SITE_ID,
+        verbose_name='site'
+    )
     objects = FollowManager()
 
     class Meta:
@@ -73,41 +89,93 @@ class Action(models.Model):
 
     HTML Representation::
 
-        <a href="http://oebfare.com/">brosner</a> commented on <a href="http://github.com/pinax/pinax">pinax/pinax</a> 2 hours ago
+        <a href="http://oebfare.com/">brosner</a> 
+        commented on 
+        <a href="http://github.com/pinax/pinax">pinax/pinax</a>
+        2 hours ago
 
     """
-    actor_content_type = models.ForeignKey(ContentType, related_name='actor')
-    actor_object_id = models.CharField(max_length=255)
-    actor = generic.GenericForeignKey('actor_content_type', 'actor_object_id')
+    actor_content_type = models.ForeignKey(
+        ContentType,
+        related_name='actor'
+    )
+    actor_object_id = models.CharField(
+        max_length=255
+    )
+    actor = generic.GenericForeignKey(
+        'actor_content_type',
+        'actor_object_id'
+    )
+    verb = models.CharField(
+        max_length=255
+    )
+    description = models.TextField(
+        blank=True,
+        null=True
+    )
+    target_content_type = models.ForeignKey(
+        ContentType,
+        related_name='target',
+        blank=True,
+        null=True
+    )
+    target_object_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+    target = generic.GenericForeignKey(
+        'target_content_type',
+        'target_object_id'
+    )
+    action_object_content_type = models.ForeignKey(
+        ContentType,
+        related_name='action_object',
+        blank=True,
+        null=True
+    )
+    action_object_object_id = models.CharField(
+        max_length=255,
+        blank=True,
+        null=True
+    )
+    action_object = generic.GenericForeignKey(
+        'action_object_content_type',
+        'action_object_object_id'
+    )
 
-    verb = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(
+        default=now
+    )
+    timestamp_date = models.DateField(
+        default=now
+    )
 
-    target_content_type = models.ForeignKey(ContentType, related_name='target',
-        blank=True, null=True)
-    target_object_id = models.CharField(max_length=255, blank=True, null=True)
-    target = generic.GenericForeignKey('target_content_type',
-        'target_object_id')
+    public = models.BooleanField(
+        default=True
+    )
 
-    action_object_content_type = models.ForeignKey(ContentType,
-        related_name='action_object', blank=True, null=True)
-    action_object_object_id = models.CharField(max_length=255, blank=True,
-        null=True)
-    action_object = generic.GenericForeignKey('action_object_content_type',
-        'action_object_object_id')
+    batch_time_minutes = models.IntegerField(
+        _("batch time in minutes"),
+        null=True,
+        blank=True
+    )
 
-    timestamp = models.DateTimeField(default=now)
-    timestamp_date = models.DateField(default=now)
+    is_batchable = models.BooleanField(
+        default=False
+    )
 
-    public = models.BooleanField(default=True)
+    state = models.SmallIntegerField(
+        verbose_name=_('Publish state'),
+        choices=STATE_TYPES,
+        default=1
+    )
 
-    batch_time_minutes = models.IntegerField(_("batch time in minutes"),
-                                             null=True,
-                                             blank=True)
-
-    is_batchable = models.BooleanField(default=False)
-
-    state = models.SmallIntegerField(verbose_name=_('Publish state'), choices=STATE_TYPES, default=1)
+    site = models.ForeignKey(
+        Site,
+        default=settings.SITE_ID,
+        verbose_name='site'
+    )
 
     objects = actstream_settings.get_action_manager()
 

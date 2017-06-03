@@ -72,8 +72,12 @@ class ActionManager(GFKManager):
         others_by_content_type = defaultdict(lambda: [])
 
         follow_gfks = get_model('actstream', 'follow').objects.filter(
-            user=object).values_list('content_type_id',
-                                     'object_id', 'actor_only')
+            user=object
+        ).values_list(
+            'content_type_id',
+            'object_id',
+            'actor_only'
+        )
 
         if not follow_gfks:
             return qs.none()
@@ -110,13 +114,14 @@ class ActionManager(GFKManager):
         )
 
         qs = qs.filter(q, **kwargs).exclude(q_ex)
+        qs = qs.filter(site_id=settings.SITE_ID)
         return qs
 
     def get_broadcasters(self, object):
         ctype = ContentType.objects.get_for_model(object)
         result = self.filter(verb=settings.SHARE_VERB, target_content_type=ctype, target_object_id = object._get_pk_val())
 
-        broadcasters =[] 
+        broadcasters =[]
         for actionObject in result:
            broadcasters.append(actionObject.actor)
 
@@ -144,7 +149,7 @@ class FollowManager(GFKManager):
         if not user or user.is_anonymous():
             return False
         queryset = self.for_object(instance)
-        return queryset.filter(user=user).exists()
+        return queryset.filter(user=user, site_id=settings.SITE_ID).exists()
 
     def followers(self, actor):
         """
@@ -152,7 +157,8 @@ class FollowManager(GFKManager):
         """
         return [follow.user for follow in self.filter(
             content_type=ContentType.objects.get_for_model(actor),
-            object_id=actor.pk
+            object_id=actor.pk,
+            site_id=settings.SITE_ID
         ).select_related('user')]
 
     def following(self, user, *models):

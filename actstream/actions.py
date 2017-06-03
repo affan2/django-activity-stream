@@ -113,10 +113,10 @@ def action_handler(verb, **kwargs):
     """
     from actstream.models import Action
 
+    import pdb; pdb.set_trace()
     kwargs.pop('signal', None)
     actor = kwargs.pop('sender')
     check_actionable_model(actor)
-
     if check_action_exists(actor, verb, **kwargs):
         newaction = Action(
             actor_content_type=ContentType.objects.get_for_model(actor),
