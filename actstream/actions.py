@@ -37,7 +37,6 @@ def follow(user, obj, send_action=True, actor_only=True):
     from people.tasks import task_notice
 
     check_actionable_model(obj)
-    import pdb; pdb.set_trace()
     follow, created = Follow.objects.get_or_create(
         user=user,
         object_id=obj.pk,
