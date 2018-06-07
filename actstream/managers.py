@@ -31,6 +31,15 @@ class ActionManager(GFKManager):
         return object.actor_actions.public(**kwargs)
 
     @stream
+    def actor_private(self, object, **kwargs):
+        """
+        Stream of most recent actions where object is the actor.
+        Keyword arguments will be passed to Action.objects.filter
+        """
+        kwargs['state'] = 1
+        return object.actor_actions.filter(**kwargs)
+
+    @stream
     def target(self, object, **kwargs):
         """
         Stream of most recent actions where object is the target.

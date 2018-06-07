@@ -234,6 +234,7 @@ class Action(models.Model):
 
 # convenient accessors
 actor_stream = Action.objects.actor
+actor_stream_private = Action.objects.actor_private
 action_object_stream = Action.objects.action_object
 target_stream = Action.objects.target
 user_stream = Action.objects.user
