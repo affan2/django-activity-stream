@@ -2,49 +2,53 @@
 {% load i18n %}
 {% load thumbnail %}
 {% load url from future %}
-
+{% load userProfile_tags %}
+  
 {% if action.target %}
 
-    {% if action.target|get_class_name == "Action" %}
-          <p>{% render_action action.target %}
+  {% if action.target|get_class_name == "Action" %}
+    {% render_target_action action.target %}
 
-    {% elif action.target|get_class_name == "Album" %}
-              <div class='album span12'>
-                  <div class='album-head'>
-                      {% if action.target.get_head %}
-                          {% render_album action.target %}
-                      {% endif %}
-                  </div>
-              </div>
+  {% elif action.target|get_class_name == "Review" %}
+    {% render_review_actstream action.target %}
 
-    {% elif action.target|get_class_name == "Image" %}
-        <div class="album-feed-container">
-{#              {% get_reldata_url action.target as rel_data_url %} #}
-              {% thumbnail action.target.image "150x150" crop="center" as img %}
-                      <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ action.target.image.url }}" data-album-url="{% url 'imagestore:render_album_ex' action.target.album.id action.target.id %}" data-reldata-url="{{rel_data_url}}">
-                              <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}"><br/>
+  {% elif action.target|get_class_name == "GenericWish" %}
+    {% render_post action.target %}
 
-                              {% if action.target.title %}
-                                  <br><span class='image-title'>{{ action.target.title }}</span>
-                              {% endif %}
-                      </a>
+  {% elif action.target|get_class_name == "BroadcastWish" %}
+    {% render_wish_actstream action.target %}
+
+  {% elif action.target|get_class_name == "BroadcastDeal" %}
+    {% render_deal_acstream action.target %}
+
+  {% elif action.target|get_class_name == "Album" %}
+        {% if action.target.get_head %}
+          {% render_album action.target %}
+        {% endif %}
+
+  {% elif action.target|get_class_name == "Image" %}
+    <div class="row topHalfGutter album-feed-container"> 
+      {% get_reldata_url action.target as rel_data_url %} 
+      {% thumbnail action.target.image "800x400" crop="center" as img %}
+        <div class="span6 pagination-centered">
+          <a class="album_in_feed" rel='gallery-image[ilist]' href="{{ action.target.image.url }}" data-album-url="{% url 'imagestore:render_album_ex' action.target.album.id action.target.id %}" data-reldata-url="{{rel_data_url}}">
+            <img class="preview" {% if action.target.title %} alt="{{ action.target.title }}" {% endif %} src="{{ img.url }}" style="max-height:250px;">
+          </a>
         </div>
+      {% endthumbnail %}
+    </div>
 
-    {% else %}
-          {% include 'actstream/render_actor_name.html' with actor=action.target %}
-          {% if batched_targets %}
+  {% else %}
+    {% include 'actstream/render_actor_name.html' with actor=action.target %}
+    {% if batched_targets %}
+      {% for batched_target in batched_targets %}
+        {% if forloop.counter == batched_targets|length %}
+            {% trans "and" %}
+        {% endif %}
 
-              {% for batched_target in batched_targets %}
-                    {% if forloop.counter == batched_targets|length %}
-                        {% trans "and" %}
-                    {% endif %}
-
-                    {% include 'actstream/render_actor_name.html' with actor=batched_target %}
-
-              {% endfor %}
-
-          {% endif %}
-
+        {% include 'actstream/render_actor_name.html' with actor=batched_target %}
+      {% endfor %}      
     {% endif %}
+  {% endif %}
 
 {% endif %}

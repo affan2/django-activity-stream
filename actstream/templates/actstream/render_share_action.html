@@ -1,16 +1,10 @@
 {% load activity_tags static %}
-{% if action %}
-
- {% can_share_action action as canShare %}
-
-{% if canShare != 0 or request.user|get_class_name == "AnonymousUser" %}
-	 <a class="shareaction" href="#" data-href="{% share_action_url action %}" ><img src='{% static "img/broadcast.ico" %}' title='share'></img></a>
-{% endif %}
-	{% get_share_count action as shareCount %}
-
-	{% broadcasters_for_object action as broadcasters_url %}
-
-	{% if shareCount != 0 %}
-		#<a class="broadcasters" href="{{broadcasters_url}}">{{ shareCount }}</a>
-	{% endif %}
+{% load userProfile_tags %}
+{% if object %}
+    
+    {% get_share_object_url object as shareTargetUrl %}
+    <a class="shareObject" href="#" data-href="{{shareTargetUrl}}" style="margin-right:0px;">Share</a>
+	{% get_share_count object as shareCount %}
+	{% broadcasters_chunk_for_object object 0 'MIN_FOLLOWERS_CHUNK'|settings_value as broadcasters_url %}
+	<a class="broadcasters sharedCount" href="{{broadcasters_url}}"  style="margin-left:0px;" title="People Who Shared This" data-title="People Who Shared This">({{ shareCount }})</a>
 {% endif %}

@@ -1,0 +1,18 @@
+{% load i18n mezzanine_tags comment_tags rating_tags userProfile_tags %}
+{% load thumbnail %}
+
+{% editable comment.is_public comment.is_removed %}
+{% if not comment.is_removed and comment.is_public %}
+<div class="row">
+    <div class="span6">
+        <span>
+            <span class="trunc-comment">{{ comment.intro }}</span>
+            {% if comment.comment != comment.intro %}
+                <span class="exp-comment" style="display:none;">{{ comment.comment }}</span>
+                <a class="toggle-comment radioColor fontTitillium2" style="cursor: pointer;">More...</a>
+            {% endif %}
+        </span>
+    </div>
+</div>
+{% endif %}       
+{% endeditable %}

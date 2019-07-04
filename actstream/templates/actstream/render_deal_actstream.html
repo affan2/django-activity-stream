@@ -1,0 +1,52 @@
+{% load i18n %}
+{% load thumbnail %}
+{% load userProfile_tags %}
+
+{% if deal.message %}
+<div class="row">
+    <div class="span6">
+        <span class="message">
+            {{ deal.message|urlize }}
+        </span>
+    </div>
+</div>
+{% endif %}
+{% if deal.wishimage and deal.wishimage.image %}
+    <div class="row topHalfGutter">
+        <div class="span6">
+            {% get_reldata_url deal as rel_data_url %}
+            {% thumbnail deal.wishimage.image "800x400" as img %} 
+                <a class="wishimg-deal{{deal.id}}" href="{{  deal.wishimage.image.url }}" data-reldata-url="{{rel_data_url}}">
+                    <img src="{{ MEDIA_URL }}{{img}}" style="max-height:150px;">
+                </a> 
+                <script type="text/javascript">
+                      $('a.wishimg-deal{{deal.id}}').fancybox({
+                      	scrolling: 'yes',
+            			minWidth:500,
+            			minHeight:450,
+            			autoSize: true,
+            			helpers : { overlay : { locked : false } }
+                      });
+                </script> 
+            {% endthumbnail %}
+        </div>
+    </div>
+{% endif %}
+{% if deal.urlPreviewContent %}
+    <div class="row topHalfGutter">
+        <div class="span6">
+            {% autoescape off %}
+                {{deal.urlPreviewContent}}
+            {% endautoescape %}
+        </div>
+    </div>
+{% endif %}
+{% if deal.blog_category.all %}
+<div class="row topHalfGutter">
+    <div class="span6">
+        {% for blog_category in deal.blog_category.all %}
+            <a class="categoryTag" href="{{ blog_category.get_absolute_url }}"> {{blog_category}} </a>
+        {% endfor %}          
+    </div>
+</div>
+{% endif %}

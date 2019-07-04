@@ -1,8 +1,12 @@
 
 {% load activity_tags i18n static %}
 
-<ul class="row-fluid">		   	
-{% get_list_of_batched_action_ids as batched_ids %}
+<ul class="halfGutter halfGutterRight">
+{% if timeline == "true" %}
+	{% get_list_of_batched_actor_action_ids as batched_ids %}
+{% else %}		   	
+	{% get_list_of_batched_action_ids as batched_ids %}
+{% endif %}
 
 {% for action in action_list %}
 	{% if action.id  not in batched_ids %}
@@ -13,18 +17,49 @@
 
 							{% get_batched_targets batched_action_ids_list action.id as batched_targets %}
 							{% get_batched_actors batched_action_ids_list action.id as batched_actors %}
-	    						<li class="row-fluid">{% include 'actstream/action.html'|backwards_compatibility_check with  batched_targets=batched_targets batched_actors=batched_actors%}</li>
+	    						<li class="topHalfGutter objectToBeDeleted">{% include 'actstream/action.html'|backwards_compatibility_check with  batched_targets=batched_targets batched_actors=batched_actors%}</li>
     					
 	    			{% endwith %}
 	    		{% else %}
-	    				<li class="row-fluid">{% include 'actstream/action.html'|backwards_compatibility_check %}</li>
+	    				<li class="topHalfGutter objectToBeDeleted">{% include 'actstream/action.html'|backwards_compatibility_check %}</li>
 	    		{% endif %}
 
     	{% endwith %}
+    <div class="dottedSeparator fullSeparator" style="margin-top:0px;"></div>
 	{% endif %}
 	{% empty %}
-		{% trans "No actions yet" %}
-
+	{% if timeline == "true" %}
+		<div class="row">
+			<div class="span6 fontTitillium1 color5D fontSize14">
+				{% if request.user == actor %}
+					<div class="row">
+						<div class="span6">
+							{% trans "You have'nt been very active on Wishradio yet. No worries, it's never too late to start" %}
+						</div>
+					</div>
+					<div class="row topHalfGutter">
+						<div class="span6">
+							<span class="fontSize20">{% trans "Invite " %}</span>{% trans "your friends, " %}<span class="fontSize20">{% trans "Follow " %}</span>{% trans "the stores you like, check out some " %}<span class="fontSize20">{% trans "Deals " %}</span>{% trans "- so that you have a filled in Timeline" %}
+						</div>
+					</div>
+				{% else %}
+					{% trans "No Activity yet" %}
+				{% endif %}
+			</div>
+		</div>
+	{% else %}
+		<div class="row noActions">
+			<div class="span6 fontTitillium1 color5D fontSize14 topHalfGutter">
+				<span class="fontSize20">{% trans "START " %}</span>{% trans "by searching for the " %}<span class="fontSize20">{% trans "trending stores " %}</span>{% trans "and the " %}<span class="fontSize20">{% trans "hottest deals" %}</span>
+			</div>
+			<div class="span6 fontTitillium1 color5D fontSize13">
+				<span class="fontSize16">{% trans "Follow " %}</span>{% trans "your friends to take buying decisions socially." %}
+			</div>
+			<div class="span6 fontTitillium1 color5D fontSize13">
+				<span class="fontSize16">{% trans "Follow " %}</span>{% trans "stores to get the best deals and promotions." %}
+			</div>
+		</div>
+	{% endif %}
 {% endfor %}
 </ul>
 

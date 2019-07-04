@@ -1,18 +1,16 @@
 {% load activity_tags i18n %}
-{% load thumbnail %}
+{% load userProfile_tags %}
 
 {% if actor %}
 	{% if actor.get_absolute_url %}
-			<a href="{{ actor.get_absolute_url }}">
 			{% if actor|get_class_name == "User" %}
-				{{ actor }}
+				<a href="{{ actor.get_absolute_url }}" class="fontTitillium1 fontSize13 radioColor">{% get_full_name actor %}</a>
 			{% elif actor|get_class_name == "BlogPost" %}
-				{{actor}}
+				<a href="{{ actor.get_absolute_url }}" class="fontHelvetica fontSize13 radioColor">{{actor|title}}</a>
 			{% else %}
-				{{actor}}
+				{{actor|title}}
 			{% endif %}
-			</a>
 	{% else %}
-		{{actor}}
+		{{actor|title}}
 	{% endif %}
 {% endif %}

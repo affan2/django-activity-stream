@@ -1,12 +1,10 @@
-{% load i18n future %}
+{% load mezzanine_tags i18n future %}
 {% load comment_tags  %}
-
+      
 {% if object %}
 	<div class="subcomments_container">
-		<a href="#" class="comment_radio">comment</a>
+		</br>
 		{% comment_count_on_object object as total_comments %}
-		<a class="broadcasters" href="{% get_commenters_url object %}">{{total_comments}}</a>
-		<br/>
 		{% comments_subset_url object 5 10 as feed %}
 		{% get_comments_subset object 0 5 as comments %}
 		<div  style="width:100%; height:20px;border-style: solid;border-color: white;background-color: whitesmoke;">
@@ -17,7 +15,7 @@
 		{% endif %}
 		</div>
 
-		<div class="subcomments">
+		<div class="subcomments"> 
 		<ul class="unstyled">
 		    {% for comment in comments %}
 
@@ -25,10 +23,10 @@
 		        {% editable comment.is_public comment.is_removed %}
 		            {% if not comment.is_removed and comment.is_public %}
 		                <strong>
-		                    {% include 'generic/includes/render_owner.html' with owner=comment.user %}
+		                    {% include 'generic/includes/render_owner.html' with owner=comment.user %}   
 		                </strong>
-
-		                <p>{{ comment.comment|comment_filter }}</p>
+		            
+		                <p>{{ comment.comment|comment_filter|urlize }}</p>
 
 		                {% include 'generic/includes/render_voting.html' with object=comment %}
 		                <span class="timespan">{% blocktrans with sometime=comment.submit_date|timesince %}{{ sometime }} ago{% endblocktrans %}</span>
@@ -41,6 +39,6 @@
 		    {% endif %}
 		</ul>
 		</div>
-		{% comments_for_review object 'comment_popup' %} <!--comment_popup is the class which will be applied to the textarea widget of the comment in form. -->
+		{% comments_for_review object 'subcomment_text' %} <!--comment_popup is the class which will be applied to the textarea widget of the comment in form. -->
 	</div>
 {% endif %}

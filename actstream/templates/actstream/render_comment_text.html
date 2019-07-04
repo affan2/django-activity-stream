@@ -1,0 +1,12 @@
+{% load comment_tags  %}
+
+{% get_range_commenters_url object 0 10 as commenters_url %}
+{% if object|get_class_name == "BlogPost" %}
+<a href="{{object.get_absolute_url}}" class="" style="margin-right:0px;">Review</a>
+	{% comment_count_on_object object as total_comments %}
+<a class="broadcasters commentCount" href="{{commenters_url}}" style="margin-left:0px;" title="People Who Commented On This" data-title="People Who commented On This">({{total_comments}})</a>
+{% else %}
+<a href="javascript:void(0)" class="comment_radio" style="margin-right:0px;">Comment</a>
+	{% comment_count_on_object object as total_comments %}
+<a class="broadcasters commentCount" href="{{commenters_url}}" style="margin-left:0px;" title="People Who Commented On This" data-title="People Who commented On This">({{total_comments}})</a>
+{% endif %}

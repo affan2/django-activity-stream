@@ -1,0 +1,54 @@
+{% load mezzanine_tags i18n future %}
+{% load comment_tags userProfile_tags activity_tags %}
+      
+{% if object %}
+	{% comment_count_on_object object as total_comments %}
+	{% comments_subset_url object 3 8 as feed %}
+	{% get_comments_subset object 0 3 as comments %}
+
+	{% if comments|length and comments|length == 3 and comments|length < total_comments %}
+		<div class="span5 dottedSeparatorIncresedMargin dottedSeparatorIncresedMarginBottom" style="margin-left:6px;">
+			<a href="{{feed}}" class="viewPreviousComments">{% trans "View previous comments" %}</a>
+			<span class="pull-right"><span class="loaded_comments">{{comments|length}}</span>{% trans " of " %}<span class="total_comments">{{total_comments}}</span></span>
+		</div>
+		<div class="row">
+			<div class="span5 dottedSeparator" style="margin-top:0;"></div>
+		</div>
+	{% endif %}
+
+	<div class="row subcomments">
+		{% for comment in comments %}
+			{% editable comment.is_public comment.is_removed %}
+	        {% if not comment.is_removed and comment.is_public %}
+	        <div class="span6 dottedSeparatorIncresedMargin dottedSeparatorIncresedMarginBottom"> 
+	            <div class="row">
+	                {% include 'generic/includes/render_owner_subcomment.html' with owner=comment.user %}
+	                <div class="span5 noGutter">
+	                	<div class="row">
+	                		<div class="span5">
+	                			{% include 'actstream/render_actor_name.html' with actor=comment.user  %}
+	                			<span class="fontTitillium2">
+	                  				<span class="trunc-comment">{{ comment.intro|urlize }}</span>
+	        						{% if comment.comment != comment.intro %}
+	            						<span class="exp-comment" style="display:none;">{{ comment.comment|urlize }}</span>
+	            						<a class="toggle-comment fontSize13" style="cursor: pointer;">More...</a>
+	        						{% endif %}
+	                			</span>
+	                		</div>
+	                	</div>
+	                   	<div class="row" style="margin-top:5px;">
+	                		<div class="span5">
+	                			<span class="fontSize10">{% blocktrans with sometime=comment.submit_date|timesince %}{{ sometime }} ago{% endblocktrans %}</span>
+	                		    {% include 'generic/includes/render_voting.html' with object=comment %}
+	                		</div>
+	                	</div>
+	                </div>
+	            </div>
+			</div>
+			<div class="span6 dottedSeparator" style="margin-top:2px;"></div>
+		    {% endif %}
+			{% endeditable %}
+		{% endfor %}
+	</div>
+	{% comments_for_review object 'subcomment_text span5' %} <!--subcomment_text is the class which will be applied to the textarea widget of the comment in form. -->
+{% endif %}
