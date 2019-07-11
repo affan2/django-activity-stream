@@ -1,11 +1,12 @@
 import json
 
+from django.shortcuts import get_object_or_404, render
 from django.shortcuts import render_to_response, get_object_or_404
 from django.template import RequestContext, VariableDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
 
+from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
-from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
@@ -28,33 +29,44 @@ except ImportError:
     now = datetime.now
 import itertools
 
+
+USER_MODEL = get_user_model()
+username_field = getattr(get_user_model(), 'USERNAME_FIELD', 'username')
+
 ACTIVITY_DEFAULT_BATCH_TIME = 30
+
 
 def respond(request, code):
     """
     Responds to the request with the given response code.
     If ``next`` is in the form, it will redirect instead.
     """
-    if 'next' in request.REQUEST:
-        return HttpResponseRedirect(request.REQUEST['next'])
+    redirect = request.GET.get('next', request.POST.get('next'))
+    if redirect:
+        return HttpResponseRedirect(redirect)
     return type('Response%d' % code, (HttpResponse, ), {'status_code': code})()
 
 
 @login_required
 @csrf_exempt
-def follow_unfollow(request, content_type_id, object_id, do_follow=True, actor_only=True):
+def follow_unfollow(request, content_type_id, object_id, flag, do_follow=True, actor_only=True):
     """
     Creates or deletes the follow relationship between ``request.user`` and the
     actor defined by ``content_type_id``, ``object_id``.
     """
     ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = get_object_or_404(ctype.model_class(), pk=object_id)
+    instance = get_object_or_404(ctype.model_class(), pk=object_id)
+
+    # If flag was omitted in url, None will pass to flag keyword argument
+    flag = flag or ''
 
     if do_follow:
-        actions.follow(request.user, actor, actor_only=actor_only)
+        actions.follow(request.user, instance, actor_only=actor_only, flag=flag)
         return respond(request, 201)   # CREATED
-    actions.unfollow(request.user, actor)
+
+    actions.unfollow(request.user, instance, flag=flag)
     return respond(request, 204)   # NO CONTENT
+
 
 @login_required
 def stream(request):
@@ -62,52 +74,83 @@ def stream(request):
     Index page for authenticated user's activity stream. (Eg: Your feed at
     github.com)
     """
-    return render_to_response(('actstream/actor.html', 'activity/actor.html'), {
-        'ctype': ContentType.objects.get_for_model(User),
-        'actor': request.user, 'action_list': models.user_stream(request.user)
-    }, context_instance=RequestContext(request))
+
+    return render(
+        request,
+        'actstream/actor.html',
+        context={
+            'ctype': ContentType.objects.get_for_model(USER_MODEL),
+            'actor': request.user,
+            'action_list': models.user_stream(request.user)
+        }
+    )
 
 
-def followers(request, content_type_id, object_id):
+def followers(request, content_type_id, object_id, flag):
     """
     Creates a listing of ``User``s that follow the actor defined by
     ``content_type_id``, ``object_id``.
     """
     ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = get_object_or_404(ctype.model_class(), pk=object_id)
-    return render_to_response(('actstream/followers.html', 'activity/followers.html'), {
-        'followers': models.followers(actor), 'actor': actor
-    }, context_instance=RequestContext(request))
+    instance = get_object_or_404(ctype.model_class(), pk=object_id)
+    flag = flag or ''
+
+    return render(
+        request,
+        'actstream/followers.html',
+        {
+            'followers': models.followers(instance, flag=flag),
+            'actor': instance,
+        }
+    )
 
 
-def following(request, user_id):
+def following(request, user_id, flag):
     """
-    Returns a list of actors that the user identified by ``user_id`` is following (eg who im following).
+    Returns a list of actors that the user identified by ``user_id``
+    is following (eg who im following).
     """
-    user = get_object_or_404(User, pk=user_id)
-    return render_to_response(('actstream/following.html', 'activity/following.html'), {
-        'following': models.following(user), 'user': user
-    }, context_instance=RequestContext(request))
+    instance = get_object_or_404(USER_MODEL, pk=user_id)
+    flag = flag or ''
+    return render(
+        request,
+        'actstream/following.html',
+        {
+            'following': models.following(instance, flag=flag),
+            'user': instance,
+        }
+    )
 
 
 def user(request, username):
     """
     ``User`` focused activity stream. (Eg: Profile page twitter.com/justquick)
     """
-    user = get_object_or_404(User, username=username, is_active=True)
-    return render_to_response(('actstream/actor.html', 'activity/actor.html'), {
-        'ctype': ContentType.objects.get_for_model(User),
-        'actor': user, 'action_list': models.user_stream(user)
-    }, context_instance=RequestContext(request))
+    instance = get_object_or_404(
+        USER_MODEL,
+        **{'is_active': True, username_field: username}
+    )
+    return render(
+        request,
+        'actstream/actor.html',
+        context={
+            'ctype': ContentType.objects.get_for_model(USER_MODEL),
+            'actor': instance, 'action_list': models.user_stream(instance)
+        }
+    )
 
 
 def detail(request, action_id):
     """
     ``Action`` detail view (pretty boring, mainly used for get_absolute_url)
     """
-    return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
-        'action': get_object_or_404(models.Action, pk=action_id)
-    }, context_instance=RequestContext(request))
+    return render(
+        request,
+        'actstream/detail.html',
+        {
+            'action': get_object_or_404(models.Action, pk=action_id)
+        }
+    )
 
 
 def actstream_following(request, content_type_id, object_id):
@@ -390,17 +433,39 @@ def actor(request, content_type_id, object_id):
     ``object_id``.
     """
     ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = get_object_or_404(ctype.model_class(), pk=object_id)
-    import pdb; pdb.set_trace()
-    return render_to_response(('actstream/actor.html', 'activity/actor.html'), {
-        'action_list': models.actor_stream(actor),
-        'actor': actor,
-        'ctype': ctype
-    }, context_instance=RequestContext(request))
+    instance = get_object_or_404(ctype.model_class(), pk=object_id)
+    return render(
+        request,
+        'actstream/actor.html',
+        {
+            'action_list': models.actor_stream(instance),
+            'actor': instance,
+            'ctype': ctype
+        }
+    )
+
+
+def model(request, content_type_id):
+    """
+    ``Actor`` focused activity stream for actor defined by ``content_type_id``,
+    ``object_id``.
+    """
+    ctype = get_object_or_404(ContentType, pk=content_type_id)
+    model_class = ctype.model_class()
+    return render(
+        request,
+        'actstream/actor.html',
+        {
+            'action_list': models.model_stream(model_class),
+            'ctype': ctype,
+            'actor': model_class
+        }
+    )
+
 
 def json_error_response(error_message):
     return HttpResponse(json.dumps(dict(success=False,
-                                              error_message=error_message)))
+                                        error_message=error_message)))
 
 def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     """
@@ -424,22 +489,10 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     activity = activity[s:l]
 
     return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
-       'action_list': activity, 'actor': actor,
-       'ctype': ctype, 'sIndex':s
+        'action_list': activity, 'actor': actor,
+        'ctype': ctype, 'sIndex':s
     }, context_instance=RequestContext(request))
 
-
-def model(request, content_type_id):
-    """
-    ``Actor`` focused activity stream for actor defined by ``content_type_id``,
-    ``object_id``.
-    """
-    ctype = get_object_or_404(ContentType, pk=content_type_id)
-    actor = ctype.model_class()
-    return render_to_response(('actstream/actor.html', 'activity/actor.html'), {
-        'action_list': models.model_stream(actor), 'ctype': ctype,
-        'actor': ctype
-    }, context_instance=RequestContext(request))
 
 def shareAction(request, action_id):
 

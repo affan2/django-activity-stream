@@ -1,13 +1,24 @@
+from __future__ import unicode_literals
+
+from django.conf import settings
+from django.contrib.contenttypes.fields import GenericForeignKey
 from django.db import models
+from django.utils.translation import ugettext as _
+from django.utils.encoding import python_2_unicode_compatible
+from django.utils.timesince import timesince as djtimesince
 from django.conf import settings
 from django.contrib.contenttypes import generic
 from django.contrib.contenttypes.models import ContentType
+
+try:
+    from django.urls import reverse
+except ImportError:
+    from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
-
 
 try:
     from django.utils import timezone
@@ -17,8 +28,6 @@ except ImportError:
     now = datetime.now
 
 from actstream import settings as actstream_settings
-from actstream.signals import action
-from actstream.actions import action_handler
 from actstream.managers import FollowManager
 
 
@@ -32,22 +41,22 @@ class Follow(models.Model):
     """
     Lets a user follow the activities of any specific actor
     """
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=True
+    )
 
     content_type = models.ForeignKey(
-        ContentType
+        ContentType, on_delete=models.CASCADE, db_index=True
     )
-    object_id = models.CharField(
-        max_length=255
-    )
-    follow_object = generic.GenericForeignKey()
+    object_id = models.CharField(max_length=255, db_index=True)
+    follow_object = GenericForeignKey()
     actor_only = models.BooleanField(
-        "Only follow actions where the object is the target.",
+        "Only follow actions where "
+        "the object is the target.",
         default=True
     )
-    started = models.DateTimeField(
-        default=now
-    )
+    flag = models.CharField(max_length=255, blank=True, db_index=True, default='')
+    started = models.DateTimeField(default=now, db_index=True)
     site = models.ForeignKey(
         Site,
         related_name="follow_site",
@@ -57,10 +66,10 @@ class Follow(models.Model):
     objects = FollowManager()
 
     class Meta:
-        unique_together = ('user', 'content_type', 'object_id')
+        unique_together = ('user', 'content_type', 'object_id', 'flag')
 
-    def __unicode__(self):
-        return u'%s -> %s' % (self.user, self.follow_object)
+    def __str__(self):
+        return '%s -> %s : %s' % (self.user, self.follow_object, self.flag)
 
 
 class Action(models.Model):
@@ -89,71 +98,51 @@ class Action(models.Model):
 
     HTML Representation::
 
-        <a href="http://oebfare.com/">brosner</a> 
-        commented on 
+        <a href="http://oebfare.com/">brosner</a>
+        commented on
         <a href="http://github.com/pinax/pinax">pinax/pinax</a>
         2 hours ago
 
     """
     actor_content_type = models.ForeignKey(
-        ContentType,
-        related_name='actor'
+        ContentType, related_name='actor',
+        on_delete=models.CASCADE, db_index=True
     )
-    actor_object_id = models.CharField(
-        max_length=255
-    )
-    actor = generic.GenericForeignKey(
-        'actor_content_type',
-        'actor_object_id'
-    )
-    verb = models.CharField(
-        max_length=255
-    )
-    description = models.TextField(
-        blank=True,
-        null=True
-    )
+    actor_object_id = models.CharField(max_length=255, db_index=True)
+    actor = GenericForeignKey('actor_content_type', 'actor_object_id')
+
+    verb = models.CharField(max_length=255, db_index=True)
+    description = models.TextField(blank=True, null=True)
+
     target_content_type = models.ForeignKey(
-        ContentType,
+        ContentType, blank=True, null=True,
         related_name='target',
-        blank=True,
-        null=True
+        on_delete=models.CASCADE, db_index=True
     )
     target_object_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True
+        max_length=255, blank=True, null=True, db_index=True
     )
-    target = generic.GenericForeignKey(
+    target = GenericForeignKey(
         'target_content_type',
         'target_object_id'
     )
+
     action_object_content_type = models.ForeignKey(
-        ContentType,
+        ContentType, blank=True, null=True,
         related_name='action_object',
-        blank=True,
-        null=True
+        on_delete=models.CASCADE, db_index=True
     )
     action_object_object_id = models.CharField(
-        max_length=255,
-        blank=True,
-        null=True
+        max_length=255, blank=True, null=True, db_index=True
     )
-    action_object = generic.GenericForeignKey(
+    action_object = GenericForeignKey(
         'action_object_content_type',
         'action_object_object_id'
     )
 
-    timestamp = models.DateTimeField(
-        default=now
-    )
-    timestamp_date = models.DateField(
-        default=now
-    )
+    timestamp = models.DateTimeField(default=now, db_index=True)
 
-    public = models.BooleanField(
-        default=True
-    )
+    public = models.BooleanField(default=True, db_index=True)
 
     batch_time_minutes = models.IntegerField(
         _("batch time in minutes"),
@@ -180,9 +169,9 @@ class Action(models.Model):
     objects = actstream_settings.get_action_manager()
 
     class Meta:
-        ordering = ('-timestamp', )
+        ordering = ('-timestamp',)
 
-    def __unicode__(self):
+    def __str__(self):
         ctx = {
             'actor': self.actor,
             'verb': self.verb,
@@ -216,20 +205,19 @@ class Action(models.Model):
         """
         Returns the URL to the ``actstream_action_object`` view for the current action object
         """
-        return reverse('actstream_actor', None,
-            (self.action_object_content_type.pk, self.action_object_object_id))
+        return reverse('actstream_actor', None, (
+            self.action_object_content_type.pk, self.action_object_object_id))
 
     def timesince(self, now=None):
         """
         Shortcut for the ``django.utils.timesince.timesince`` function of the
         current timestamp.
         """
-        from django.utils.timesince import timesince as timesince_
-        return timesince_(self.timestamp, now)
+        return djtimesince(self.timestamp, now).encode('utf8').replace(b'\xc2\xa0', b' ').decode('utf8')
 
-    @models.permalink
     def get_absolute_url(self):
-        return ('actstream.views.detail', [self.pk])
+        return reverse(
+            'actstream.views.detail', [self.pk])
 
 
 # convenient accessors
@@ -239,39 +227,6 @@ action_object_stream = Action.objects.action_object
 target_stream = Action.objects.target
 user_stream = Action.objects.user
 model_stream = Action.objects.model_actions
+any_stream = Action.objects.any
 followers = Follow.objects.followers
 following = Follow.objects.following
-
-def setup_generic_relations():
-    """
-    Set up GenericRelations for actionable models.
-    """
-    for model in actstream_settings.get_models().values():
-        if not model:
-            continue
-        for field in ('actor', 'target', 'action_object'):
-            generic.GenericRelation(Action,
-                content_type_field='%s_content_type' % field,
-                object_id_field='%s_object_id' % field,
-                related_name='actions_with_%s_%s_as_%s' % (
-                    model._meta.app_label, model._meta.module_name, field),
-            ).contribute_to_class(model, '%s_actions' % field)
-
-            # @@@ I'm not entirely sure why this works
-            setattr(Action, 'actions_with_%s_%s_as_%s' % (
-                model._meta.app_label, model._meta.module_name, field), None)
-
-
-setup_generic_relations()
-
-
-if actstream_settings.USE_JSONFIELD:
-    try:
-        from jsonfield.fields import JSONField
-    except ImportError:
-        raise ImproperlyConfigured('You must have django-jsonfield installed '
-                                'if you wish to use a JSONField on your actions')
-    JSONField(blank=True, null=True).contribute_to_class(Action, 'data')
-
-# connect the signal
-action.connect(action_handler, dispatch_uid='actstream.models')

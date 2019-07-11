@@ -1,0 +1,35 @@
+language: python
+cache: pip
+python:
+  - 3.5
+  - 3.6
+env:
+  - DJANGO=1.11 DATABASE=mysql
+  - DJANGO=1.11 DATABASE=postgresql
+  - DJANGO=1.11 DATABASE=sqlite
+  - DJANGO=2.1 DATABASE=mysql
+  - DJANGO=2.1 DATABASE=postgresql
+  - DJANGO=2.2 DATABASE=mysql
+  - DJANGO=2.2 DATABASE=postgresql
+matrix:
+  fast_finish: true
+
+install:
+  - pip install tox-travis coveralls
+services:
+  - mysql
+  - postgresql
+script:
+  - tox
+addons:
+  postgresql: "9.5"
+  apt:
+    sources:
+      - mysql-5.7-trusty
+    packages:
+      - mysql-server
+      - mysql-client
+notifications:
+  email: false
+after_success:
+  coveralls
