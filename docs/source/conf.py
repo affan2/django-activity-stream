@@ -15,8 +15,7 @@ import sys, os
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..', 'example_project')))
 sys.path.insert(0, os.path.abspath(os.path.join('..', '..')))
 import settings
-from django.core.management import setup_environ
-setup_environ(settings)
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings")
 
 import actstream
 

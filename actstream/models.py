@@ -1,10 +1,10 @@
 from django.db import models
 from django.conf import settings
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes import fields
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
 
@@ -40,7 +40,7 @@ class Follow(models.Model):
     object_id = models.CharField(
         max_length=255
     )
-    follow_object = generic.GenericForeignKey()
+    follow_object = fields.GenericForeignKey()
     actor_only = models.BooleanField(
         "Only follow actions where the object is the target.",
         default=True
@@ -102,7 +102,7 @@ class Action(models.Model):
     actor_object_id = models.CharField(
         max_length=255
     )
-    actor = generic.GenericForeignKey(
+    actor = fields.GenericForeignKey(
         'actor_content_type',
         'actor_object_id'
     )
@@ -124,7 +124,7 @@ class Action(models.Model):
         blank=True,
         null=True
     )
-    target = generic.GenericForeignKey(
+    target = fields.GenericForeignKey(
         'target_content_type',
         'target_object_id'
     )
@@ -139,7 +139,7 @@ class Action(models.Model):
         blank=True,
         null=True
     )
-    action_object = generic.GenericForeignKey(
+    action_object = fields.GenericForeignKey(
         'action_object_content_type',
         'action_object_object_id'
     )
@@ -250,7 +250,7 @@ def setup_generic_relations():
         if not model:
             continue
         for field in ('actor', 'target', 'action_object'):
-            generic.GenericRelation(Action,
+            fields.GenericRelation(Action,
                 content_type_field='%s_content_type' % field,
                 object_id_field='%s_object_id' % field,
                 related_name='actions_with_%s_%s_as_%s' % (

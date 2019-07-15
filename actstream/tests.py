@@ -1,13 +1,13 @@
 from random import choice
 
 from django.db import connection
-from django.db.models import get_model
+from django.apps import apps
 from django.test import TestCase
 from django.conf import settings
 from django.contrib.auth.models import User, AnonymousUser, Group
 from django.contrib.contenttypes.models import ContentType
 from django.contrib.sites.models import Site
-from django.template.loader import Template, Context
+from django.template import Template, Context
 
 from actstream.models import Action, Follow, model_stream, user_stream,\
     setup_generic_relations, following, followers
@@ -35,7 +35,7 @@ class ActivityBaseTestCase(TestCase):
         self.old_models = get_models()
         SETTINGS['MODELS'] = {}
         for model in self.actstream_models:
-            SETTINGS['MODELS'][model.lower()] = get_model(*model.split('.'))
+            SETTINGS['MODELS'][model.lower()] = apps.get_model(*model.split('.'))
         setup_generic_relations()
 
     def tearDown(self):
@@ -79,20 +79,20 @@ class ActivityTestCase(ActivityBaseTestCase):
         action.send(self.group, verb='responded to', target=self.comment)
 
     def test_aauser1(self):
-        self.assertEqual(map(unicode, self.user1.actor_actions.all()), [
+        self.assertEqual(map(str, self.user1.actor_actions.all()), [
             u'admin commented on CoolGroup 0 minutes ago',
             u'admin started following Two 0 minutes ago',
             u'admin joined CoolGroup 0 minutes ago',
         ])
 
     def test_user2(self):
-        self.assertEqual(map(unicode, Action.objects.actor(self.user2)), [
+        self.assertEqual(map(str, Action.objects.actor(self.user2)), [
             u'Two started following CoolGroup 0 minutes ago',
             u'Two joined CoolGroup 0 minutes ago',
         ])
 
     def test_group(self):
-        self.assertEqual(map(unicode, Action.objects.actor(self.group)),
+        self.assertEqual(map(str, Action.objects.actor(self.group)),
             [u'CoolGroup responded to admin: Sweet Group!... 0 minutes ago'])
 
     def test_following(self):
@@ -107,11 +107,11 @@ class ActivityTestCase(ActivityBaseTestCase):
         self.assert_(not user_stream(self.user1))
 
     def test_stream(self):
-        self.assertEqual(map(unicode, Action.objects.user(self.user1)), [
+        self.assertEqual(map(str, Action.objects.user(self.user1)), [
             u'Two started following CoolGroup 0 minutes ago',
             u'Two joined CoolGroup 0 minutes ago',
         ])
-        self.assertEqual(map(unicode, Action.objects.user(self.user2)),
+        self.assertEqual(map(str, Action.objects.user(self.user2)),
             [u'CoolGroup responded to admin: Sweet Group!... 0 minutes ago'])
 
     def test_stream_stale_follows(self):
@@ -143,7 +143,7 @@ class ActivityTestCase(ActivityBaseTestCase):
         self.assertEqual(created_action.actor, self.user1)
         self.assertEqual(created_action.action_object, self.comment)
         self.assertEqual(created_action.target, self.group)
-        self.assertEqual(unicode(created_action),
+        self.assertEqual(str(created_action),
             u'admin created comment admin: Sweet Group!... on CoolGroup 0 '
                 'minutes ago')
 
@@ -205,7 +205,7 @@ class ActivityTestCase(ActivityBaseTestCase):
         Testing the model_actions method of the ActionManager
         by passing kwargs
         """
-        self.assertEqual(map(unicode, model_stream(self.user1, verb='commented on')), [
+        self.assertEqual(map(str, model_stream(self.user1, verb='commented on')), [
                 u'admin commented on CoolGroup 0 minutes ago',
                 ])
 
@@ -214,7 +214,7 @@ class ActivityTestCase(ActivityBaseTestCase):
         Testing the user method of the ActionManager by passing additional
         filters in kwargs
         """
-        self.assertEqual(map(unicode, Action.objects.user(self.user1, verb='joined')), [
+        self.assertEqual(map(str, Action.objects.user(self.user1, verb='joined')), [
                 u'Two joined CoolGroup 0 minutes ago',
                 ])
 
@@ -264,7 +264,7 @@ class ZombieTest(ActivityBaseTestCase):
     def check_query_count(self, queryset):
         ci = len(connection.queries)
 
-        result = list([map(unicode, (x.actor, x.target, x.action_object))
+        result = list([map(str, (x.actor, x.target, x.action_object))
             for x in queryset])
         self.assertTrue(len(connection.queries) - ci <= 4,
             'Too many queries, got %d expected no more than 4' %

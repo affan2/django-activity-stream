@@ -1,9 +1,9 @@
 from actstream.models import Follow, Action
 from django.contrib.contenttypes.models import ContentType
-from django.core.urlresolvers import reverse
-from django.template import Variable, Library, Node, TemplateSyntaxError, resolve_variable, VariableDoesNotExist
-from django.template.base import TemplateDoesNotExist
-from django.template.loader import render_to_string, find_template
+from django.urls import reverse
+from django.template import Variable, Library, Node, TemplateSyntaxError, VariableDoesNotExist
+from django.template import TemplateDoesNotExist
+from django.template.loader import render_to_string, get_template
 from django.core.cache import cache
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
@@ -255,7 +255,7 @@ class BroadcastersForObjectNode(Node):
 
     def render(self, context):
         try:
-            object = resolve_variable(self.object, context)
+            object = Variable(self.object, context)
             content_type = ContentType.objects.get_for_model(object).pk
         except VariableDoesNotExist:
             return ''
@@ -526,6 +526,7 @@ def render_review_actstream(context, comment):
     })
     return context
 
+
 @register.inclusion_tag("actstream/render_wish_actstream.html", takes_context=True)
 def render_wish_actstream(context, wish):
     context.update({
@@ -533,12 +534,14 @@ def render_wish_actstream(context, wish):
     })
     return context
 
+
 @register.inclusion_tag("actstream/render_deal_actstream.html", takes_context=True)
 def render_deal_acstream(context, deal):
     context.update({
         "deal": deal,
     })
     return context
+
 
 @register.filter
 def get_value_from_dict(dictionary, key):
@@ -633,7 +636,7 @@ class GetActionTarget(Node):
 
     def render(self, context):
         try:
-            action_id = resolve_variable(self.action_id, context)
+            action_id = Variable(self.action_id, context)
             action_object = Action.objects.get(id=action_id)
         except VariableDoesNotExist:
             return ''
@@ -664,8 +667,8 @@ class GetBatchedTargets(Node):
 
     def render(self, context):
         try:
-            action_ids = resolve_variable(self.action_ids, context)
-            parent_action_id = resolve_variable(self.parent_action_id, context)
+            action_ids = Variable(self.action_ids, context)
+            parent_action_id = Variable(self.parent_action_id, context)
             targets = []
             if action_ids:
                 for action_id in action_ids:
@@ -705,7 +708,7 @@ class GetActionActor(Node):
 
     def render(self, context):
         try:
-            action_id = resolve_variable(self.action_id, context)
+            action_id = Variable(self.action_id, context)
             action_object = Action.objects.get(id=action_id)
         except VariableDoesNotExist:
             return ''
@@ -736,8 +739,8 @@ class GetBatchedActors(Node):
 
     def render(self, context):
         try:
-            action_ids = resolve_variable(self.action_ids, context)
-            parent_action_id = resolve_variable(self.parent_action_id, context)
+            action_ids = Variable(self.action_ids, context)
+            parent_action_id = Variable(self.parent_action_id, context)
             actors = []
             if action_ids:
                 for action_id in action_ids:
@@ -784,7 +787,7 @@ register.tag('get_batched_targets', do_get_batched_targets)
 def backwards_compatibility_check(template_name):
     backwards = False
     try:
-        find_template('actstream/action.html')
+        get_template('actstream/action.html')
     except TemplateDoesNotExist:
         backwards = True
     if backwards:

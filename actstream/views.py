@@ -1,17 +1,16 @@
 from django.shortcuts import render_to_response, get_object_or_404
-from django.template import RequestContext
+from django.template import RequestContext, VariableDoesNotExist
 from django.template.loader import render_to_string
 from django.http import HttpResponseRedirect, HttpResponse
-
 from django.contrib.auth.decorators import login_required
 from django.contrib.auth.models import User
 from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
-from django.utils import simplejson
+import json
 from django.db.models import Q
 from django.conf import settings
 from django.core.exceptions import MultipleObjectsReturned
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from userProfile.views import deleteObject
 from userProfile.models import GenericWish
 from actstream import actions, models
@@ -34,6 +33,7 @@ except ImportError:
 import itertools
 
 ACTIVITY_DEFAULT_BATCH_TIME = 30
+
 
 def respond(request, code):
     """
@@ -274,7 +274,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
             'more': False,
             'success': True
         }
-        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
 
     batched_actions = merge_action_subset_op(request, activity_queryset, s, l)
     merged_batch_actions = request.session.get('batched_following_actions',  dict())
@@ -293,7 +293,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
             'more':True,
             'success': True
         }
-        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
 
 
     activity_count = 0
@@ -320,7 +320,7 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
         'success': True,
         'more':True
     }
-    return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+    return HttpResponse(json.dumps(ret_data), mimetype="application/json")
 
     # return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
     #    'action_list': activities, 
@@ -374,7 +374,7 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
     activity_count = 0
     if activity_qs_unprocessed:
         activity_count = activity_qs_unprocessed.count()
-    return HttpResponse(simplejson.dumps(dict(success=True, count=activity_count)))    	
+    return HttpResponse(json.dumps(dict(success=True, count=activity_count)))    	
 
 def actstream_update_activity(request, content_type_id, object_id): 
     batched_actions   = dict()
@@ -449,7 +449,7 @@ def actstream_rebuild_cache(request, content_type_id, object_id):
     if 'last_activity_count' in request.session:
     	request.session['last_activity_count'] = -1
 
-    return HttpResponse(simplejson.dumps(dict(success=True, message="Cache Updated")))
+    return HttpResponse(json.dumps(dict(success=True, message="Cache Updated")))
 
 def actor(request, content_type_id, object_id):
     """
@@ -464,7 +464,7 @@ def actor(request, content_type_id, object_id):
     }, context_instance=RequestContext(request))
 
 def json_error_response(error_message):
-    return HttpResponse(simplejson.dumps(dict(success=False,
+    return HttpResponse(json.dumps(dict(success=False,
                                               error_message=error_message)))
 
 def merge_actor_actions_subset_op(request, activity_queryset, sIndex, lIndex):
@@ -527,7 +527,7 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
             'more': False,
             'success': True
         }
-        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
 
     batched_actions = merge_actor_actions_subset_op(request, activity_queryset, s, l)
     merged_batch_actions = request.session.get('batched_actor_actions',  dict())
@@ -546,7 +546,7 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
             'more':True,
             'success': True
         }
-        return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+        return HttpResponse(json.dumps(ret_data), mimetype="application/json")
 
     context = RequestContext(request)
     context.update({
@@ -562,7 +562,7 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
         'success': True,
         'more':True
     }
-    return HttpResponse(simplejson.dumps(ret_data), mimetype="application/json")
+    return HttpResponse(json.dumps(ret_data), mimetype="application/json")
     # return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
     #    'action_list': activity, 'actor': actor,
     #    'ctype': ctype,
@@ -591,7 +591,7 @@ def shareAction(request, action_id):
     target_content_type = ContentType.objects.get_for_model(actionObject)
     shareCount = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = actionObject.pk).count()
     if request.is_ajax():
-        return HttpResponse(simplejson.dumps(dict(success=True, count=shareCount)))
+        return HttpResponse(json.dumps(dict(success=True, count=shareCount)))
     else:
         return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
                 'action': actionObject
@@ -639,7 +639,7 @@ def deleteAction(request, action_id):
         """
         actionObject.delete()
 
-        return HttpResponse(simplejson.dumps(dict(success=True)))
+        return HttpResponse(json.dumps(dict(success=True)))
     else:
         return json_error_response('Unauthorized operation!! request cannot be completed')
 

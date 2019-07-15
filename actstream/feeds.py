@@ -1,12 +1,8 @@
 from django.shortcuts import get_object_or_404
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.utils.feedgenerator import Atom1Feed, rfc3339_date, get_tag_uri
 from django.contrib.contenttypes.models import ContentType
-
-try:
-    from django.contrib.syndication.views import Feed
-except ImportError:   # Pre 1.2
-    from django.contrib.syndication.feeds import Feed
+from django.contrib.syndication.views import Feed
 
 from actstream.models import model_stream, user_stream, action_object_stream
 
@@ -141,7 +137,7 @@ class ActivityStreamsObjectActivityFeed(AtomObjectActivityFeed):
             'object_timestamp': obj.timestamp,
             'object': obj.action_object,
             'object_id': object_id,
-            'object_title': unicode(obj.action_object),
+            'object_title':str(obj.action_object),
             'object_object_type': obj.action_object_content_type.model.lower(),
         }
 
@@ -156,7 +152,7 @@ class ActivityStreamsObjectActivityFeed(AtomObjectActivityFeed):
 
             item['target'] = obj.target
             item['target_id'] = target_id
-            item['target_title'] = unicode(obj.target)
+            item['target_title'] =str(obj.target)
             item['target_object_type'] = obj.target_content_type.name
 
         return item
