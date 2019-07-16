@@ -238,7 +238,7 @@ class ZombieTest(ActivityBaseTestCase):
         settings.DEBUG = True
 
         player_generator = lambda n, count: [User.objects.create(
-            username='%s%d' % (n, i)) for i in range(count)]
+            username='%s%d' % (n, i)) for i in list(range(count))]
 
         self.humans = player_generator('human', self.human)
         self.zombies = player_generator('zombie', self.zombie)
