@@ -46,10 +46,10 @@ source_suffix = '.rst'
 master_doc = 'index'
 
 # General information about the project.
-project = u'Django Activity Stream'
-copyright = u'2011, Justin Quick'
+project = 'Django Activity Stream'
+copyright = '2011, Justin Quick'
 
-# The version info for the project you're documenting, acts as replacement for
+# The version info for the project yo're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
 # built documents.
 #
@@ -184,8 +184,8 @@ htmlhelp_basename = 'DjangoActivityStreamdoc'
 # Grouping the document tree into LaTeX files. List of tuples
 # (source start file, target name, title, author, documentclass [howto/manual]).
 latex_documents = [
-  ('index', 'DjangoActivityStream.tex', u'Django Activity Stream Documentation',
-   u'Justin Quick', 'manual'),
+  ('index', 'DjangoActivityStream.tex', 'Django Activity Stream Documentation',
+   'Justin Quick', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -217,6 +217,6 @@ latex_documents = [
 # One entry per manual page. List of tuples
 # (source start file, name, description, authors, manual section).
 man_pages = [
-    ('index', 'djangoactivitystream', u'Django Activity Stream Documentation',
-     [u'Justin Quick'], 1)
+    ('index', 'djangoactivitystream', 'Django Activity Stream Documentation',
+     ['Justin Quick'], 1)
 ]

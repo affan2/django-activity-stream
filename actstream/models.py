@@ -23,8 +23,8 @@ from actstream.managers import FollowManager
 
 
 STATE_TYPES = (
-    (-1, u'Deleted'),
-    (1, u'Published'),
+    (-1, 'Deleted'),
+    (1, 'Published'),
 )
 
 
@@ -32,10 +32,10 @@ class Follow(models.Model):
     """
     Lets a user follow the activities of any specific actor
     """
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, )
 
     content_type = models.ForeignKey(
-        ContentType
+        ContentType, on_delete=models.CASCADE,
     )
     object_id = models.CharField(
         max_length=255
@@ -52,7 +52,8 @@ class Follow(models.Model):
         Site,
         related_name="follow_site",
         default=settings.SITE_ID,
-        verbose_name='site'
+        verbose_name='site',
+        on_delete=models.CASCADE,
     )
     objects = FollowManager()
 
@@ -60,7 +61,7 @@ class Follow(models.Model):
         unique_together = ('user', 'content_type', 'object_id')
 
     def __unicode__(self):
-        return u'%s -> %s' % (self.user, self.follow_object)
+        return '%s -> %s' % (self.user, self.follow_object)
 
 
 class Action(models.Model):
@@ -97,7 +98,8 @@ class Action(models.Model):
     """
     actor_content_type = models.ForeignKey(
         ContentType,
-        related_name='actor'
+        related_name='actor',
+        on_delete=models.CASCADE,
     )
     actor_object_id = models.CharField(
         max_length=255
@@ -117,7 +119,8 @@ class Action(models.Model):
         ContentType,
         related_name='target',
         blank=True,
-        null=True
+        null=True,
+        on_delete=models.CASCADE,
     )
     target_object_id = models.CharField(
         max_length=255,
@@ -132,7 +135,8 @@ class Action(models.Model):
         ContentType,
         related_name='action_object',
         blank=True,
-        null=True
+        null=True,
+        on_delete=models.CASCADE,
     )
     action_object_object_id = models.CharField(
         max_length=255,
@@ -174,7 +178,8 @@ class Action(models.Model):
     site = models.ForeignKey(
         Site,
         default=settings.SITE_ID,
-        verbose_name='site'
+        verbose_name='site',
+        on_delete=models.CASCADE,
     )
 
     objects = actstream_settings.get_action_manager()
@@ -241,6 +246,7 @@ user_stream = Action.objects.user
 model_stream = Action.objects.model_actions
 followers = Follow.objects.followers
 following = Follow.objects.following
+
 
 def setup_generic_relations():
     """

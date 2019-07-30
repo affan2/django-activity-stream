@@ -1,17 +1,20 @@
 import datetime
-
 from django.utils.translation import ugettext_lazy as _
 from django.contrib.contenttypes.models import ContentType
-from itertools import chain
-
-from actstream.exceptions import check_actionable_model
-from actstream import settings
 from django.conf import settings as _settings
+from itertools import chain
 try:
     from django.utils import timezone
     now = timezone.now
 except ImportError:
     now = datetime.datetime.now
+
+from actstream.exceptions import check_actionable_model
+from actstream import settings
+from actstream.exceptions import check_actionable_model
+from actstream.models import Action, Follow
+
+from people.tasks import task_notice
 
 
 def follow(user, obj, send_action=True, actor_only=True):
@@ -33,8 +36,6 @@ def follow(user, obj, send_action=True, actor_only=True):
 
         follow(request.user, group, actor_only=False)
     """
-    from actstream.models import Follow, action
-    from people.tasks import task_notice
 
     check_actionable_model(obj)
     follow, created = Follow.objects.get_or_create(
@@ -45,7 +46,7 @@ def follow(user, obj, send_action=True, actor_only=True):
         site_id=_settings.SITE_ID,
     )
     if send_action and created:
-        action.send(
+        Action.send(
             user,
             verb=_settings.FOLLOW_VERB,
             target=obj,
@@ -82,13 +83,11 @@ def unfollow(user, obj, send_action=False):
 
         unfollow(request.user, other_user)
     """
-    from actstream.models import Follow, action
 
     check_actionable_model(obj)
-    Follow.objects.filter(user=user, object_id=obj.pk,
-        content_type=ContentType.objects.get_for_model(obj)).delete()
+    Follow.objects.filter(user=user, object_id=obj.pk, content_type=ContentType.objects.get_for_model(obj)).delete()
     if send_action:
-        action.send(user, verb=_settings.UNFOLLOW_VERB, target=obj)
+        Action.send(user, verb=_settings.UNFOLLOW_VERB, target=obj)
 
 
 def is_following(user, obj):
@@ -101,7 +100,6 @@ def is_following(user, obj):
 
         is_following(request.user, group)
     """
-    from actstream.models import Follow
 
     check_actionable_model(obj)
     return bool(Follow.objects.filter(
@@ -116,7 +114,6 @@ def action_handler(verb, **kwargs):
     """
     Handler function to create Action instance upon action signal call.
     """
-    from actstream.models import Action
 
     kwargs.pop('signal', None)
     actor = kwargs.pop('sender')
@@ -147,8 +144,6 @@ def action_handler(verb, **kwargs):
 
 
 def check_action_exists(actor, verb, **kwargs):
-    from actstream.models import Action
-
     filters = {
         'actor_content_type': ContentType.objects.get_for_model(actor),
         'actor_object_id': actor.pk,

@@ -7,7 +7,7 @@ SETTINGS = getattr(settings, 'ACTSTREAM_SETTINGS', {})
 
 def get_models():
     """
-    Returns a lookup of 'app_label.model': <model class> from ACTSTREAM_SETTINGS['MODELS']
+    Returns a lookup of 'app_label.model': <model class> from actstream_SETTINGS['MODELS']
     Only call this right before you need to inspect the models
     """
     models = {}
@@ -17,7 +17,7 @@ def get_models():
 
 def get_action_manager():
     """
-    Returns the class of the action manager to use from ACTSTREAM_SETTINGS['MANAGER']
+    Returns the class of the action manager to use from actstream_SETTINGS['MANAGER']
     """
     mod = SETTINGS.get('MANAGER', 'actstream.managers.ActionManager')
     a, j = mod.split('.'), lambda l: '.'.join(l)

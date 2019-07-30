@@ -80,20 +80,20 @@ class ActivityTestCase(ActivityBaseTestCase):
 
     def test_aauser1(self):
         self.assertEqual(map(str, self.user1.actor_actions.all()), [
-            u'admin commented on CoolGroup 0 minutes ago',
-            u'admin started following Two 0 minutes ago',
-            u'admin joined CoolGroup 0 minutes ago',
+            'admin commented on CoolGroup 0 minutes ago',
+            'admin started following Two 0 minutes ago',
+            'admin joined CoolGroup 0 minutes ago',
         ])
 
     def test_user2(self):
         self.assertEqual(map(str, Action.objects.actor(self.user2)), [
-            u'Two started following CoolGroup 0 minutes ago',
-            u'Two joined CoolGroup 0 minutes ago',
+            'Two started following CoolGroup 0 minutes ago',
+            'Two joined CoolGroup 0 minutes ago',
         ])
 
     def test_group(self):
         self.assertEqual(map(str, Action.objects.actor(self.group)),
-            [u'CoolGroup responded to admin: Sweet Group!... 0 minutes ago'])
+            ['CoolGroup responded to admin: Sweet Group!... 0 minutes ago'])
 
     def test_following(self):
         self.assertEqual(list(following(self.user1)), [self.user2])
@@ -108,11 +108,11 @@ class ActivityTestCase(ActivityBaseTestCase):
 
     def test_stream(self):
         self.assertEqual(map(str, Action.objects.user(self.user1)), [
-            u'Two started following CoolGroup 0 minutes ago',
-            u'Two joined CoolGroup 0 minutes ago',
+            'Two started following CoolGroup 0 minutes ago',
+            'Two joined CoolGroup 0 minutes ago',
         ])
         self.assertEqual(map(str, Action.objects.user(self.user2)),
-            [u'CoolGroup responded to admin: Sweet Group!... 0 minutes ago'])
+            ['CoolGroup responded to admin: Sweet Group!... 0 minutes ago'])
 
     def test_stream_stale_follows(self):
         """
@@ -144,7 +144,7 @@ class ActivityTestCase(ActivityBaseTestCase):
         self.assertEqual(created_action.action_object, self.comment)
         self.assertEqual(created_action.target, self.group)
         self.assertEqual(str(created_action),
-            u'admin created comment admin: Sweet Group!... on CoolGroup 0 '
+            'admin created comment admin: Sweet Group!... on CoolGroup 0 '
                 'minutes ago')
 
     def test_doesnt_generate_duplicate_follow_records(self):
@@ -206,7 +206,7 @@ class ActivityTestCase(ActivityBaseTestCase):
         by passing kwargs
         """
         self.assertEqual(map(str, model_stream(self.user1, verb='commented on')), [
-                u'admin commented on CoolGroup 0 minutes ago',
+                'admin commented on CoolGroup 0 minutes ago',
                 ])
 
     def test_user_stream_with_kwargs(self):
@@ -215,17 +215,17 @@ class ActivityTestCase(ActivityBaseTestCase):
         filters in kwargs
         """
         self.assertEqual(map(str, Action.objects.user(self.user1, verb='joined')), [
-                u'Two joined CoolGroup 0 minutes ago',
+                'Two joined CoolGroup 0 minutes ago',
                 ])
 
     def test_is_following_filter(self):
         src = '{% load activity_tags %}{% if user|is_following:group %}yup{% endif %}'
         self.assertEqual(Template(src).render(Context({
             'user': self.user2, 'group': self.group
-        })), u'yup')
+        })), 'yup')
         self.assertEqual(Template(src).render(Context({
             'user': self.user1, 'group': self.group
-        })), u'')
+        })), '')
 
 
 class ZombieTest(ActivityBaseTestCase):
