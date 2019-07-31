@@ -1,7 +1,7 @@
 import json
 
-from django.shortcuts import get_object_or_404, render, render_to_response
-from django.template import RequestContext, VariableDoesNotExist
+from django.shortcuts import get_object_or_404, render
+from django.template import VariableDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
 
 from django.contrib.auth import get_user_model
@@ -199,7 +199,7 @@ def get_actions_following(request, content_type_id, object_id):
                     stream 		 	  = followedObject.actor_actions.public(timestamp__gte=followObject.started)
                     activity_queryset = activity_queryset | stream
 
-                if not isinstance(followedObject, User) and not isinstance(followedObject, BlogPost):
+                if not isinstance(followedObject, USER_MODEL) and not isinstance(followedObject, BlogPost):
                     _follow    = _Follow.objects.get_follows(followedObject)
                     if _follow:
                         follow = _follow.get(user=actor)
@@ -474,8 +474,6 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     ``Actor`` focused activity stream for actor defined by ``content_type_id``,
     ``object_id``.
     """
-    import operator
-
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
 
