@@ -1,13 +1,10 @@
 from __future__ import unicode_literals
 
-from django.conf import settings
-from django.contrib.contenttypes.fields import GenericForeignKey
+
 from django.db import models
-from django.utils.translation import ugettext as _
-from django.utils.encoding import python_2_unicode_compatible
 from django.utils.timesince import timesince as djtimesince
 from django.conf import settings
-from django.contrib.contenttypes import generic
+from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 
 try:
@@ -16,7 +13,7 @@ except ImportError:
     from django.core.urlresolvers import reverse
 from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
-from django.core.urlresolvers import reverse
+from django.urls import reverse
 from django.core.exceptions import ImproperlyConfigured
 from django.utils.translation import ugettext as _
 
@@ -27,8 +24,9 @@ except ImportError:
     from datetime import datetime
     now = datetime.now
 
-from actstream import settings as actstream_settings
+from actstream import settings as actstream_settings, action
 from actstream.managers import FollowManager
+from actstream.actions import action_handler
 
 
 STATE_TYPES = (
@@ -61,7 +59,8 @@ class Follow(models.Model):
         Site,
         related_name="follow_site",
         default=settings.SITE_ID,
-        verbose_name='site'
+        verbose_name='site',
+        on_delete=models.PROTECT,
     )
     objects = FollowManager()
 
@@ -163,7 +162,8 @@ class Action(models.Model):
     site = models.ForeignKey(
         Site,
         default=settings.SITE_ID,
-        verbose_name='site'
+        verbose_name='site',
+        on_delete=models.PROTECT,
     )
 
     objects = actstream_settings.get_action_manager()
@@ -230,3 +230,38 @@ model_stream = Action.objects.model_actions
 any_stream = Action.objects.any
 followers = Follow.objects.followers
 following = Follow.objects.following
+
+
+def setup_generic_relations():
+    """
+    Set up GenericRelations for actionable models.
+    """
+    for model in actstream_settings.get_models().values():
+        if not model:
+            continue
+        for field in ('actor', 'target', 'action_object'):
+            GenericRelation(Action,
+                content_type_field='%s_content_type' % field,
+                object_id_field='%s_object_id' % field,
+                related_name='actions_with_%s_%s_as_%s' % (
+                    model._meta.app_label, model._meta.module_name, field),
+            ).contribute_to_class(model, '%s_actions' % field)
+
+            # @@@ I'm not entirely sure why this works
+            setattr(Action, 'actions_with_%s_%s_as_%s' % (
+                model._meta.app_label, model._meta.module_name, field), None)
+
+
+setup_generic_relations()
+
+
+if actstream_settings.USE_JSONFIELD:
+    try:
+        from jsonfield.fields import JSONField
+    except ImportError:
+        raise ImproperlyConfigured('You must have django-jsonfield installed '
+                                'if you wish to use a JSONField on your actions')
+    JSONField(blank=True, null=True).contribute_to_class(Action, 'data')
+
+# connect the signal
+action.connect(action_handler, dispatch_uid='actstream.models')

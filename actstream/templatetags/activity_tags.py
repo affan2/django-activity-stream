@@ -1,5 +1,4 @@
 from django.contrib.contenttypes.models import ContentType
-from django.template import Variable, Library, Node, TemplateSyntaxError
 from django.template.loader import render_to_string
 
 try:
@@ -8,8 +7,8 @@ except ImportError:
     from django.urls import reverse
 
 from actstream.models import Follow, Action
-from django.template import Variable, Library, Node, TemplateSyntaxError, resolve_variable, VariableDoesNotExist
-from django.template.loader import find_template
+from django.template import Variable, Library, Node, TemplateSyntaxError, VariableDoesNotExist, TemplateDoesNotExist
+from django.template.loader import get_template
 from django.core.cache import cache
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
@@ -169,6 +168,7 @@ class ShareActivityCount(Node):
         context[self.context_var] = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_instance.pk).count()
         return  ''
 
+
 class CanShareActivity(Node):
     def __init__(self, action, context_var):
         self.action = Variable(action)
@@ -202,6 +202,7 @@ class DeleteActivityUrl(Node):
         return reverse('deleteAction', kwargs={
             'action_id':action_instance.pk})
 
+
 class DisplayActivitySubsetActorUrl(AsNode):
     def render_result(self, context):
         actor_instance = self.args[0].resolve(context)
@@ -222,6 +223,7 @@ class FollowerActivityRebuildCache(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_rebuild_cache', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
 
+
 class FollowerActivityActorRebuildCache(Node):
     def __init__(self, actor):
         self.actor = Variable(actor)
@@ -230,6 +232,7 @@ class FollowerActivityActorRebuildCache(Node):
         actor_instance = self.actor.resolve(context)
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_actor_rebuild_cache', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
+
 
 class FollowerActivityDynamicUpdate(Node):
     def __init__(self, actor):
@@ -240,6 +243,7 @@ class FollowerActivityDynamicUpdate(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_update_activity', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
 
+
 class FollowerActivityPendingCount(Node):
     def __init__(self, actor):
         self.actor = Variable(actor)
@@ -249,6 +253,7 @@ class FollowerActivityPendingCount(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_latest_activity_count', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
 
+
 class BroadcastersForObjectNode(Node):
     def __init__(self, object, context_var):
         self.object = object
@@ -256,22 +261,24 @@ class BroadcastersForObjectNode(Node):
 
     def render(self, context):
         try:
-            object = resolve_variable(self.object, context)
+            object = template.Variable(self.object).resolve(context)
             content_type = ContentType.objects.get_for_model(object).pk
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = reverse('get_broadcasters_info', kwargs={'content_type_id': content_type, 'object_id': object.pk })
         return ''
 
+
 def display_action(parser, token):
     """
     Renders the template for the action description
 
-    ::
+    Example::
 
         {% display_action action %}
     """
     return DisplayAction.handle_token(parser, token)
+
 
 def render_action(parser, token):
     bits = token.split_contents()
@@ -282,7 +289,7 @@ def is_following(user, actor):
     """
     Returns true if the given user is following the actor
 
-    ::
+    Example::
 
         {% if request.user|is_following:another_user %}
             You are already following {{ another_user }}
@@ -308,7 +315,7 @@ def is_following_tag(parser, token):
     You can also save the returned value to a template variable by as syntax.
     If you don't want to specify a flag, pass an empty string or use `is_following` template filter.
 
-    ::
+    Example::
 
         {% is_following user group "liking" %}
         {% is_following user group "liking" as is_liking %}
@@ -321,7 +328,7 @@ def follow_activity_url(parser, token):
     """
     Renders the URL of the follow view for a particular actor instance
 
-    ::
+    Example::
 
         <a href="{% follow_activity_url other_user %}">
             {% if request.user|is_following:other_user %}
@@ -355,7 +362,7 @@ def follow_all_url(parser, token):
     """
     Renders the URL to follow an object as both actor and target
 
-    ::
+    Example::
 
         <a href="{% follow_all_url other_user %}">
             {% if request.user|is_following:other_user %}
@@ -390,7 +397,7 @@ def actor_url(parser, token):
     """
     Renders the URL for a particular actor instance
 
-    ::
+    Example::
 
         <a href="{% actor_url request.user %}">View your actions</a>
         <a href="{% actor_url another_user %}">{{ another_user }}'s actions</a>
@@ -402,6 +409,7 @@ def actor_url(parser, token):
                                   "{% actor_url [actor_instance] %}")
     else:
         return DisplayActivityActorUrl(*bits[1:])
+
 
 def following_feed_url(parser, token):
     """
@@ -420,6 +428,7 @@ def following_feed_url(parser, token):
     else:
         return DisplayFollowerActivityUrl(*bits[1:])
 
+
 def following_feedsubset_url(parser, token):
     """
     Renders the URL for a particular actor instance
@@ -437,9 +446,11 @@ def following_feedsubset_url(parser, token):
     else:
         return DisplayFollowerActivitySubsetUrl.handle_token(parser, token)
 
+
 def share_action_url(parser, token):
     bits = token.split_contents()
     return ShareActivityUrl(*bits[1:])
+
 
 def get_share_count(parser, token):
     bits = token.contents.split()
@@ -449,6 +460,7 @@ def get_share_count(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return ShareActivityCount(bits[1], bits[3])
 
+
 def can_share_action(parser, token):
     bits = token.contents.split()
     if len(bits) != 4:
@@ -457,9 +469,11 @@ def can_share_action(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return CanShareActivity(bits[1], bits[3])
 
+
 def delete_action_url(parser, token):
     bits = token.split_contents()
     return DeleteActivityUrl(*bits[1:])
+
 
 def actor_url_subset(parser, token):
     """
@@ -477,6 +491,7 @@ def actor_url_subset(parser, token):
     else:
         return DisplayActivitySubsetActorUrl.handle_token(parser, token)
 
+
 def activity_refresh_cache(parser, token):
     """
     Refreshes the user activity feed cache
@@ -488,6 +503,7 @@ def activity_refresh_cache(parser, token):
                                   "{% activity_refresh_cache [actor_instance] %}")
     else:
         return FollowerActivityRebuildCache(*bits[1:])
+
 
 def activity_actor_refresh_cache(parser, token):
     """
@@ -501,6 +517,7 @@ def activity_actor_refresh_cache(parser, token):
     else:
         return FollowerActivityActorRebuildCache(*bits[1:])
 
+
 def activity_dynamic_update(parser, token):
     """
     Refreshes the user activity feed cache
@@ -513,6 +530,7 @@ def activity_dynamic_update(parser, token):
     else:
         return FollowerActivityDynamicUpdate(*bits[1:])
 
+
 def activity_pending_action_count(parser, token):
     """
     Refreshes the user activity feed cache
@@ -524,6 +542,7 @@ def activity_pending_action_count(parser, token):
                                   "{% activity_pending_action_count [actor_instance] %}")
     else:
         return FollowerActivityPendingCount(*bits[1:])
+
 
 def do_broadcasters_for_object(parser, token):
     """
@@ -541,6 +560,7 @@ def do_broadcasters_for_object(parser, token):
         raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return BroadcastersForObjectNode(bits[1], bits[3])
 
+
 def get_class_name(obj):
     return obj.__class__.__name__
 
@@ -553,9 +573,11 @@ def render_album(context, album):
     })
     return context
 
+
 @register.filter
 def get_value_from_dict(dictionary, key):
     return dictionary.get(key)
+
 
 def do_get_list_of_batched_action_ids(parser, token):
     """
@@ -573,6 +595,7 @@ def do_get_list_of_batched_action_ids(parser, token):
         raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetListOfBatchedActionIDs(bits[2])
 
+
 class GetListOfBatchedActionIDs(Node):
     def __init__(self, context_var):
         self.context_var = context_var
@@ -588,6 +611,7 @@ class GetListOfBatchedActionIDs(Node):
             return ''
         context[self.context_var] = list(itertools.chain(*action_id_list))
         return ''
+
 
 def do_get_action_target(parser, token):
     """
@@ -605,6 +629,7 @@ def do_get_action_target(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetActionTarget(bits[1],bits[3])
 
+
 class GetActionTarget(Node):
     def __init__(self, action_id, context_var):
         self.action_id = action_id
@@ -612,12 +637,13 @@ class GetActionTarget(Node):
 
     def render(self, context):
         try:
-            action_id = resolve_variable(self.action_id, context)
+            action_id = template.Variable(self.action_id).resolve(context)
             action_object = Action.objects.get(id=action_id)
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = action_object.target
         return ''
+
 
 def do_get_batched_targets(parser, token):
     """
@@ -635,6 +661,7 @@ def do_get_batched_targets(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetBatchedTargets(bits[1],bits[2],bits[4])
 
+
 class GetBatchedTargets(Node):
     def __init__(self, action_ids, parent_action_id, context_var):
         self.action_ids = action_ids
@@ -643,8 +670,8 @@ class GetBatchedTargets(Node):
 
     def render(self, context):
         try:
-            action_ids = resolve_variable(self.action_ids, context)
-            parent_action_id = resolve_variable(self.parent_action_id, context)
+            action_ids = template.Variable(self.action_ids).resolve(context)
+            parent_action_id = template.Variable(self.parent_action_id).resolve(context)
             targets = []
             if action_ids:
                 for action_id in action_ids:
@@ -660,6 +687,7 @@ class GetBatchedTargets(Node):
             return ''
         context[self.context_var] = unique_targets
         return ''
+
 
 def do_get_action_actor(parser, token):
     """
@@ -684,12 +712,13 @@ class GetActionActor(Node):
 
     def render(self, context):
         try:
-            action_id = resolve_variable(self.action_id, context)
+            action_id = template.Variable(self.action_id).resolve(context)
             action_object = Action.objects.get(id=action_id)
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = action_object.actor
         return ''
+
 
 def do_get_batched_actors(parser, token):
     """
@@ -707,6 +736,7 @@ def do_get_batched_actors(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetBatchedActors(bits[1],bits[2],bits[4])
 
+
 class GetBatchedActors(Node):
     def __init__(self, action_ids, parent_action_id, context_var):
         self.action_ids = action_ids
@@ -715,8 +745,8 @@ class GetBatchedActors(Node):
 
     def render(self, context):
         try:
-            action_ids = resolve_variable(self.action_ids, context)
-            parent_action_id = resolve_variable(self.parent_action_id, context)
+            action_ids = template.Variable(self.action_id)s.resolve(context)
+            parent_action_id = template.Variable(self.parent_action_id).resolve(context)
             actors = []
             if action_ids:
                 for action_id in action_ids:
@@ -788,7 +818,7 @@ register.tag('get_batched_targets', do_get_batched_targets)
 def backwards_compatibility_check(template_name):
     backwards = False
     try:
-        find_template('actstream/action.html')
+        get_template('actstream/action.html')
     except TemplateDoesNotExist:
         backwards = True
     if backwards:
@@ -811,4 +841,6 @@ def review_verb_linkify(action):
         pattern = re.compile("review", re.IGNORECASE)
         return pattern.sub(linkified_url, action.verb)
     return ""
+
+
 register.simple_tag(takes_context=True)(activity_stream)

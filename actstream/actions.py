@@ -182,15 +182,15 @@ def check_action_exists(actor, verb, **kwargs):
     filters = {
         'actor_content_type': ContentType.objects.get_for_model(actor),
         'actor_object_id': actor.pk,
-        'verb': unicode(verb),
+        'verb': text_type(verb),
         'state': 1,
         'timestamp_date': kwargs.get('timestamp', now()),
         'site_id': _settings.SITE_ID,
     }
     for opt in ('target', 'action_object'):
         obj = kwargs.pop(opt, None)
-        if not obj is None:
-            check_actionable_model(obj)
+        if obj is not None:
+            check(obj)
             filters.update({'%s_object_id' % opt: obj.pk})
             filters.update({'%s_content_type' % opt: ContentType.objects.get_for_model(obj)})
 

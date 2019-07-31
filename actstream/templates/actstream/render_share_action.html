@@ -4,7 +4,7 @@
  {% can_share_action action as canShare %}
 
 {% if canShare != 0 or request.user|get_class_name == "AnonymousUser" %}
-	 <a class="shareaction" href="#" data-href="{% share_action_url action %}" ><img src='{% static "img/broadcast.ico" %}' title='share'></img></a>
+	 <a class="shareaction" href="#" data-href="{% share_action_url action %}" ><img src='{% static "img/broadcast.ico" %}' title='share'/></a>
 {% endif %}
 	{% get_share_count action as shareCount %}
 

@@ -1,7 +1,6 @@
 import json
 
-from django.shortcuts import get_object_or_404, render
-from django.shortcuts import render_to_response, get_object_or_404
+from django.shortcuts import get_object_or_404, render, render_to_response
 from django.template import RequestContext, VariableDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
 
@@ -20,7 +19,6 @@ from actstream.models import Action
 from follow.models import Follow as _Follow
 from follow import utils
 from datetime import timedelta
-import datetime
 try:
     from django.utils import timezone
     now = timezone.now
@@ -154,8 +152,6 @@ def detail(request, action_id):
 
 
 def actstream_following(request, content_type_id, object_id):
-    from itertools import chain
-    import operator
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
     activity = actor.actor_actions.public()
@@ -170,7 +166,7 @@ def actstream_following(request, content_type_id, object_id):
             stream = followedActor.actor_actions.public(timestamp__gte = followAction.timestamp)
             activity = activity | stream
 
-        if not isinstance(followedActor, User):
+        if not isinstance(followedActor, USER_MODEL):
             _follow = _Follow.objects.get_follows(followedActor)
             if _follow:
                 follow = _follow.get(user=actor)
@@ -181,10 +177,10 @@ def actstream_following(request, content_type_id, object_id):
                     activity = activity | stream
     activity =  activity.order_by('-timestamp')
 
-    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+    return render(request, ('actstream/actor_feed.html', 'activity/actor_feed.html'), {
        'action_list': activity, 'actor': actor,
        'ctype': ctype, 'sIndex':0
-    }, context_instance=RequestContext(request))
+    })
 
 
 def get_actions_following(request, content_type_id, object_id):
@@ -227,11 +223,12 @@ def get_actions_following(request, content_type_id, object_id):
 
     return activity_queryset
 
+
 def merge_action_subset_op(request, activity_queryset, sIndex, lIndex):
     activities = activity_queryset[sIndex:lIndex]
 
     if activities and len(activities) > 0 and 'last_processed_action' not in request.session:
-    	request.session['last_processed_action'] = activities[0].id
+        request.session['last_processed_action'] = activities[0].id
 
     batched_actions = cache.get(request.user.username+"batched_actions")
     if not batched_actions:
@@ -271,6 +268,7 @@ def merge_action_subset_op(request, activity_queryset, sIndex, lIndex):
 
     return batched_actions
 
+
 def actstream_following_subset(request, content_type_id, object_id, sIndex, lIndex):
 
     ctype = get_object_or_404(ContentType, pk=content_type_id)
@@ -295,13 +293,14 @@ def actstream_following_subset(request, content_type_id, object_id, sIndex, lInd
     if activities and len(activities) > 0 and s == 0:
         request.session['last_processed_action'] = activities[0].id
 
-    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+    return render(request, ('actstream/actor_feed.html', 'activity/actor_feed.html'), {
        'action_list': activities,
        'actor': actor,
        'ctype': ctype,
        'sIndex':s,
        'batched_actions':batched_actions,
-    }, context_instance=RequestContext(request))
+    })
+
 
 def actstream_latest_activity_count(request, content_type_id, object_id):
     batched_actions   = dict()
@@ -319,11 +318,11 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
             Feeds for like/unfollow are excluded in incremental update as user can keep toggling them due to which 
             possibility of duplciation arises.
         """
-        disallowed_verbs_for_incremental_feed = [settings.WISH_LIKE_VERB, settings.DEAL_LIKE_VERB, settings.POST_LIKE_VERB, \
-    											 settings.ALBUM_LIKE_WISH, settings.REVIEW_COMMENT_LIKE_VERB, settings.ALBUM_COMMENT_LIKE_VERB, \
-    											 settings.IMAGE_COMMENT_LIKE_VERB, settings.DEAL_COMMENT_LIKE_VERB, settings.WISH_COMMENT_LIKE_VERB,\
-    											 settings.POST_COMMENT_LIKE_VERB, settings.REVIEW_LIKE_VERB, settings.PHOTO_LIKE_VERB,\
-    											 settings.FOLLOW_VERB, settings.UNFOLLOW_VERB ]
+        disallowed_verbs_for_incremental_feed = [settings.WISH_LIKE_VERB, settings.DEAL_LIKE_VERB, settings.POST_LIKE_VERB,
+                                                 settings.ALBUM_LIKE_WISH, settings.REVIEW_COMMENT_LIKE_VERB, settings.ALBUM_COMMENT_LIKE_VERB,
+                                                 settings.IMAGE_COMMENT_LIKE_VERB, settings.DEAL_COMMENT_LIKE_VERB, settings.WISH_COMMENT_LIKE_VERB,
+                                                 settings.POST_COMMENT_LIKE_VERB, settings.REVIEW_LIKE_VERB, settings.PHOTO_LIKE_VERB,
+                                                 settings.FOLLOW_VERB, settings.UNFOLLOW_VERB ]
 
         activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id).exclude(Q(verb__in=disallowed_verbs_for_incremental_feed))
 
@@ -347,6 +346,7 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
         activity_count = activity_qs_unprocessed.count()
     return HttpResponse(json.dumps(dict(success=True, count=activity_count)))
 
+
 def actstream_update_activity(request, content_type_id, object_id):
     batched_actions   = dict()
     ctype             = get_object_or_404(ContentType, pk=content_type_id)
@@ -357,15 +357,15 @@ def actstream_update_activity(request, content_type_id, object_id):
     last_processed_id = request.session.get('last_processed_action', -1)
 
     if last_processed_id >= 0:
-    	"""
-    		Feeds for like/unfollow are excluded in incremental update as user can keep toggling them due to which 
-    		possibility of duplciation arises.
-    	"""
-    	disallowed_verbs_for_incremental_feed = [settings.WISH_LIKE_VERB, settings.DEAL_LIKE_VERB, settings.POST_LIKE_VERB, \
-    											 settings.ALBUM_LIKE_WISH, settings.REVIEW_COMMENT_LIKE_VERB, settings.ALBUM_COMMENT_LIKE_VERB, \
-    											 settings.IMAGE_COMMENT_LIKE_VERB, settings.DEAL_COMMENT_LIKE_VERB, settings.WISH_COMMENT_LIKE_VERB,\
-    											 settings.POST_COMMENT_LIKE_VERB, settings.REVIEW_LIKE_VERB, settings.PHOTO_LIKE_VERB,\
-    											 settings.FOLLOW_VERB, settings.UNFOLLOW_VERB ]
+        """
+            Feeds for like/unfollow are excluded in incremental update as user can keep toggling them due to which 
+            possibility of duplciation arises.
+        """
+        disallowed_verbs_for_incremental_feed = [settings.WISH_LIKE_VERB, settings.DEAL_LIKE_VERB, settings.POST_LIKE_VERB, \
+                                                 settings.ALBUM_LIKE_WISH, settings.REVIEW_COMMENT_LIKE_VERB, settings.ALBUM_COMMENT_LIKE_VERB, \
+                                                 settings.IMAGE_COMMENT_LIKE_VERB, settings.DEAL_COMMENT_LIKE_VERB, settings.WISH_COMMENT_LIKE_VERB,\
+                                                 settings.POST_COMMENT_LIKE_VERB, settings.REVIEW_LIKE_VERB, settings.PHOTO_LIKE_VERB,\
+                                                 settings.FOLLOW_VERB, settings.UNFOLLOW_VERB ]
 
         activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id).exclude(Q(verb__in=disallowed_verbs_for_incremental_feed))
 
@@ -379,53 +379,54 @@ def actstream_update_activity(request, content_type_id, object_id):
             batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
             prev_batched_actions = cache.get(request.user.username+"batched_actions")
             if prev_batched_actions:
-    	        combined_batch_actions = prev_batched_actions.copy()
-    	        combined_batch_actions.update(batched_actions)
+                combined_batch_actions = prev_batched_actions.copy()
+                combined_batch_actions.update(batched_actions)
             else:
-    	        combined_batch_actions = batched_actions
+                combined_batch_actions = batched_actions
 
             cache.set(request.user.username+"batched_actions", combined_batch_actions)
-        return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+        return render(request, ('actstream/actor_feed.html', 'activity/actor_feed.html'), {
            'action_list': activity_qs_unprocessed,
            'actor': actor,
            'ctype': ctype,
-           'sIndex':request.session.get('last_activity_count', 0),
-           'batched_actions':batched_actions,
-        }, context_instance=RequestContext(request))
+           'sIndex': request.session.get('last_activity_count', 0),
+           'batched_actions': batched_actions,
+        })
     else:
-    	"""
-    		If last_action_id is not set but there are some unprocessed initial activities,process them.
-    	"""
-    	if activity_queryset:
+        """
+            If last_action_id is not set but there are some unprocessed initial activities,process them.
+        """
+        if activity_queryset:
             request.session['last_processed_action'] = activity_queryset[0].id
             request.session['last_activity_count']  = activity_queryset.count()
-            return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+            return render(request, ('actstream/actor_feed.html', 'activity/actor_feed.html'), {
                'action_list': activity_queryset,
                'actor': actor,
                'ctype': ctype,
                'sIndex':request.session.get('last_activity_count', 0),
                'batched_actions':batched_actions,
-            }, context_instance=RequestContext(request))
-    	else:
-    	    return HttpResponse(json.dumps(dict(success=True, message="No New Actions")))
+            })
+        else:
+            return HttpResponse(json.dumps(dict(success=True, message="No New Actions")))
+
 
 def actstream_rebuild_cache(request, content_type_id, object_id):
     if 'last_processed_action' in request.session:
-    	del request.session['last_processed_action']
+        del request.session['last_processed_action']
 
     if 'last_activity_count' in request.session:
-    	request.session['last_activity_count'] = -1
+        request.session['last_activity_count'] = -1
 
     return HttpResponse(json.dumps(dict(success=True, message="Cache Updated")))
 
+
 def actstream_actor_rebuild_cache(request, content_type_id, object_id):
-    from itertools import chain
-    import operator
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     actor = get_object_or_404(ctype.model_class(), pk=object_id)
     activity = models.actor_stream(actor).order_by('-timestamp')
     cache.set(actor.username+"perso", activity)
     return HttpResponse(json.dumps(dict(success=True, message="Cache Updated")))
+
 
 def actor(request, content_type_id, object_id):
     """
@@ -467,6 +468,7 @@ def json_error_response(error_message):
     return HttpResponse(json.dumps(dict(success=False,
                                         error_message=error_message)))
 
+
 def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     """
     ``Actor`` focused activity stream for actor defined by ``content_type_id``,
@@ -488,10 +490,10 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
 
     activity = activity[s:l]
 
-    return render_to_response(('actstream/actor_feed.html', 'activity/actor_feed.html'), {
+    return render(request, ('actstream/actor_feed.html', 'activity/actor_feed.html'), {
         'action_list': activity, 'actor': actor,
-        'ctype': ctype, 'sIndex':s
-    }, context_instance=RequestContext(request))
+        'ctype': ctype, 'sIndex': s
+    })
 
 
 def shareAction(request, action_id):
@@ -501,9 +503,9 @@ def shareAction(request, action_id):
     if request.is_ajax():
         return HttpResponse(json.dumps(dict(success=True)))
     else:
-        return render_to_response(('actstream/detail.html', 'activity/detail.html'), {
+        return render(request, ('actstream/detail.html', 'activity/detail.html'), {
                 'action': actionObject
-                }, context_instance=RequestContext(request))
+                })
 
 
 def deleteAction(request, action_id):
@@ -533,13 +535,14 @@ def deleteAction(request, action_id):
     else:
         return json_error_response('Unauthorized operation!! request cannot be completed')
 
+
 def get_broadcasters_info(request, content_type_id, object_id):
     ctype = get_object_or_404(ContentType, pk=content_type_id)
     object = get_object_or_404(ctype.model_class(), pk=object_id)
     broadcasters = Action.objects.get_broadcasters(object)
     unique_broadcasters = list(set(broadcasters['users']))
 
-    return render_to_response("actstream/broadcasters.html", {
+    return render(request, "actstream/broadcasters.html", {
         "broadcasters": unique_broadcasters,
-    }, context_instance=RequestContext(request))
+    })
 
