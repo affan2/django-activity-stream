@@ -1,9 +1,14 @@
-from actstream.models import Follow, Action
 from django.contrib.contenttypes.models import ContentType
-from django.urls import reverse
-from django.template import Variable, Library, Node, TemplateSyntaxError, VariableDoesNotExist
-from django.template import TemplateDoesNotExist
-from django.template.loader import render_to_string, get_template
+from django.template.loader import render_to_string
+
+try:
+    from django.core.urlresolvers import reverse
+except ImportError:
+    from django.urls import reverse
+
+from actstream.models import Follow, Action
+from django.template import Variable, Library, Node, TemplateSyntaxError, VariableDoesNotExist, TemplateDoesNotExist
+from django.template.loader import get_template
 from django.core.cache import cache
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
@@ -13,30 +18,32 @@ from django import template
 import itertools
 import re
 
-
-register = template.Library()
-
-
-def _is_following_helper(context, actor):
-    return Follow.objects.is_following(context.get('user'), actor)
+register = Library()
 
 
 class DisplayActivityFollowUrl(Node):
-    def __init__(self, actor, actor_only=True):
+    def __init__(self, actor, actor_only=True, flag=''):
         self.actor = Variable(actor)
         self.actor_only = actor_only
+        self.flag = flag
 
     def render(self, context):
         actor_instance = self.actor.resolve(context)
         content_type = ContentType.objects.get_for_model(actor_instance).pk
-        if Follow.objects.is_following(context.get('user'), actor_instance):
-            return reverse('actstream_unfollow', kwargs={
-                'content_type_id': content_type, 'object_id': actor_instance.pk})
+
+        kwargs = {
+            'content_type_id': content_type,
+            'object_id': actor_instance.pk
+        }
+
+        if self.flag:
+            kwargs['flag'] = self.flag
+
+        if Follow.objects.is_following(context.get('user'), actor_instance, flag=self.flag):
+            return reverse('actstream_unfollow', kwargs=kwargs)
         if self.actor_only:
-            return reverse('actstream_follow', kwargs={
-                'content_type_id': content_type, 'object_id': actor_instance.pk})
-        return reverse('actstream_follow_all', kwargs={
-            'content_type_id': content_type, 'object_id': actor_instance.pk})
+            return reverse('actstream_follow', kwargs=kwargs)
+        return reverse('actstream_follow_all', kwargs=kwargs)
 
 
 class DisplayActivityActorUrl(Node):
@@ -48,6 +55,7 @@ class DisplayActivityActorUrl(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_actor', kwargs={
             'content_type_id': content_type, 'object_id': actor_instance.pk})
+
 
 class DisplayFollowerActivityUrl(Node):
     def __init__(self, actor):
@@ -72,6 +80,8 @@ class AsNode(Node):
         """
         Class method to parse and return a Node.
         """
+        tag_error = "Accepted formats {%% %(tagname)s %(args)s %%} or " \
+                    "{%% %(tagname)s %(args)s as [var] %%}"
         bits = token.split_contents()
         args_count = len(bits) - 1
         if args_count >= 2 and bits[-2] == 'as':
@@ -81,11 +91,10 @@ class AsNode(Node):
             as_var = None
         if args_count != cls.args_count:
             arg_list = ' '.join(['[arg]' * cls.args_count])
-            raise TemplateSyntaxError("Accepted formats {%% %(tagname)s "
-                "%(args)s %%} or {%% %(tagname)s %(args)s as [var] %%}" %
-                {'tagname': bits[0], 'args': arg_list})
-        args = [parser.compile_filter(token) for token in
-            bits[1:args_count + 1]]
+            raise TemplateSyntaxError(tag_error % {'tagname': bits[0],
+                                                   'args': arg_list})
+        args = [parser.compile_filter(tkn)
+                for tkn in bits[1:args_count + 1]]
         return cls(args, varname=as_var)
 
     def __init__(self, args, varname=None):
@@ -106,15 +115,12 @@ class AsNode(Node):
 class DisplayAction(AsNode):
 
     def render_result(self, context):
-        action_instance = self.args[0].resolve(context)
+        action_instance = context['action'] = self.args[0].resolve(context)
         templates = [
             'actstream/%s/action.html' % action_instance.verb.replace(' ', '_'),
             'actstream/action.html',
-            'activity/%s/action.html' % action_instance.verb.replace(' ', '_'),
-            'activity/action.html',
         ]
-        return render_to_string(templates, {'action': action_instance},
-            context)
+        return render_to_string(templates, context.flatten())
 
 class RenderAction(Node):
     def __init__(self, action):
@@ -131,21 +137,6 @@ class RenderAction(Node):
         return render_to_string(templates, {'action': action_instance},
             context)
 
-class RenderTargetAction(Node):
-    def __init__(self, action):
-        self.action = Variable(action)
-
-    def render(self, context):
-        action_instance = self.action.resolve(context)
-        templates = [
-            'actstream/%s/target_action.html' % action_instance.verb.replace(' ', '_'),
-            'actstream/target_action.html',
-            'activity/%s/target_action.html' % action_instance.verb.replace(' ', '_'),
-            'activity/target_action.html',
-        ]
-        return render_to_string(templates, {'action': action_instance},
-            context)
-
 class DisplayFollowerActivitySubsetUrl(AsNode):
 
     def render_result(self, context):
@@ -153,7 +144,7 @@ class DisplayFollowerActivitySubsetUrl(AsNode):
         sIndex = self.args[1].resolve(context)
         lIndex = self.args[2].resolve(context)
         content_type = ContentType.objects.get_for_model(actor_instance).pk
-        
+
         return reverse('actstream_following_subset', kwargs={
             'content_type_id': content_type, 'object_id': actor_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
 
@@ -166,16 +157,17 @@ class ShareActivityUrl(Node):
         return reverse('shareAction', kwargs={
             'action_id':action_instance.pk})
 
-class ShareObjectActivityCount(Node):
-    def __init__(self, action_target, context_var):
-        self.action_target = Variable(action_target)
+class ShareActivityCount(Node):
+    def __init__(self, action, context_var):
+        self.action = Variable(action)
         self.context_var = context_var
 
     def render(self, context):
-        action_target_instance = self.action_target.resolve(context)
-        target_content_type = ContentType.objects.get_for_model(action_target_instance)
-        context[self.context_var] = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_target_instance.pk).count()
+        action_instance = self.action.resolve(context)
+        target_content_type = ContentType.objects.get_for_model(action_instance)
+        context[self.context_var] = Action.objects.filter(verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_instance.pk).count()
         return  ''
+
 
 class CanShareActivity(Node):
     def __init__(self, action, context_var):
@@ -193,7 +185,7 @@ class CanShareActivity(Node):
         alreadyShared = Action.objects.filter(actor_content_type=actor_content_type,actor_object_id=user._get_pk_val(), verb=settings.SHARE_VERB, target_content_type=target_content_type, target_object_id = action_instance.pk).count()
         if alreadyShared == 0:
             if action_instance.verb != settings.SHARE_VERB and action_instance.actor != user:
-                context[self.context_var] = 1  
+                context[self.context_var] = 1
             else:
                 context[self.context_var] = 0
         else:
@@ -210,13 +202,14 @@ class DeleteActivityUrl(Node):
         return reverse('deleteAction', kwargs={
             'action_id':action_instance.pk})
 
+
 class DisplayActivitySubsetActorUrl(AsNode):
     def render_result(self, context):
         actor_instance = self.args[0].resolve(context)
         sIndex = self.args[1].resolve(context)
         lIndex = self.args[2].resolve(context)
         content_type = ContentType.objects.get_for_model(actor_instance).pk
-        
+
         return reverse('actstream_actor_subset', kwargs={
             'content_type_id': content_type, 'object_id': actor_instance.pk, 'sIndex':sIndex, 'lIndex':lIndex})
 
@@ -230,6 +223,17 @@ class FollowerActivityRebuildCache(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_rebuild_cache', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
 
+
+class FollowerActivityActorRebuildCache(Node):
+    def __init__(self, actor):
+        self.actor = Variable(actor)
+
+    def render(self, context):
+        actor_instance = self.actor.resolve(context)
+        content_type = ContentType.objects.get_for_model(actor_instance).pk
+        return reverse('actstream_actor_rebuild_cache', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
+
+
 class FollowerActivityDynamicUpdate(Node):
     def __init__(self, actor):
         self.actor = Variable(actor)
@@ -238,6 +242,7 @@ class FollowerActivityDynamicUpdate(Node):
         actor_instance = self.actor.resolve(context)
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_update_activity', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
+
 
 class FollowerActivityPendingCount(Node):
     def __init__(self, actor):
@@ -248,6 +253,7 @@ class FollowerActivityPendingCount(Node):
         content_type = ContentType.objects.get_for_model(actor_instance).pk
         return reverse('actstream_latest_activity_count', kwargs={'content_type_id': content_type, 'object_id': actor_instance.pk })
 
+
 class BroadcastersForObjectNode(Node):
     def __init__(self, object, context_var):
         self.object = object
@@ -255,12 +261,13 @@ class BroadcastersForObjectNode(Node):
 
     def render(self, context):
         try:
-            object = Variable(self.object, context)
+            object = template.Variable(self.object).resolve(context)
             content_type = ContentType.objects.get_for_model(object).pk
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = reverse('get_broadcasters_info', kwargs={'content_type_id': content_type, 'object_id': object.pk })
         return ''
+
 
 def display_action(parser, token):
     """
@@ -272,13 +279,11 @@ def display_action(parser, token):
     """
     return DisplayAction.handle_token(parser, token)
 
+
 def render_action(parser, token):
     bits = token.split_contents()
     return RenderAction(bits[1])
 
-def render_target_action(parser, token):
-    bits = token.split_contents()
-    return RenderTargetAction(bits[1])
 
 def is_following(user, actor):
     """
@@ -291,6 +296,32 @@ def is_following(user, actor):
         {% endif %}
     """
     return Follow.objects.is_following(user, actor)
+
+
+class IsFollowing(AsNode):
+    args_count = 3
+
+    def render_result(self, context):
+        user = self.args[0].resolve(context)
+        actor = self.args[1].resolve(context)
+        flag = self.args[2].resolve(context)
+
+        return Follow.objects.is_following(user, actor, flag=flag)
+
+
+def is_following_tag(parser, token):
+    """
+    Returns true if the given user is following the actor marked by a flag, such as 'liking', 'watching' etc..
+    You can also save the returned value to a template variable by as syntax.
+    If you don't want to specify a flag, pass an empty string or use `is_following` template filter.
+
+    Example::
+
+        {% is_following user group "liking" %}
+        {% is_following user group "liking" as is_liking %}
+        {% is_following user group "" as is_following %}
+    """
+    return IsFollowing.handle_token(parser, token)
 
 
 def follow_activity_url(parser, token):
@@ -306,12 +337,25 @@ def follow_activity_url(parser, token):
                 follow
             {% endif %}
         </a>
+
+        <a href="{% follow_url other_user 'watching' %}">
+            {% is_following user group "watching" as is_watching %}
+            {% if is_watching %}
+                stop watching
+            {% else %}
+                watch
+            {% endif %}
+        </a>
     """
     bits = token.split_contents()
-    if len(bits) != 2:
-        raise TemplateSyntaxError("Accepted format {% follow_activity_url [instance] %}")
-    else:
+
+    if len(bits) > 3:
+        raise TemplateSyntaxError("Accepted format {% follow_activity_url [instance] %} or {% follow_activity_url [instance] [flag] %}")
+    elif len(bits) == 2:
         return DisplayActivityFollowUrl(bits[1])
+    else:
+        flag = bits[2][1:-1]
+        return DisplayActivityFollowUrl(bits[1], flag=flag)
 
 
 def follow_all_url(parser, token):
@@ -327,12 +371,26 @@ def follow_all_url(parser, token):
                 follow
             {% endif %}
         </a>
+
+        <a href="{% follow_all_url other_user 'watching' %}">
+            {% is_following user group "watching" as is_watching %}
+            {% if is_watching %}
+                stop watching
+            {% else %}
+                watch
+            {% endif %}
+        </a>
     """
     bits = token.split_contents()
-    if len(bits) != 2:
-        raise TemplateSyntaxError("Accepted format {% follow_all_url [instance] %}")
-    else:
+    if len(bits) > 3:
+        raise TemplateSyntaxError(
+            "Accepted format {% follow_all_url [instance] %} or {% follow_url [instance] [flag] %}"
+        )
+    elif len(bits) == 2:
         return DisplayActivityFollowUrl(bits[1], actor_only=False)
+    else:
+        flag = bits[2][1:-1]
+        return DisplayActivityFollowUrl(bits[1], actor_only=False, flag=flag)
 
 
 def actor_url(parser, token):
@@ -352,6 +410,7 @@ def actor_url(parser, token):
     else:
         return DisplayActivityActorUrl(*bits[1:])
 
+
 def following_feed_url(parser, token):
     """
     Renders the URL for a particular actor instance
@@ -368,6 +427,7 @@ def following_feed_url(parser, token):
                                   "{% follower_feed_url [actor_instance] %}")
     else:
         return DisplayFollowerActivityUrl(*bits[1:])
+
 
 def following_feedsubset_url(parser, token):
     """
@@ -386,9 +446,11 @@ def following_feedsubset_url(parser, token):
     else:
         return DisplayFollowerActivitySubsetUrl.handle_token(parser, token)
 
+
 def share_action_url(parser, token):
     bits = token.split_contents()
     return ShareActivityUrl(*bits[1:])
+
 
 def get_share_count(parser, token):
     bits = token.contents.split()
@@ -396,7 +458,8 @@ def get_share_count(parser, token):
         raise TemplateSyntaxError("'%s' tag takes exactly three arguments" % bits[0])
     if bits[2] != 'as':
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
-    return ShareObjectActivityCount(bits[1], bits[3])
+    return ShareActivityCount(bits[1], bits[3])
+
 
 def can_share_action(parser, token):
     bits = token.contents.split()
@@ -406,9 +469,11 @@ def can_share_action(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return CanShareActivity(bits[1], bits[3])
 
+
 def delete_action_url(parser, token):
     bits = token.split_contents()
     return DeleteActivityUrl(*bits[1:])
+
 
 def actor_url_subset(parser, token):
     """
@@ -426,6 +491,7 @@ def actor_url_subset(parser, token):
     else:
         return DisplayActivitySubsetActorUrl.handle_token(parser, token)
 
+
 def activity_refresh_cache(parser, token):
     """
     Refreshes the user activity feed cache
@@ -437,6 +503,20 @@ def activity_refresh_cache(parser, token):
                                   "{% activity_refresh_cache [actor_instance] %}")
     else:
         return FollowerActivityRebuildCache(*bits[1:])
+
+
+def activity_actor_refresh_cache(parser, token):
+    """
+    Refreshes the user activity feed cache
+
+    """
+    bits = token.split_contents()
+    if len(bits) != 2:
+        raise TemplateSyntaxError("Accepted format "
+                                  "{% activity_actor_refresh_cache [actor_instance] %}")
+    else:
+        return FollowerActivityActorRebuildCache(*bits[1:])
+
 
 def activity_dynamic_update(parser, token):
     """
@@ -450,6 +530,7 @@ def activity_dynamic_update(parser, token):
     else:
         return FollowerActivityDynamicUpdate(*bits[1:])
 
+
 def activity_pending_action_count(parser, token):
     """
     Refreshes the user activity feed cache
@@ -461,6 +542,7 @@ def activity_pending_action_count(parser, token):
                                   "{% activity_pending_action_count [actor_instance] %}")
     else:
         return FollowerActivityPendingCount(*bits[1:])
+
 
 def do_broadcasters_for_object(parser, token):
     """
@@ -478,34 +560,6 @@ def do_broadcasters_for_object(parser, token):
         raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return BroadcastersForObjectNode(bits[1], bits[3])
 
-def do_broadcasters_chunk_for_object(parser, token):
-    """
-    Retrieves the sub list of broadcasters for an action and stores them in a context variable which has
-    ``broadcasters`` property.
-
-    Example usage::
-
-        {% broadcasters_chunk_for_object object sindex lindex as url %}
-    """
-    bits = token.split_contents()
-    if len(bits) != 6:
-        raise TemplateSyntaxError("Accepted format "
-                                  "{% broadcasters_chunk_for_object object sindex lindex as url %}")
-    else:
-        return BroadcastersChunkForObjectNode.handle_token(parser, token)
-
-class BroadcastersChunkForObjectNode(AsNode):
-    def render_result(self, context):
-        try:
-            object = self.args[0].resolve(context)
-            sIndex = self.args[1].resolve(context)
-            lIndex = self.args[2].resolve(context)
-            content_type = ContentType.objects.get_for_model(object).pk
-        except VariableDoesNotExist:
-            return ''
-        
-        return reverse('get_broadcasters_chunk_info', kwargs={
-            'content_type_id': content_type, 'object_id': object.pk, 'sIndex':sIndex, 'lIndex':lIndex})
 
 def get_class_name(obj):
     return obj.__class__.__name__
@@ -513,32 +567,9 @@ def get_class_name(obj):
 
 @register.inclusion_tag("actstream/render_album.html", takes_context=True)
 def render_album(context, album):
-    
+
     context.update({
         "image_list": album.images.all().order_by('-created'),
-    })
-    return context
-
-@register.inclusion_tag("actstream/render_review_actstream.html", takes_context=True)
-def render_review_actstream(context, comment):
-    context.update({
-        "comment": comment,
-    })
-    return context
-
-
-@register.inclusion_tag("actstream/render_wish_actstream.html", takes_context=True)
-def render_wish_actstream(context, wish):
-    context.update({
-        "wish": wish,
-    })
-    return context
-
-
-@register.inclusion_tag("actstream/render_deal_actstream.html", takes_context=True)
-def render_deal_acstream(context, deal):
-    context.update({
-        "deal": deal,
     })
     return context
 
@@ -546,6 +577,7 @@ def render_deal_acstream(context, deal):
 @register.filter
 def get_value_from_dict(dictionary, key):
     return dictionary.get(key)
+
 
 def do_get_list_of_batched_action_ids(parser, token):
     """
@@ -563,6 +595,7 @@ def do_get_list_of_batched_action_ids(parser, token):
         raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetListOfBatchedActionIDs(bits[2])
 
+
 class GetListOfBatchedActionIDs(Node):
     def __init__(self, context_var):
         self.context_var = context_var
@@ -570,48 +603,15 @@ class GetListOfBatchedActionIDs(Node):
     def render(self, context):
         try:
             user = context['request'].user
-            action_id_maps = context["request"].session.get("batched_following_actions" ,dict())
+            action_id_maps = cache.get(user.username+"batched_actions")
             action_id_list = []
+            if action_id_maps:
+                action_id_list = action_id_maps.values()
         except VariableDoesNotExist:
             return ''
-        if action_id_maps:
-            for k, v in action_id_maps.items():
-                action_id_list += v
-        context[self.context_var] = action_id_list
+        context[self.context_var] = list(itertools.chain(*action_id_list))
         return ''
 
-def do_get_list_of_batched_actor_action_ids(parser, token):
-    """
-    Retrieves the list of broadcasters for an action and stores them in a context variable which has
-    ``broadcasters`` property.
-
-    Example usage::
-
-        {% do_get_list_of_batched_actor_action_ids as voters %}
-    """
-    bits = token.contents.split()
-    if len(bits) != 3:
-        raise template.TemplateSyntaxError("'%s' tag takes exactly two arguments" % bits[0])
-    if bits[1] != 'as':
-        raise template.TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
-    return GetListOfBatchedActorActionIDs(bits[2])
-
-class GetListOfBatchedActorActionIDs(Node):
-    def __init__(self, context_var):
-        self.context_var = context_var
-
-    def render(self, context):
-        try:
-            user = context['request'].user
-            action_id_maps = context["request"].session.get("batched_actor_actions" ,dict())
-            action_id_list = []
-        except VariableDoesNotExist:
-            return ''
-        if action_id_maps:
-            for k, v in action_id_maps.items():
-                action_id_list += v
-        context[self.context_var] = action_id_list
-        return ''
 
 def do_get_action_target(parser, token):
     """
@@ -629,6 +629,7 @@ def do_get_action_target(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetActionTarget(bits[1],bits[3])
 
+
 class GetActionTarget(Node):
     def __init__(self, action_id, context_var):
         self.action_id = action_id
@@ -636,12 +637,13 @@ class GetActionTarget(Node):
 
     def render(self, context):
         try:
-            action_id = Variable(self.action_id, context)
+            action_id = template.Variable(self.action_id).resolve(context)
             action_object = Action.objects.get(id=action_id)
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = action_object.target
         return ''
+
 
 def do_get_batched_targets(parser, token):
     """
@@ -659,6 +661,7 @@ def do_get_batched_targets(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetBatchedTargets(bits[1],bits[2],bits[4])
 
+
 class GetBatchedTargets(Node):
     def __init__(self, action_ids, parent_action_id, context_var):
         self.action_ids = action_ids
@@ -667,8 +670,8 @@ class GetBatchedTargets(Node):
 
     def render(self, context):
         try:
-            action_ids = Variable(self.action_ids, context)
-            parent_action_id = Variable(self.parent_action_id, context)
+            action_ids = template.Variable(self.action_ids).resolve(context)
+            parent_action_id = template.Variable(self.parent_action_id).resolve(context)
             targets = []
             if action_ids:
                 for action_id in action_ids:
@@ -679,11 +682,12 @@ class GetBatchedTargets(Node):
             parent_action_object = Action.objects.get(id=parent_action_id)
             parent_action_target = parent_action_object.target
             if parent_action_target in unique_targets:
-                unique_targets.remove(parent_action_target)    
+                unique_targets.remove(parent_action_target)
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = unique_targets
         return ''
+
 
 def do_get_action_actor(parser, token):
     """
@@ -708,12 +712,13 @@ class GetActionActor(Node):
 
     def render(self, context):
         try:
-            action_id = Variable(self.action_id, context)
+            action_id = template.Variable(self.action_id).resolve(context)
             action_object = Action.objects.get(id=action_id)
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = action_object.actor
         return ''
+
 
 def do_get_batched_actors(parser, token):
     """
@@ -731,6 +736,7 @@ def do_get_batched_actors(parser, token):
         raise TemplateSyntaxError("second argument to '%s' tag must be 'as'" % bits[0])
     return GetBatchedActors(bits[1],bits[2],bits[4])
 
+
 class GetBatchedActors(Node):
     def __init__(self, action_ids, parent_action_id, context_var):
         self.action_ids = action_ids
@@ -739,8 +745,8 @@ class GetBatchedActors(Node):
 
     def render(self, context):
         try:
-            action_ids = Variable(self.action_ids, context)
-            parent_action_id = Variable(self.parent_action_id, context)
+            action_ids = template.Variable(self.action_id)s.resolve(context)
+            parent_action_id = template.Variable(self.parent_action_id).resolve(context)
             actors = []
             if action_ids:
                 for action_id in action_ids:
@@ -751,17 +757,41 @@ class GetBatchedActors(Node):
             parent_action_object = Action.objects.get(id=parent_action_id)
             parent_actor = parent_action_object.actor
             if parent_actor in unique_actors:
-                unique_actors.remove(parent_actor)    
+                unique_actors.remove(parent_actor)
         except VariableDoesNotExist:
             return ''
         context[self.context_var] = unique_actors
         return ''
 
+
+def activity_stream(context, stream_type, *args, **kwargs):
+    """
+    Renders an activity stream as a list into the template's context.
+    Streams loaded by stream_type can be the default ones (eg user, actor, etc.) or a user defined stream.
+    Extra args/kwargs are passed into the stream call.
+
+    ::
+
+        {% activity_stream 'actor' user %}
+        {% for action in stream %}
+            {% display_action action %}
+        {% endfor %}
+    """
+    if stream_type == 'model':
+        stream_type = 'model_actions'
+    if not hasattr(Action.objects, stream_type):
+        raise TemplateSyntaxError('Action manager has no attribute: %s' % stream_type)
+    ctxvar = kwargs.pop('as', 'stream')
+    context[ctxvar] = getattr(Action.objects, stream_type)(*args, **kwargs)
+    return ''
+
+
+register.filter(activity_stream)
 register.filter(is_following)
 register.filter(get_class_name)
+register.tag(name='is_following', compile_function=is_following_tag)
 register.tag(display_action)
 register.tag(render_action)
-register.tag(render_target_action)
 register.tag(follow_activity_url)
 register.tag(follow_all_url)
 register.tag(actor_url)
@@ -769,6 +799,7 @@ register.tag(actor_url_subset)
 register.tag(following_feed_url)
 register.tag(following_feedsubset_url)
 register.tag(activity_refresh_cache)
+register.tag(activity_actor_refresh_cache)
 register.tag(activity_dynamic_update)
 register.tag(activity_pending_action_count)
 register.tag(get_share_count)
@@ -776,13 +807,13 @@ register.tag(share_action_url)
 register.tag(delete_action_url)
 register.tag(can_share_action)
 register.tag('broadcasters_for_object', do_broadcasters_for_object)
-register.tag('broadcasters_chunk_for_object', do_broadcasters_chunk_for_object)
 register.tag('get_list_of_batched_action_ids', do_get_list_of_batched_action_ids)
-register.tag('get_list_of_batched_actor_action_ids', do_get_list_of_batched_actor_action_ids)
 register.tag('get_action_target',do_get_action_target)
 register.tag('get_action_actor',do_get_action_actor)
 register.tag('get_batched_actors', do_get_batched_actors)
 register.tag('get_batched_targets', do_get_batched_targets)
+
+
 @register.filter
 def backwards_compatibility_check(template_name):
     backwards = False
@@ -794,9 +825,6 @@ def backwards_compatibility_check(template_name):
         template_name = template_name.replace('actstream/', 'activity/')
     return template_name
 
-@register.simple_tag
-def settings_actstream_verb(verb):
-    return settings.ACTSTREAM_VERB_DICT[verb]
 
 @register.simple_tag
 def review_verb_linkify(action):
@@ -805,29 +833,14 @@ def review_verb_linkify(action):
         obj = action.target
     elif get_class_name(action.action_object) == "Review":
         obj = action.action_object
-    
+
     if obj:
-        linkified_url = ""
-        blog = obj.content_object
-        user = obj.user
-        if (action.verb == settings.REVIEW_LIKE_VERB or action.verb == settings.REVIEW_COMMENT_VERB or action.verb == settings.REVIEW_COMMENT_LIKE_VERB):
-            user_url = user.get_absolute_url()
-            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+user_url+"\">" + (user.first_name + " " + user.last_name).title() + "</a>'s&nbsp;"
-            blog_url = blog.get_absolute_url()
-            linkified_url += "<a class='radioColor fontHelvetica fontSize13' href=\""+blog_url+"\">" + blog.title.title() + "</a>&nbsp;"
-            url = reverse('render_review', kwargs={
-                'blog_slug': blog.slug, 'review_id': obj.id})
-            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a>"
-        elif (action.verb == settings.REVIEW_POST_VERB):
-            url = reverse('render_review', kwargs={
-                'blog_slug': blog.slug, 'review_id': obj.id})
-            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a>'ed "
-            blog_url = blog.get_absolute_url()
-            linkified_url += "<a class='radioColor fontHelvetica fontSize13' href=\""+blog_url+"\">" + blog.title.title() + "</a>"
-        else:
-            url = reverse('render_review', kwargs={
-                'blog_slug': blog.slug, 'review_id': obj.id})
-            linkified_url += "<a class='radioColor fontTitillium1 fontSize13' href=\""+url+"\">review</a>"
+        url = reverse('render_review', kwargs={
+            'blog_slug': obj.content_object.slug, 'review_id': obj.id})
+        linkified_url = "<a href=\""+url+"\">review</a>"
         pattern = re.compile("review", re.IGNORECASE)
-        return pattern.sub(linkified_url, settings.ACTSTREAM_VERB_DICT[action.verb])
+        return pattern.sub(linkified_url, action.verb)
     return ""
+
+
+register.simple_tag(takes_context=True)(activity_stream)

@@ -1,4 +1,4 @@
-{% extends 'base.html' %}
+{% extends 'actstream/base.html' %}
 {% load activity_tags i18n %}
 {% block extra_head %}
 <script>
@@ -13,27 +13,27 @@ $(function () {
 {% endblock %}
 
 
-{% block title %}{% ifequal request.user actor %}Your feed{% else %}{{ actor }}{% endifequal %}{% endblock %}
-{% block content_title %}{% ifequal request.user actor %}Your feed{% else %}{{ actor }}{% endifequal %}{% endblock %}
+{% block title %}{% ifequal user actor %}Your feed{% else %}{{ actor }}{% endifequal %}{% endblock %}
+{% block content_title %}{% ifequal user actor %}Your feed{% else %}{{ actor }}{% endifequal %}{% endblock %}
 
 {% block navlinks %}
-<li><a href="{% url actstream_object_feed content_type_id=ctype.pk  object_id=actor.pk %}">RSS</a></li>
-<li><a href="{% url actstream_object_feed_atom content_type_id=ctype.pk  object_id=actor.pk %}">ATOM</a></li>
-{% ifequal request.user actor %}{% else %}
+<li><a href="{% url 'actstream_object_feed' content_type_id=ctype.pk  object_id=actor.pk %}">RSS</a></li>
+<li><a href="{% url 'actstream_object_feed_atom' content_type_id=ctype.pk  object_id=actor.pk %}">ATOM</a></li>
+{% ifequal user actor %}{% else %}
     <li>
-        <a href="{% url actstream_unfollow content_type_id=ctype.pk  object_id=actor.pk %}" id="unfollow_button" style="display:none">{% trans "UNFOLLOW" %}</a>
-        <a href="{% url actstream_follow content_type_id=ctype.pk  object_id=actor.pk %}" id="follow_button" >{% trans "FOLLOW" %}</a>
+        <a href="{% url 'actstream_unfollow' content_type_id=ctype.pk  object_id=actor.pk %}" id="unfollow_button" style="display:none">{% trans "UNFOLLOW" %}</a>
+        <a href="{% url 'actstream_follow' content_type_id=ctype.pk  object_id=actor.pk %}" id="follow_button" >{% trans "FOLLOW" %}</a>
     </li>
 {% endifequal %}
 {% endblock %}
 
 {% block content %}
-{% if request.user.is_authenticated %}
-<p><b><a href="{% actor_url request.user %}">{% trans "View my actions" %}</a></b></p>
+{% if user.is_authenticated %}
+<p><b><a href="{% actor_url user %}">{% trans "View my actions" %}</a></b></p>
 {% endif %}
 <ul>
 {% for action in action_list %}
-    <li>{% include 'actstream/action.html'|backwards_compatibility_check %}</li>
+    <li>{% include 'actstream/action.html' %}</li>
 {% empty %}
 {% trans "No actions yet" %}
 {% endfor %}

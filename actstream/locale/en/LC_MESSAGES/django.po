@@ -8,7 +8,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: PACKAGE VERSION\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2012-07-30 14:18-0400\n"
+"POT-Creation-Date: 2015-06-15 09:46-0400\n"
 "PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -17,65 +17,69 @@ msgstr ""
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 
-#: actions.py:43
+#: actions.py:45
 msgid "started following"
 msgstr ""
 
-#: actions.py:64
+#: actions.py:66
 msgid "stopped following"
-msgstr ""
-
-#: models.py:111
-#, python-format
-msgid "%(actor)s %(verb)s %(action_object)s on %(target)s %(timesince)s ago"
-msgstr ""
-
-#: models.py:112
-#, python-format
-msgid "%(actor)s %(verb)s %(target)s %(timesince)s ago"
-msgstr ""
-
-#: models.py:114
-#, python-format
-msgid "%(actor)s %(verb)s %(action_object)s %(timesince)s ago"
 msgstr ""
 
 #: models.py:115
 #, python-format
+msgid "%(actor)s %(verb)s %(action_object)s on %(target)s %(timesince)s ago"
+msgstr ""
+
+#: models.py:116
+#, python-format
+msgid "%(actor)s %(verb)s %(target)s %(timesince)s ago"
+msgstr ""
+
+#: models.py:118
+#, python-format
+msgid "%(actor)s %(verb)s %(action_object)s %(timesince)s ago"
+msgstr ""
+
+#: models.py:119
+#, python-format
 msgid "%(actor)s %(verb)s %(timesince)s ago"
 msgstr ""
 
-#: templates/activity/action.html:8
+#: templates/actstream/action.html:13
 msgid "ago"
 msgstr ""
 
-#: templates/activity/actor.html:24
+#: templates/actstream/actor.html:24
 msgid "UNFOLLOW"
 msgstr ""
 
-#: templates/activity/actor.html:25
+#: templates/actstream/actor.html:25
 msgid "FOLLOW"
 msgstr ""
 
-#: templates/activity/actor.html:32
+#: templates/actstream/actor.html:32
 msgid "View my actions"
 msgstr ""
 
-#: templates/activity/actor.html:38
+#: templates/actstream/actor.html:38
 msgid "No actions yet"
 msgstr ""
 
-#: templates/activity/detail.html:3
+#: templates/actstream/detail.html:3
 #, python-format
 msgid "On %(date)s at %(time)s"
 msgstr ""
 
-#: templates/activity/followers.html:2
+#: templates/actstream/followers.html:2
 #, python-format
 msgid "Users following %(actor)s"
 msgstr ""
 
-#: templates/activity/following.html:2
+#: templates/actstream/following.html:2
 #, python-format
 msgid "Actors that %(user)s follows"
+msgstr ""
+
+#: tests/test_activity.py:213
+msgid "English"
 msgstr ""

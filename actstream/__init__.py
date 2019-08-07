@@ -1,25 +1,8 @@
 try:
     from actstream.signals import action
-except ImportError:
+except:
     pass
 
-__version_info__ = {
-    'major': 0,
-    'minor': 4,
-    'micro': 4,
-    'releaselevel': 'final',
-    'serial': 0
-}
-
-
-def get_version(release_level=True):
-    """
-    Return the formatted version information
-    """
-    vers = ["%(major)i.%(minor)i.%(micro)i" % __version_info__]
-    if release_level and __version_info__['releaselevel'] != 'final':
-        vers.append('%(releaselevel)s%(serial)i' % __version_info__)
-    return ''.join(vers)
-
-
-__version__ = get_version()
+__version__ = '0.8.0'
+__author__ = 'Asif Saif Uddin, Justin Quick <justquick@gmail.com>'
+default_app_config = 'actstream.apps.ActstreamConfig'
