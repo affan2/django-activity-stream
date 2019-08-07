@@ -745,7 +745,7 @@ class GetBatchedActors(Node):
 
     def render(self, context):
         try:
-            action_ids = template.Variable(self.action_id)s.resolve(context)
+            action_ids = template.Variable(self.action_id).resolve(context)
             parent_action_id = template.Variable(self.parent_action_id).resolve(context)
             actors = []
             if action_ids:

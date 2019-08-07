@@ -1,6 +1,6 @@
 from json import loads
 from datetime import datetime
-from inspect import getargspec
+from inspect import getfullargspec
 
 from django.apps import apps
 from django.test import TestCase
@@ -91,7 +91,7 @@ class DataTestCase(ActivityBaseTestCase):
         super(DataTestCase, self).setUp()
         self.group = Group.objects.create(name='CoolGroup')
         self.another_group = Group.objects.create(name='NiceGroup')
-        if 'email' in getargspec(self.User.objects.create_superuser).args:
+        if 'email' in getfullargspec(self.User.objects.create_superuser).args:
             self.user1 = self.User.objects.create_superuser('admin', 'admin@example.com', 'admin')
             self.user2 = self.User.objects.create_user('Two', 'two@example.com')
             self.user3 = self.User.objects.create_user('Three', 'three@example.com')
