@@ -1,4 +1,4 @@
-from __future__ import unicode_literals
+
 
 
 from django.db import models
@@ -30,8 +30,8 @@ from actstream.actions import action_handler
 
 
 STATE_TYPES = (
-    (-1, u'Deleted'),
-    (1, u'Published'),
+    (-1, 'Deleted'),
+    (1, 'Published'),
 )
 
 

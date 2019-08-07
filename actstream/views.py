@@ -238,7 +238,7 @@ def merge_action_subset_op(request, activity_queryset, sIndex, lIndex):
         if activity.is_batchable:
             is_batched=False
 
-            for value in batched_actions.values():
+            for value in list(batched_actions.values()):
                 if activity.id in value:
                     is_batched = True
 
@@ -335,7 +335,7 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
             action_id_maps = batched_actions
             action_id_list = []
             if action_id_maps:
-                action_id_list = action_id_maps.values()
+                action_id_list = list(action_id_maps.values())
         except VariableDoesNotExist:
             return ''
         batched_ids = list(itertools.chain(*action_id_list))

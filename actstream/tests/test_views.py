@@ -16,7 +16,7 @@ class ViewsTest(DataTestCase):
 
     def assertQSEqual(self, qs1, qs2):
         attrs = lambda item: dict([(key, value)
-                                   for key, value in item.__dict__.items()
+                                   for key, value in list(item.__dict__.items())
                                    if not key.startswith('_')])
         self.assertEqual(len(qs1), len(qs2))
         for i, item in enumerate(qs1):

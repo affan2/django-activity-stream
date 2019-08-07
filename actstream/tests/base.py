@@ -53,7 +53,7 @@ class ActivityBaseTestCase(TestCase):
 
     def assertSetEqual(self, l1, l2, msg=None, domap=True):
         if domap:
-            l1 = map(text_type, l1)
+            l1 = list(map(text_type, l1))
         self.assertSequenceEqual(set(l1), set(l2), msg)
 
     def assertAllIn(self, bits, string):

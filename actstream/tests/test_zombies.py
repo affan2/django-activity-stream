@@ -46,7 +46,7 @@ class ZombieTest(ActivityBaseTestCase):
     def check_query_count(self, queryset):
         ci = len(connection.queries)
 
-        result = list([map(text_type, (x.actor, x.target, x.action_object))
+        result = list([list(map(text_type, (x.actor, x.target, x.action_object)))
                        for x in queryset])
         self.assertTrue(len(connection.queries) - ci <= 4,
                         'Too many queries, got %d expected no more than 4' %
