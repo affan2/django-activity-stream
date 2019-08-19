@@ -119,7 +119,7 @@ class DataTestCase(ActivityBaseTestCase):
         follow(self.user2, self.group, timestamp=self.testdate)
 
         # User1 comments on group
-        # Use a site object here and predict the "__unicode__ method output"
+        # Use a site object here and predict the "__str__ method output"
         action.send(self.user1, verb='commented on', target=self.group,
                     timestamp=self.testdate)
 
