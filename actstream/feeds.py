@@ -1,4 +1,5 @@
 import json
+from abc import ABC
 
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import ObjectDoesNotExist
@@ -168,7 +169,7 @@ class ActivityStreamsAtomFeed(Atom1Feed):
             self.item_quick_handler(handler, 'activity:target', target)
 
 
-class ActivityStreamsBaseFeed(AbstractActivityStream, Feed):
+class ActivityStreamsBaseFeed(AbstractActivityStream, Feed, ABC):
 
     def feed_extra_kwargs(self, obj):
         """
@@ -209,7 +210,7 @@ class ActivityStreamsBaseFeed(AbstractActivityStream, Feed):
         return self.get_stream()(obj)[:30]
 
 
-class JSONActivityFeed(AbstractActivityStream, View):
+class JSONActivityFeed(AbstractActivityStream, View, ABC):
     """
     Feed that generates feeds compatible with the v1.0 JSON Activity Stream spec
     """
