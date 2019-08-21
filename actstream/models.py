@@ -1,6 +1,3 @@
-
-
-
 from django.db import models
 from django.utils.timesince import timesince as djtimesince
 from django.conf import settings
