@@ -45,9 +45,9 @@ class ActivityBaseTestCase(TestCase):
     maxDiff = None
 
     def setUp(self):
-        self.User = get_user_model()
-        self.user_ct = ContentType.objects.get_for_model(self.User)
-        register(self.User)
+        self.get_user_model() = get_user_model()
+        self.user_ct = ContentType.objects.get_for_model(self.get_user_model())
+        register(self.get_user_model())
         for model in self.actstream_models:
             register(model)
 
@@ -70,7 +70,7 @@ class ActivityBaseTestCase(TestCase):
             model.objects.all().delete()
         Action.objects.all().delete()
         Follow.objects.all().delete()
-        self.User.objects.all().delete()
+        self.get_user_model().objects.all().delete()
 
     def capture(self, viewname, *args):
         response = self.client.get(reverse(viewname, args=args))
@@ -91,16 +91,16 @@ class DataTestCase(ActivityBaseTestCase):
         super(DataTestCase, self).setUp()
         self.group = Group.objects.create(name='CoolGroup')
         self.another_group = Group.objects.create(name='NiceGroup')
-        if 'email' in getfullargspec(self.User.objects.create_superuser).args:
-            self.user1 = self.User.objects.create_superuser('admin', 'admin@example.com', 'admin')
-            self.user2 = self.User.objects.create_user('Two', 'two@example.com')
-            self.user3 = self.User.objects.create_user('Three', 'three@example.com')
-            self.user4 = self.User.objects.create_user('Four', 'four@example.com')
+        if 'email' in getfullargspec(self.get_user_model().objects.create_superuser).args:
+            self.user1 = self.get_user_model().objects.create_superuser('admin', 'admin@example.com', 'admin')
+            self.user2 = self.get_user_model().objects.create_user('Two', 'two@example.com')
+            self.user3 = self.get_user_model().objects.create_user('Three', 'three@example.com')
+            self.user4 = self.get_user_model().objects.create_user('Four', 'four@example.com')
         else:
-            self.user1 = self.User.objects.create_superuser('admin', 'admin')
-            self.user2 = self.User.objects.create_user('Two')
-            self.user3 = self.User.objects.create_user('Three')
-            self.user4 = self.User.objects.create_user('Four')
+            self.user1 = self.get_user_model().objects.create_superuser('admin', 'admin')
+            self.user2 = self.get_user_model().objects.create_user('Two')
+            self.user3 = self.get_user_model().objects.create_user('Three')
+            self.user4 = self.get_user_model().objects.create_user('Four')
         # User1 joins group
         self.user1.groups.add(self.group)
         self.join_action = action.send(self.user1, verb='joined',

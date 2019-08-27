@@ -3,13 +3,12 @@ import json
 from django.shortcuts import get_object_or_404, render
 from django.template import VariableDoesNotExist
 from django.http import HttpResponseRedirect, HttpResponse
-
-from django.contrib.auth import get_user_model
 from django.contrib.auth.decorators import login_required
 from django.contrib.contenttypes.models import ContentType
 from django.views.decorators.csrf import csrf_exempt
 from django.db.models import Q
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from actstream import actions, models
 from actstream.models import Follow
@@ -324,7 +323,8 @@ def actstream_latest_activity_count(request, content_type_id, object_id):
                                                  settings.POST_COMMENT_LIKE_VERB, settings.REVIEW_LIKE_VERB, settings.PHOTO_LIKE_VERB,
                                                  settings.FOLLOW_VERB, settings.UNFOLLOW_VERB ]
 
-        activity_qs_unprocessed = activity_queryset.filter(id__gt=last_processed_id).exclude(Q(verb__in=disallowed_verbs_for_incremental_feed))
+        activity_qs_unprocessed = activity_queryset.filter(
+            id__gt=last_processed_id).exclude(Q(verb__in=disallowed_verbs_for_incremental_feed))
 
         if activity_qs_unprocessed and activity_qs_unprocessed.count() > 0:
             batched_actions = merge_action_subset_op(request, activity_qs_unprocessed, 0, activity_qs_unprocessed.count()-1)
@@ -482,7 +482,7 @@ def actstream_actor_subset(request, content_type_id, object_id, sIndex, lIndex):
     if activity is None:
         activity = models.actor_stream(actor).order_by('-timestamp')
         cache.set(actor.username+"perso", activity)
-        #return json_error_response("hellooo")
+        # return json_error_response("hellooo")
     s = (int)(""+sIndex)
     l = (int)(""+lIndex)
 

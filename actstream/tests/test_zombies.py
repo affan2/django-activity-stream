@@ -2,6 +2,7 @@ from random import choice
 
 from django.conf import settings
 from django.contrib.auth import get_user_model
+from django.contrib.auth import get_user_model
 from django.db import connection
 from django.utils.six import text_type
 
@@ -15,11 +16,11 @@ class ZombieTest(ActivityBaseTestCase):
     zombie = 1
 
     def setUp(self):
-        self.User = get_user_model()
+        self.get_user_model() = get_user_model()
         super(ZombieTest, self).setUp()
         settings.DEBUG = True
 
-        player_generator = lambda n, count: [self.User.objects.create(
+        player_generator = lambda n, count: [self.get_user_model().objects.create(
             username='%s%d' % (n, i)) for i in range(count)]
 
         self.humans = player_generator('human', self.human)
@@ -54,11 +55,11 @@ class ZombieTest(ActivityBaseTestCase):
         return result
 
     def test_query_count(self):
-        queryset = model_stream(self.User)
+        queryset = model_stream(self.get_user_model())
         result = self.check_query_count(queryset)
         self.assertEqual(len(result), 10)
 
     def test_query_count_sliced(self):
-        queryset = model_stream(self.User)[:5]
+        queryset = model_stream(self.get_user_model())[:5]
         result = self.check_query_count(queryset)
         self.assertEqual(len(result), 5)

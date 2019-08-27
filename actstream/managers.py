@@ -3,6 +3,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.db.models import Q
 
 from django.conf import settings
+from django.contrib.auth import get_user_model
 
 from actstream.gfk import GFKManager
 from actstream.decorators import stream

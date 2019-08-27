@@ -1,6 +1,7 @@
 from django.db import models
 from django.utils.timesince import timesince as djtimesince
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.fields import GenericForeignKey, GenericRelation
 from django.contrib.contenttypes.models import ContentType
 
@@ -8,7 +9,7 @@ try:
     from django.urls import reverse
 except ImportError:
     from django.core.urlresolvers import reverse
-from django.contrib.auth.models import User
+# from django.contrib.auth.models import User
 from django.contrib.sites.models import Site
 from django.urls import reverse
 from django.core.exceptions import ImproperlyConfigured
@@ -37,7 +38,7 @@ class Follow(models.Model):
     Lets a user follow the activities of any specific actor
     """
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=True
+        get_user_model(), on_delete=models.CASCADE, db_index=True
     )
 
     content_type = models.ForeignKey(

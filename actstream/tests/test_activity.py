@@ -49,13 +49,13 @@ class ActivityTestCase(DataTestCase):
 
     def test_following(self):
         self.assertEqual(list(following(self.user1)), [self.user2])
-        self.assertEqual(len(following(self.user2, self.User)), 0)
+        self.assertEqual(len(following(self.user2, self.get_user_model())), 0)
 
     def test_following_with_flag(self):
         self.assertCountEqual(list(following(self.user4, flag='liking')), [self.another_group, self.user1])
         self.assertEqual(list(following(self.user4, flag='watching')), [self.another_group])
         self.assertEqual(list(following(self.user4, flag='blacklisting')), [self.user3])
-        self.assertEqual(list(following(self.user4, self.User, flag='liking')), [self.user1])
+        self.assertEqual(list(following(self.user4, self.get_user_model(), flag='liking')), [self.user1])
 
     def test_followers(self):
         self.assertEqual(list(followers(self.group)), [self.user2])
@@ -120,7 +120,7 @@ class ActivityTestCase(DataTestCase):
 
     def test_doesnt_generate_duplicate_follow_records(self):
         g = Group.objects.get_or_create(name='DupGroup')[0]
-        s = self.User.objects.get_or_create(username='dupuser')[0]
+        s = self.get_user_model().objects.get_or_create(username='dupuser')[0]
 
         f1 = follow(s, g)
         self.assertTrue(f1 is not None, "Should have received a new follow "
@@ -145,7 +145,7 @@ class ActivityTestCase(DataTestCase):
     def test_following_models_OR_query(self):
         follow(self.user1, self.group, timestamp=self.testdate)
         self.assertSetEqual([self.user2, self.group],
-                            following(self.user1, Group, self.User), domap=False)
+                            following(self.user1, Group, self.get_user_model()), domap=False)
 
     def test_y_no_orphaned_follows(self):
         follows = Follow.objects.count()

@@ -9,6 +9,7 @@ from actstream.signals import action
 from actstream.registry import check
 
 from django.conf import settings as _settings
+from django.contrib.auth import get_user_model
 try:
     from django.utils import timezone
 

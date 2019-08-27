@@ -14,7 +14,7 @@ from .models import Abstract, Unregistered, MyUser
 class TestAppTests(ActivityBaseTestCase):
     def setUp(self):
         super(TestAppTests, self).setUp()
-        self.user = self.User.objects.create(username='test')
+        self.user = self.get_user_model().objects.create(username='test')
         action.send(self.user, verb='was created')
 
     def test_accessor(self):
@@ -61,7 +61,7 @@ class TestAppTests(ActivityBaseTestCase):
         )
 
     def test_customuser(self):
-        self.assertEqual(self.User, MyUser)
+        self.assertEqual(self.get_user_model(), MyUser)
         self.assertEqual(self.user.get_full_name(), 'test')
 
     if USE_JSONFIELD:

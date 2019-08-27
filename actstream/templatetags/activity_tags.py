@@ -12,6 +12,7 @@ from django.template.loader import get_template
 from django.core.cache import cache
 from django.contrib.auth.models import AnonymousUser
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django import template
 
 
