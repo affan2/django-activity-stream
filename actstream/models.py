@@ -25,6 +25,7 @@ except ImportError:
 from actstream import settings as actstream_settings, action
 from actstream.managers import FollowManager
 from actstream.actions import action_handler
+from django.conf import settings
 
 
 STATE_TYPES = (
@@ -38,7 +39,7 @@ class Follow(models.Model):
     Lets a user follow the activities of any specific actor
     """
     user = models.ForeignKey(
-        get_user_model(), on_delete=models.CASCADE, db_index=True
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, db_index=True
     )
 
     content_type = models.ForeignKey(
