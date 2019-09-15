@@ -15,7 +15,7 @@ If you register the app with this URL prefix you can obtain the feeds using the 
 
 .. code-block:: python
 
-    url('^activity/', include('actstream.urls'))
+    re_path'^activity/', include('actstream.urls'))
 
 :ref:`user-stream`
 
@@ -51,7 +51,7 @@ Custom JSON feeds based on your custom streams registered by :ref:`custom-stream
 
     # myapp/urls.py
     from actstream.feeds import CustomJSONActivityFeed
-    url(r'^feeds/mystream/(?P<verb>.+)/$',
+    re_path(r'^feeds/mystream/(?P<verb>.+)/$',
         CustomJSONActivityFeed.as_view(name='mystream'))
 
 
