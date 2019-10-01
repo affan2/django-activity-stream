@@ -42,7 +42,7 @@ def follow(user, obj, send_action=True, actor_only=True, flag='', **kwargs):
         follow(request.user, group, actor_only=False, flag='liking')
     """
 
-    from people.tasks import task_notice
+    from pinax.notifications.models import send as send_notification
 
     check(obj)
     follow, created = apps.get_model('actstream', 'follow').objects.get_or_create(
@@ -69,7 +69,7 @@ def follow(user, obj, send_action=True, actor_only=True, flag='', **kwargs):
                 ))
 
             if not obj.__class__.__name__ == 'Post':
-                task_notice.delay(
+                send_notification(
                     recipients,
                     "follower",
                     {'target': obj},
