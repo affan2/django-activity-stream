@@ -29,6 +29,8 @@ actstream/locale/nl/LC_MESSAGES/django.mo
 actstream/locale/nl/LC_MESSAGES/django.po
 actstream/locale/pt_BR/LC_MESSAGES/django.mo
 actstream/locale/pt_BR/LC_MESSAGES/django.po
+actstream/migrations/0001_initial.py
+actstream/migrations/__init__.py
 actstream/templates/base.html
 actstream/templates/actstream/action.html
 actstream/templates/actstream/actor.html
