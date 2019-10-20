@@ -136,8 +136,8 @@ class ActionManager(GFKManager):
             )
 
             # exclude current user except for certain actions
-            content_type_id = ContentType.objects.get_for_model(object.__class__())
-            q_ex = q_ex | Q(
+            content_type_id = ContentType.objects.get_for_model(obj.__class__)
+            q_ex = q | Q(
                 target_content_type=content_type_id,
                 target_object_id__in=object_ids,
                 verb__startswith="viewed"
