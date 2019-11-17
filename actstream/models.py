@@ -212,7 +212,7 @@ class Action(models.Model):
         Shortcut for the ``django.utils.timesince.timesince`` function of the
         current timestamp.
         """
-        return djtimesince(self.timestamp, now).replace(b'\xc2\xa0', b' ').decode('utf8')
+        return djtimesince(self.timestamp, now).replace(u'\xc2\xa0', u' ')
 
     def get_absolute_url(self):
         return reverse(
