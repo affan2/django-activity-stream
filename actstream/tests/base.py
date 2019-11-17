@@ -85,7 +85,7 @@ class DataTestCase(ActivityBaseTestCase):
 
     def setUp(self):
         self.testdate = datetime(2000, 1, 1)
-        self.timesince = timesince(self.testdate).encode('utf8').replace(
+        self.timesince = timesince(self.testdate).replace(
             b'\xc2\xa0', b' ').decode()
         self.group_ct = ContentType.objects.get_for_model(Group)
         super(DataTestCase, self).setUp()
