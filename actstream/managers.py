@@ -96,6 +96,7 @@ class ActionManager(GFKManager):
     def user(self, obj, with_user_activity=False, follow_flag=None, **kwargs):
         """Create a stream of the most recent actions by objects that the user is following."""
         q = Q()
+        q_ex = Q()
         qs = self.public()
 
         if not obj:
@@ -137,7 +138,7 @@ class ActionManager(GFKManager):
 
             # exclude current user except for certain actions
             content_type_id = ContentType.objects.get_for_model(obj.__class__)
-            q_ex = q | Q(
+            q_ex = q_ex | Q(
                 target_content_type=content_type_id,
                 target_object_id__in=object_ids,
                 verb__startswith="viewed"
